@@ -1,13 +1,12 @@
-// Local development schema (SQLite)
-// This file is used for local development only.
-// Production uses schema.prisma with PostgreSQL.
+// Production schema (PostgreSQL / Neon)
+// Local dev: change provider to "sqlite" and run bun run db:push
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
