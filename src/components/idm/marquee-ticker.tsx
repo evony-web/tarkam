@@ -289,8 +289,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     let containerWidth = 0;
     if (container) {
       containerWidth = container.offsetWidth;
-      offsetRef.current = containerWidth;
-      track.style.transform = `translateX(${offsetRef.current}px)`;
     }
 
     // Pause rAF when tab is hidden, resume when visible
@@ -318,12 +316,7 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
         const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
         const speed = isMobile ? MOBILE_SPEED : DESKTOP_SPEED;
 
-        // Smooth ease-out boost — faster when off-screen right, gradually slows to normal
-        // No abrupt speed change: 2x at far right → 1.5x at halfway → 1x at left edge
-        const boostFactor = (offsetRef.current > 0 && containerWidth > 0)
-          ? 1 + (offsetRef.current / containerWidth)
-          : 1;
-        const effectiveSpeed = speed * boostFactor;
+        const effectiveSpeed = speed;
 
         const pixelsToMove = (effectiveSpeed * delta) / 1000;
 
