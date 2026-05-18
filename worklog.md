@@ -333,3 +333,27 @@ Stage Summary:
 - Each navigation menu page now only shows the Page Title Banner (compact h1 + subtitle), not the duplicate SectionHeader below
 - On the landing page, SectionHeader still renders normally (hideHeader defaults to false)
 - This eliminates the redundant double-heading issue the user reported
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Refactor MyTournamentCard: hide "Belum Ada Turnamen" when empty, show search results in modal instead of inline
+
+Work Log:
+- Completely rewrote `/home/z/my-project/src/components/idm/my-tournament-card.tsx`
+- Removed overview query and all overview-related rendering (tournament status cards, live matches, champion card, top teams, recent results, upcoming matches, participants, help card)
+- Default view now only shows the search bar (no "Belum Ada Turnamen" card)
+- When user types name and clicks "Cari", a Dialog modal opens with tournament results
+- Modal has gradient header (division-themed), scrollable body, close button
+- Modal content shows all search result states: loading, error, not found, no active tournament, no team, full team dashboard with match history
+- Search results are rendered inside the modal instead of replacing the search bar inline
+- Removed framer-motion dependency (replaced with CSS animations)
+- Removed unused imports: motion, AnimatePresence, ArrowRight, Award, Gamepad2, MapPin, Heart, Flame, Radio, Calendar, Star, OverviewMatch/Team/Player types
+- Added Dialog/DialogContent/DialogHeader/DialogTitle/DialogDescription imports
+- Added X icon import for modal close button
+
+Stage Summary:
+- "Cari Turnamen Kamu" section on landing page now shows only the search bar when empty
+- No "Belum Ada Turnamen" text shown when no search is active
+- Search results display in a modal popup with division-themed header
+- Lint passes clean, TypeScript compiles without errors
