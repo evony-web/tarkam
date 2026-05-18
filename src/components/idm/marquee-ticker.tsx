@@ -14,8 +14,9 @@ import type { StatsData } from '@/types/stats';
 
 /* ========== Speed Configuration ========== */
 // Duration in seconds for one full scroll cycle — longer = slower (more readable)
-const DESKTOP_DURATION = 60;
-const MOBILE_DURATION = 90;
+// ESPN-style: fast enough to feel alive, slow enough to read headlines
+const DESKTOP_DURATION = 40;
+const MOBILE_DURATION = 50;
 const MOBILE_BREAKPOINT = 768;
 
 /* ========== Feed Item Types ========== */
@@ -173,16 +174,25 @@ interface UnifiedMarqueeProps {
 export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqueeProps = {}) {
   const qc = useQueryClient();
   const trackRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobileRef = useRef(false);
+  const [resizeTick, setResizeTick] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
 
-  // Cache isMobile — only update on resize, not every frame
+  // Track mobile via ref + force re-render on resize
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    check();
-    window.addEventListener('resize', check, { passive: true });
-    return () => window.removeEventListener('resize', check);
+    isMobileRef.current = window.innerWidth < MOBILE_BREAKPOINT;
+    const onResize = () => {
+      const now = window.innerWidth < MOBILE_BREAKPOINT;
+      if (isMobileRef.current !== now) {
+        isMobileRef.current = now;
+        setResizeTick(t => t + 1);
+      }
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  const isMobile = isMobileRef.current;
 
   const { resolvedTheme } = useTheme();
   const isLight = resolvedTheme === 'light';
@@ -306,11 +316,11 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
 
   // ★ CSS animation duration based on content count and device
   const scrollDuration = useMemo(() => {
-    // More items = longer duration to keep speed readable
+    // More items = longer duration, but cap the factor so it never feels stalled
     const baseDuration = isMobile ? MOBILE_DURATION : DESKTOP_DURATION;
-    const itemFactor = Math.max(1, combinedItems.length / 10);
+    const itemFactor = Math.max(1, Math.min(combinedItems.length / 10, 2.5));
     return Math.round(baseDuration * itemFactor);
-  }, [combinedItems.length, isMobile]);
+  }, [combinedItems.length, isMobile, resizeTick]);
 
   if (combinedItems.length === 0) return null;
 
@@ -337,9 +347,10 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
       `}</style>
       <div
         ref={trackRef}
-        className="flex items-center"
+        className="flex items-center marquee-track"
         style={{
           width: 'max-content',
+          willChange: 'transform',
           animation: `marquee-scroll ${scrollDuration}s linear infinite`,
           animationPlayState: isPaused ? 'paused' : 'running',
         }}
