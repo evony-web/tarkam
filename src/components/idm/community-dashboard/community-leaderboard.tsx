@@ -56,6 +56,9 @@ interface CommunityLeaderboardProps {
   onLeaderboardSortChange?: (sort: 'players' | 'clubs') => void;
   divisionFilter?: DivisionFilter;
   onDivisionFilterChange?: (filter: DivisionFilter) => void;
+  maxPlayers?: number;
+  maxClubs?: number;
+  onViewAll?: () => void;
 }
 
 type DivisionFilter = 'all' | 'male' | 'female';
@@ -69,6 +72,9 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
   onLeaderboardSortChange,
   divisionFilter: externalDivisionFilter,
   onDivisionFilterChange,
+  maxPlayers = 10,
+  maxClubs = 6,
+  onViewAll,
 }: CommunityLeaderboardProps) {
   const dt = useCommunityTheme();
   const division = useAppStore(s => s.division);
@@ -131,7 +137,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
     });
   }, [maleData, femaleData, divisionFilter]);
 
-  const displayedPlayers = showAllPlayers ? mergedPlayers : mergedPlayers.slice(0, 10);
+  const displayedPlayers = showAllPlayers ? mergedPlayers : mergedPlayers.slice(0, maxPlayers);
   const rawClubs = tarkamClubData?.clubs || [];
   // Filter clubs by division: male-only clubs, female-only clubs, or all
   const clubs = useMemo(() => {
@@ -142,7 +148,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
       return true;
     });
   }, [rawClubs, divisionFilter]);
-  const displayedClubs = showAllClubs ? clubs : clubs.slice(0, 6);
+  const displayedClubs = showAllClubs ? clubs : clubs.slice(0, maxClubs);
 
   return (
     <div className="space-y-4">
@@ -253,15 +259,24 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
               </Table>
             </div>
           </div>
-          {/* Show more / less toggle */}
-          {mergedPlayers.length > 10 && (
+          {/* Show more / less toggle or CTA */}
+          {mergedPlayers.length > maxPlayers && (
             <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-              <button
-                onClick={() => setShowAllPlayers(!showAllPlayers)}
-                className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
-              >
-                {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({mergedPlayers.length})</>}
-              </button>
+              {onViewAll ? (
+                <button
+                  onClick={onViewAll}
+                  className="flex items-center gap-1.5 text-[10px] font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                >
+                  <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({mergedPlayers.length} Pemain)
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowAllPlayers(!showAllPlayers)}
+                  className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                >
+                  {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({mergedPlayers.length})</>}
+                </button>
+              )}
             </div>
           )}
         </Card>
@@ -378,14 +393,23 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                   </Table>
                 </div>
               </div>
-              {clubs.length > 6 && (
+              {clubs.length > maxClubs && (
                 <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-                  <button
-                    onClick={() => setShowAllClubs(!showAllClubs)}
-                    className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
-                  >
-                    {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({clubs.length})</>}
-                  </button>
+                  {onViewAll ? (
+                    <button
+                      onClick={onViewAll}
+                      className="flex items-center gap-1.5 text-[10px] font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                    >
+                      <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({clubs.length} Klub)
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowAllClubs(!showAllClubs)}
+                      className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                    >
+                      {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({clubs.length})</>}
+                    </button>
+                  )}
                 </div>
               )}
             </>

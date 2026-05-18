@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { Award } from 'lucide-react';
 import { SectionHeader } from './shared';
 import { CommunityLeaderboard, PeringkatHeader } from '../community-dashboard/community-leaderboard';
+import { useAppStore } from '@/lib/store';
 import type { StatsData, TopPlayer } from '@/types/stats';
 
 type DivisionFilter = 'all' | 'male' | 'female';
@@ -25,6 +26,7 @@ export function PeringkatSection({
   setSelectedClub,
   hideHeader = false,
 }: PeringkatSectionProps) {
+  const setCurrentView = useAppStore(s => s.setCurrentView);
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
 
@@ -92,6 +94,9 @@ export function PeringkatSection({
             onLeaderboardSortChange={setLeaderboardSort}
             divisionFilter={divisionFilter}
             onDivisionFilterChange={setDivisionFilter}
+            maxPlayers={5}
+            maxClubs={5}
+            onViewAll={() => setCurrentView('peringkat')}
           />
         </div>
       </div>
