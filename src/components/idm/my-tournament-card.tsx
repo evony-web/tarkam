@@ -475,7 +475,7 @@ export function MyTournamentCard() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-bold text-gradient-fury">Cari Turnamen Kamu</h3>
-            <p className="text-[10px] text-muted-foreground">Ketik nama atau nickname lalu tekan Cari</p>
+            <p className="text-[10px] text-muted-foreground">Ketik nama atau nickname lalu tekan Enter / Cari</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -486,7 +486,7 @@ export function MyTournamentCard() {
               placeholder="Contoh: montiel, Afroki..."
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSearch(); } }}
               className="pl-9 h-11 text-sm bg-background border-2 border-idm-gold/30 focus:border-idm-gold placeholder:text-muted-foreground/60 rounded-lg"
               maxLength={30}
               autoComplete="off"
