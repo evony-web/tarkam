@@ -286,6 +286,7 @@ export function LandingPage() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [donationModalOpen, setDonationModalOpen] = useState(false);
   const [paymentModalDivision, setPaymentModalDivision] = useState<'male' | 'female'>('male');
+  const [donationTournamentId, setDonationTournamentId] = useState<string | null>(null);
 
   /* Mobile performance: defer non-critical queries on small screens */
   const [deferredQueriesReady, setDeferredQueriesReady] = useState(false);
@@ -774,7 +775,13 @@ export function LandingPage() {
         onEnterApp={enterApp}
         onRegister={(div) => { setRegistrationDefaultDivision(div || null); setRegistrationModalOpen(true); }}
         onPayment={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
-        onDonate={(div) => { setPaymentModalDivision(div); setDonationModalOpen(true); }}
+        onDonate={(div) => {
+          setPaymentModalDivision(div);
+          // Get the active tournament ID for this division so donor list filters by current week
+          const tid = div === 'male' ? tournamentStatus?.male?.tournamentId : tournamentStatus?.female?.tournamentId;
+          setDonationTournamentId(tid || null);
+          setDonationModalOpen(true);
+        }}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
@@ -874,6 +881,7 @@ export function LandingPage() {
         onOpenChange={setDonationModalOpen}
         defaultType="weekly"
         division={paymentModalDivision}
+        tournamentId={donationTournamentId}
         cmsSettings={cms}
         onSuccess={(div) => {
           // Close DonationModal, then open PaymentModal as payment reminder

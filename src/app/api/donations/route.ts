@@ -213,6 +213,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // "weekly" | "season"
     const seasonId = searchParams.get('seasonId');
+    const tournamentId = searchParams.get('tournamentId');
     const status = searchParams.get('status'); // "pending" | "approved" | "rejected" | "all"
     const division = searchParams.get('division'); // "male" | "female"
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
@@ -220,6 +221,7 @@ export async function GET(request: Request) {
     const where: Record<string, unknown> = {};
     if (type) where.type = type;
     if (seasonId) where.seasonId = seasonId;
+    if (tournamentId) where.tournamentId = tournamentId;
     if (division) where.division = division;
 
     // Public requests only see approved; admin can request specific status

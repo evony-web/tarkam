@@ -90,6 +90,8 @@ interface DonationModalProps {
   hideSawer?: boolean;
   /** Division filter — when provided, shows donor list for this division and pre-selects it */
   division?: 'male' | 'female';
+  /** Tournament ID — filters donor list to current week only */
+  tournamentId?: string | null;
   /** CMS settings map for payment configuration */
   cmsSettings?: Record<string, string>;
   /** Called after successful donation submission — used to open payment reminder modal */
@@ -99,7 +101,7 @@ interface DonationModalProps {
 /* Step states for multi-step flow */
 type ModalStep = 'form' | 'division' | 'result';
 
-export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, division: divisionProp, cmsSettings = {}, onSuccess }: DonationModalProps) {
+export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, division: divisionProp, tournamentId, cmsSettings = {}, onSuccess }: DonationModalProps) {
   const dt = useDivisionTheme();
   const division = useAppStore((s) => s.division);
   const addNotification = useAppStore((s) => s.addNotification);
@@ -126,9 +128,11 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
   /* ─── Fetch approved donors for the selected division ─── */
   const effectiveDivision = divisionProp || selectedDivision;
   const { data: donorData, isLoading: isDonorLoading } = useQuery({
-    queryKey: ['donors-approved', effectiveDivision],
+    queryKey: ['donors-approved', effectiveDivision, tournamentId],
     queryFn: async () => {
-      const res = await fetch(`/api/donations?type=weekly&division=${effectiveDivision}&status=approved&limit=50`);
+      const params = new URLSearchParams({ type: 'weekly', division: effectiveDivision, status: 'approved', limit: '50' });
+      if (tournamentId) params.set('tournamentId', tournamentId);
+      const res = await fetch(`/api/donations?${params}`);
       if (!res.ok) throw new Error('Gagal memuat data');
       return res.json();
     },
@@ -185,6 +189,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           message: message.trim() || null,
           type: effectiveType,
           division: div,
+          tournamentId: tournamentId || undefined,
         }),
       });
 

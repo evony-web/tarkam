@@ -974,6 +974,7 @@ export function Dashboard() {
         open={donationOpen}
         onOpenChange={setDonationOpen}
         defaultType="weekly"
+        tournamentId={t?.id || null}
         cmsSettings={cms || {}}
       />
 
