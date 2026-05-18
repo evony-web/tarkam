@@ -27,6 +27,7 @@ const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => (
 const SponsorsSection = dynamic(() => import('./landing/sponsors-section').then(m => ({ default: m.SponsorsSection })), { ssr: false, loading: () => null });
 const LandingFooter = dynamic(() => import('./landing/landing-footer').then(m => ({ default: m.LandingFooter })), { ssr: false, loading: () => null });
 const MarqueeTicker = dynamic(() => import('./marquee-ticker').then(m => ({ default: m.MarqueeTicker })), { ssr: false, loading: () => <div className="h-12" /> });
+const MyTournamentCard = dynamic(() => import('./my-tournament-card').then(m => ({ default: m.MyTournamentCard })), { ssr: false, loading: () => <div className="h-[120px]" /> });
 const BackToTop = dynamic(() => import('./ui/back-to-top').then(m => ({ default: m.BackToTop })), { ssr: false, loading: () => null });
 const ScrollProgress = dynamic(() => import('./ui/scroll-progress').then(m => ({ default: m.ScrollProgress })), { ssr: false, loading: () => null });
 
@@ -708,6 +709,12 @@ export function LandingPage() {
       <div className="relative z-10 border-y border-idm-gold-warm/10 bg-deep/80">
         <MarqueeTicker maleData={maleData} femaleData={femaleData} leagueData={leagueData} />
       </div>
+
+      {/* Cari Turnamen Kamu — Search your tournament status */}
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
+        <MyTournamentCard />
+      </div>
+
       {/* Kompetisi — Tarkam Arena (first section after hero) */}
       <div className="section-reveal">
       <TournamentHub
