@@ -514,3 +514,29 @@ Stage Summary:
 - Increased community dashboard polling from 3min to 5min (reduces background re-renders)
 - CLS should remain at 0.1 (placeholderData still active)
 - INP should improve significantly due to eliminating double renders
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix 3 bugs: Peringkat "Lihat Semua" not working, Admin Tarkam>Club filter error, Admin panel navigation simplification
+
+Work Log:
+- **Bug 1 Fix**: Removed `onViewAll` prop from `PeringkatSection` → `CommunityLeaderboard` so it uses internal expand/collapse ("Tampilkan Semua" / "Tampilkan Sedikit") instead of navigation to peringkat page
+  - File: `peringkat-section.tsx` — Removed `onViewAll={() => setCurrentView('peringkat')}` and unused `useAppStore` import
+- **Bug 2 Fix**: Fixed React Query cache collision in `club-management.tsx`
+  - Changed query key from `['admin-players', division]` → `['admin-players-club', division]` to avoid collision with `admin-panel.tsx`
+  - Added `Array.isArray(data)` guard and `!res.ok` check (same pattern as `tournament-manager.tsx`)
+- **Bug 3 Fix**: Simplified admin panel navigation by removing non-core categories
+  - Removed "Konten" (Halaman, Sponsor) and "Penghargaan" (Achievement, Skin) categories
+  - Kept only: Dashboard, Tarkam (Pending/Pemain/Club/Turnamen/Keuangan), Season, Sistem (Pengaturan)
+  - Updated category grid from 6 → 4 columns on both mobile and desktop
+  - Removed TabsContent for konten, sponsor, achievement, skin
+  - Removed "Konten" quick action from AdminOverview
+  - Cleaned up unused imports (CmsPanel, ErrorBoundary, AdminSponsorPanel, AdminAchievementPanel, AdminSkinPanel, AdminDivisionContentTab, Trophy, Globe, Flame, Award, Sparkles)
+
+Stage Summary:
+- Peringkat "Lihat Semua" now expands player list in-place instead of navigating
+- Admin Tarkam > Club tab no longer crashes with "O?.filter is not a function"
+- Admin panel simplified from 6 categories (12 subtabs) to 4 categories (8 subtabs)
+- TypeScript check passes with zero errors
+- Dev server running without errors

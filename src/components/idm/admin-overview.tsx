@@ -163,13 +163,6 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
       tabKey: 'keuangan',
       accent: 'bg-green-500/10 text-green-500 hover:bg-green-500/20',
     },
-    {
-      icon: Globe,
-      label: 'Konten',
-      desc: 'KLIK untuk edit halaman & sponsor',
-      tabKey: 'konten',
-      accent: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20',
-    },
   ];
 
   // Needs attention items — with tab key for navigation

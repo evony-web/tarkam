@@ -98,11 +98,15 @@ export function ClubManagement({ division, dt, seasonId, setConfirmDialog }: Clu
   });
 
   // Fetch available players (not in any club in this season)
+  // ★ Use a unique query key to avoid cache collision with admin-panel.tsx
+  // which uses ['admin-players', division] but fetches from /api/admin/players (returns { data, total })
   const { data: allPlayers } = useQuery({
-    queryKey: ['admin-players', division],
+    queryKey: ['admin-players-club', division],
     queryFn: async () => {
       const res = await fetch(`/api/players?division=${division}`, { credentials: 'include' });
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 
