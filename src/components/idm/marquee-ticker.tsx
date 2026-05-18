@@ -286,8 +286,10 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
 
     // ★ Set initial position to right edge — content enters from right like ESPN ticker
     const container = track.parentElement;
+    let containerWidth = 0;
     if (container) {
-      offsetRef.current = container.offsetWidth;
+      containerWidth = container.offsetWidth;
+      offsetRef.current = containerWidth;
       track.style.transform = `translateX(${offsetRef.current}px)`;
     }
 
@@ -316,8 +318,12 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
         const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
         const speed = isMobile ? MOBILE_SPEED : DESKTOP_SPEED;
 
-        // Boost speed while content is still off-screen to the right (fills in quickly)
-        const effectiveSpeed = offsetRef.current > 0 ? speed * 4 : speed;
+        // Smooth ease-out boost — faster when off-screen right, gradually slows to normal
+        // No abrupt speed change: 2x at far right → 1.5x at halfway → 1x at left edge
+        const boostFactor = (offsetRef.current > 0 && containerWidth > 0)
+          ? 1 + (offsetRef.current / containerWidth)
+          : 1;
+        const effectiveSpeed = speed * boostFactor;
 
         const pixelsToMove = (effectiveSpeed * delta) / 1000;
 
