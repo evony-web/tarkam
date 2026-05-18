@@ -17,7 +17,7 @@ export function BracketPage() {
               <Radio className="w-4 h-4 text-idm-gold-warm" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold text-foreground">Bracket & Hasil</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">Bracket</h1>
               <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">Bracket & hasil tarkam</p>
             </div>
           </div>
