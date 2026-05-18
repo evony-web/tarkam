@@ -153,19 +153,6 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta', 
     setPlayerMode(newMode);
   };
 
-  const handleSwitchToAdmin = () => {
-    resetPlayerForm();
-    setPlayerMode('choose');
-    setActiveView('admin');
-    setAdminMode('login');
-  };
-
-  const handleSwitchToPeserta = () => {
-    resetAdminForm();
-    setActiveView('peserta');
-    setPlayerMode('choose');
-  };
-
   // ═══ Player: Fetch clubs for registration ═══
   useEffect(() => {
     if (playerMode === 'register' && open) {
@@ -498,30 +485,6 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta', 
         }`} />
 
         <div className="p-5 pt-3 relative">
-          {/* ═══ Shield Admin Button — positioned in top-left for peserta view ═══ */}
-          {activeView === 'peserta' && !isPlayerLoggedIn && (
-            <button
-              type="button"
-              onClick={handleSwitchToAdmin}
-              className="absolute top-2 left-4 w-10 h-10 rounded-lg bg-muted/40 hover:bg-idm-gold/15 border border-border/30 hover:border-idm-gold/30 flex items-center justify-center transition-all group z-10"
-              title="Login Admin"
-            >
-              <Shield className="w-5 h-5 text-muted-foreground group-hover:text-idm-gold transition-colors" />
-            </button>
-          )}
-
-          {/* ═══ Back to Peserta Button — positioned in top-left when in admin view ═══ */}
-          {activeView === 'admin' && !isAdminLoggedIn && (
-            <button
-              type="button"
-              onClick={handleSwitchToPeserta}
-              className="absolute top-2 left-4 w-10 h-10 rounded-lg bg-muted/40 hover:bg-idm-male/15 border border-border/30 hover:border-idm-male/30 flex items-center justify-center transition-all group z-10"
-              title="Kembali ke Login Peserta"
-            >
-              <Gamepad2 className="w-5 h-5 text-muted-foreground group-hover:text-idm-male transition-colors" />
-            </button>
-          )}
-
           {/* ═══ PESERTA VIEW ═══ */}
           {activeView === 'peserta' && (
             <>

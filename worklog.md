@@ -617,3 +617,23 @@ Stage Summary:
 - Player dropdown shows "Status Turnamen" which scrolls to their auto-shown tournament status
 - "Explore" text and mouse icon moved lower on mobile (bottom-2 vs bottom-6)
 - Desktop layout unchanged (bottom-10 still)
+
+---
+Task ID: 13
+Agent: Main Agent
+Task: Remove admin login (shield logo) from login modal — keep only in header
+
+Work Log:
+- Identified the shield admin login button in UnifiedLoginModal (top-left corner of peserta view)
+- Identified the "back to peserta" button (top-left corner of admin view)
+- Removed both switching buttons from the modal since admin login is now exclusively via the header shield icon
+- Removed unused `handleSwitchToAdmin` and `handleSwitchToPeserta` functions
+- Verified `Shield` and `Gamepad2` imports still needed for other parts of the modal (admin form decorative icons)
+- Lint passes clean (pre-existing hero-section.tsx error unchanged)
+- Dev server compiles successfully
+
+Stage Summary:
+- Login modal no longer shows shield admin login button (removed redundancy)
+- Admin login is now exclusively via the header shield icon on both landing page and public page layout
+- "Back to peserta" button also removed from admin view in modal (users close modal and click Login instead)
+- Cleaner, less confusing UX — no duplicate admin login entry points
