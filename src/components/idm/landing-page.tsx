@@ -711,7 +711,7 @@ export function LandingPage() {
       </div>
 
       {/* Cari Turnamen Kamu — Search your tournament status */}
-      <div className="section-reveal">
+      <div className="section-reveal bg-deep border-y border-border/30 dark:border-0">
         <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
           <MyTournamentCard />
         </div>
