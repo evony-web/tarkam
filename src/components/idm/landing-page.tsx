@@ -652,6 +652,7 @@ export function LandingPage() {
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
+              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
               { view: 'clubs' as AppView, label: 'Club', icon: Shield, special: false },
             ].map(item => {
               const isActive = currentView === item.view;

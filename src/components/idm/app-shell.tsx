@@ -156,6 +156,7 @@ const communityNavItems: NavItemDef[] = [
   { id: 'peringkat', label: 'Peringkat', icon: Award },
   { id: 'players', label: 'Pemain', icon: Music },
   { id: 'highlights', label: 'Juara', icon: Crown },
+  { id: 'bracket', label: 'Bracket', icon: Trophy },
   { id: 'clubs', label: 'Club', icon: Shield },
   { id: 'matchday', label: 'Arena Live', icon: Radio },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
@@ -351,6 +352,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             else if (item.id === 'matchday') iconBg = 'bg-red-500/15';
             else if (item.id === 'players') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
+            else if (item.id === 'bracket') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'clubs') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'peringkat') iconBg = 'bg-idm-gold-warm/15';
             else iconBg = dt.iconBg;
@@ -597,7 +599,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'clubs', 'community', 'peringkat'];
+  const publicViews: AppView[] = ['players', 'highlights', 'clubs', 'community', 'peringkat', 'bracket'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -623,6 +625,7 @@ export function AppShell() {
         case 'highlights': return <HighlightsPage />;
         case 'clubs': return <ClubsPage />;
         case 'peringkat': return <PeringkatPage />;
+        case 'bracket': return <BracketPage />;
         default: return <CommunityDashboard />;
       }
     };

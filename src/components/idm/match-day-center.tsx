@@ -74,7 +74,7 @@ function SectionCard({ title, icon: Icon, badge, children, className = '', theme
    SINGLE DIVISION: MatchDayContent
    Renders the full match day view for ONE specific division
    ═══════════════════════════════════════════════ */
-function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
+export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
   // Use division theme for ALL card interior styling — male=cyan, female=purple.
   // Outer shell background (community-surface + useShellTheme) handles the neutral gold base.
   const ct = getDivisionTheme(divisionProp);
