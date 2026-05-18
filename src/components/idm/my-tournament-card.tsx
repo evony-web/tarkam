@@ -468,7 +468,7 @@ export function MyTournamentCard() {
   return (
     <>
       {/* ── Search Input Bar (always visible) ── */}
-      <div className={`rounded-xl border ${division === 'male' ? 'border-idm-male/20 bg-idm-male/5' : 'border-idm-female/20 bg-idm-female/5'} p-4 relative z-10`}>
+      <div className={`rounded-xl border ${division === 'male' ? 'border-idm-male/20' : 'border-idm-female/20'} p-4 relative z-10`}>
         <div className="flex items-center gap-3 mb-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dt.iconBg}`}>
             <Target className={`w-5 h-5 ${dt.neonText}`} />
