@@ -417,14 +417,14 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
               {/* Custom Amount */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">
-                  Atau Masukkan Nominal Lain
+                  Masukkan Nominal
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">Rp</span>
                   <Input
                     type="text"
                     inputMode="numeric"
-                    placeholder="Contoh: 75000"
+                    placeholder="Contoh: Rp.25000"
                     value={customAmount}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '');
