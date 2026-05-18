@@ -66,33 +66,48 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ authenticated: false }, { headers });
     }
 
-    // Get active skins for the player
-    const playerSkins = await db.playerSkin.findMany({
-      where: {
-        accountId: account.id,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
-      },
-      include: {
-        skin: { select: { id: true, type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
-      },
-      orderBy: { skin: { priority: 'desc' } },
-    });
+    // Get active skins for the player (non-blocking — don't fail session if skins query fails)
+    let skinsData: Array<{
+      type: string;
+      icon: string;
+      displayName: string;
+      colorClass: string;
+      priority: number;
+      duration: string;
+      reason: string | null;
+      expiresAt: string | null;
+      donorBadgeCount?: number;
+    }> = [];
 
-    // Build skins array with donorBadgeCount support
-    const skinsData = playerSkins.map(ps => ({
-      type: ps.skin.type,
-      icon: ps.skin.icon,
-      displayName: ps.skin.displayName,
-      colorClass: ps.skin.colorClass,
-      priority: ps.skin.priority,
-      duration: ps.skin.duration,
-      reason: ps.reason,
-      expiresAt: ps.expiresAt?.toISOString() ?? null,
-      donorBadgeCount: ps.skin.type === 'donor' ? account.donorBadgeCount : undefined,
-    }));
+    try {
+      const playerSkins = await db.playerSkin.findMany({
+        where: {
+          accountId: account.id,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } },
+          ],
+        },
+        include: {
+          skin: { select: { id: true, type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
+        },
+        orderBy: { skin: { priority: 'desc' } },
+      });
+
+      skinsData = playerSkins.map(ps => ({
+        type: ps.skin.type,
+        icon: ps.skin.icon,
+        displayName: ps.skin.displayName,
+        colorClass: ps.skin.colorClass,
+        priority: ps.skin.priority,
+        duration: ps.skin.duration,
+        reason: ps.reason,
+        expiresAt: ps.expiresAt?.toISOString() ?? null,
+        donorBadgeCount: ps.skin.type === 'donor' ? account.donorBadgeCount : undefined,
+      }));
+    } catch (skinError) {
+      console.error('[PLAYER_SESSION] Skin fetch error (non-critical):', skinError);
+    }
 
     // If player has donor badges but no active donor skin, add virtual donor_badge entry
     if (account.donorBadgeCount > 0 && !skinsData.some(s => s.type === 'donor')) {
@@ -119,7 +134,8 @@ export async function GET(request: NextRequest) {
         player: account.player,
       },
     }, { headers });
-  } catch {
+  } catch (error) {
+    console.error('[PLAYER_SESSION] Fatal error:', error);
     return NextResponse.json({ authenticated: false }, { headers });
   }
 }
