@@ -73,9 +73,6 @@ const PlayersPage = dynamic(() => import('./players-page').then(m => ({ default:
 const HighlightsPage = dynamic(() => import('./highlights-page').then(m => ({ default: m.HighlightsPage })), {
   loading: () => viewLoading,
 });
-const ClubsPage = dynamic(() => import('./clubs-page').then(m => ({ default: m.ClubsPage })), {
-  loading: () => viewLoading,
-});
 const PeringkatPage = dynamic(() => import('./peringkat-page').then(m => ({ default: m.PeringkatPage })), {
   loading: () => viewLoading,
 });
@@ -157,7 +154,6 @@ const communityNavItems: NavItemDef[] = [
   { id: 'players', label: 'Pemain', icon: Music },
   { id: 'highlights', label: 'Juara', icon: Crown },
   { id: 'bracket', label: 'Bracket', icon: Trophy },
-  { id: 'clubs', label: 'Club', icon: Shield },
   { id: 'matchday', label: 'Arena Live', icon: Radio },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
   { id: 'league', label: 'Peraturan', icon: BookOpen },
@@ -353,7 +349,6 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             else if (item.id === 'players') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'bracket') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'clubs') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'peringkat') iconBg = 'bg-idm-gold-warm/15';
             else iconBg = dt.iconBg;
           }
@@ -599,7 +594,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'clubs', 'community', 'peringkat', 'bracket'];
+  const publicViews: AppView[] = ['players', 'highlights', 'community', 'peringkat', 'bracket'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -623,7 +618,6 @@ export function AppShell() {
         case 'community': return <CommunityDashboard />;
         case 'players': return <PlayersPage />;
         case 'highlights': return <HighlightsPage />;
-        case 'clubs': return <ClubsPage />;
         case 'peringkat': return <PeringkatPage />;
         case 'bracket': return <BracketPage />;
         default: return <CommunityDashboard />;
@@ -681,7 +675,6 @@ export function AppShell() {
                 admin: 'Admin',
                 players: 'Pemain',
                 highlights: 'Juara',
-                clubs: 'Club',
                 peringkat: 'Peringkat',
               }[currentView as string] || ''}</span>
             )}
@@ -747,7 +740,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' || currentView === 'clubs';
+            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile
@@ -822,19 +815,7 @@ export function AppShell() {
             )}
           </button>
 
-          {/* Club */}
-          <button
-            onClick={() => { hapticTap(); setCurrentView('clubs'); }}
-            className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
-            }`}
-          >
-            <Shield className={`w-5 h-5 transition-transform duration-200 ${currentView === 'clubs' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Club</span>
-            {currentView === 'clubs' && (
-              <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
-            )}
-          </button>
+
         </div>
       </nav>
 
