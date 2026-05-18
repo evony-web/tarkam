@@ -524,19 +524,19 @@ export function LandingPage() {
         queueMicrotask(() => setCurrentView('peringkat'));
         break;
       case 'hasil':
+        // Scroll to the landing Hasil section
+        queueMicrotask(() => {
+          const el = document.getElementById('hasil');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        break;
       case 'champion':
-        // Navigate to community dashboard, then scroll to the section
+        // Navigate to community dashboard, then scroll to champions section
         queueMicrotask(() => {
           setCurrentView('community');
-          // Use setTimeout to wait for the community dashboard to render
           setTimeout(() => {
-            const sectionId = view === 'peringkat' ? 'section-rankings'
-              : view === 'hasil' ? 'section-matches'
-              : 'section-champions';
-            const el = document.getElementById(sectionId);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            const el = document.getElementById('section-champions');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 500);
         });
         break;
@@ -596,10 +596,10 @@ export function LandingPage() {
           {/* Desktop Nav Links — compact on medium screens */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
-              { view: 'community' as AppView, label: 'Kompetisi' },
               { view: 'peringkat' as AppView, label: 'Peringkat' },
               { view: 'players' as AppView, label: 'Pemain' },
               { view: 'highlights' as AppView, label: 'Juara' },
+              { view: 'bracket' as AppView, label: 'Bracket' },
             ].map(item => (
               <button
                 key={item.view}
@@ -648,7 +648,6 @@ export function LandingPage() {
         <div className="bg-background/95 backdrop-blur-lg">
           <div className="flex items-center justify-around h-16 px-1">
             {[
-              { view: 'community' as AppView, label: 'Kompetisi', icon: Swords, special: false },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
@@ -739,7 +738,11 @@ export function LandingPage() {
 
       {/* Hasil — Semi Final & Grand Final Results */}
       <div className="section-reveal">
-      <HasilSection />
+      <HasilSection
+        maleData={maleData}
+        femaleData={femaleData}
+        isDataLoading={isDataLoading}
+      />
       </div>
 
       <SectionDivider />

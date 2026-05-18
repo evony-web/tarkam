@@ -379,3 +379,30 @@ Stage Summary:
 - New Hasil section live on landing page below Kompetisi
 - API enhanced with bracket filter + division field
 - Shows SF & GF results only, with CTA to full results page
+---
+Task ID: 2
+Agent: Main Agent
+Task: Enhance landing HasilSection, change CTA to Bracket, remove Kompetisi nav
+
+Work Log:
+- Rewrote `/src/components/idm/landing/hasil-section.tsx` completely:
+  - Now uses StatsData props (maleData/femaleData) instead of separate API calls
+  - Bracket-aware grouping: merges league matches + tournament matches into UnifiedMatchResult
+  - Per-division cards with round/bracket labels (⬆️ Semi Final, 🏆 Grand Final, etc.)
+  - Special Grand Final champion rendering: 👑 crown, gold border, "Champion" badge, 🏆 trophy
+  - Division filter pills: Semua / Cowo / Cewe (same style as BracketHasilSection)
+  - Ghost empty state with bracket round placeholders when no data
+  - MatchRow-style rows with winner highlighting and FT badge
+- Changed CTA "Lihat Semua Hasil" to navigate to Bracket view (`setCurrentView('bracket')`)
+- Removed "Kompetisi" from desktop nav and mobile bottom nav in landing-page.tsx
+- Added "Bracket" to desktop nav (was already in mobile bottom nav)
+- Updated deep-link `?view=hasil` to scroll to landing `#hasil` section instead of navigating to community
+- Fixed `?view=champion` deep-link to navigate to community → #section-champions
+- Updated landing-page.tsx to pass maleData/femaleData/isDataLoading props to HasilSection
+- Lint passed clean, dev server running
+
+Stage Summary:
+- Landing HasilSection now matches BracketHasilSection quality
+- "Kompetisi" removed from landing nav, "Bracket" added to desktop nav
+- CTA navigates to Bracket view for full results
+- Navigation: Peringkat → Pemain → Juara → Bracket
