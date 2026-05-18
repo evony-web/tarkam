@@ -383,6 +383,15 @@ export function PaymentModal({ open, onClose, division }: PaymentModalProps) {
             ⏳ Pendaftaran akan disetujui admin setelah bukti pembayaran dikonfirmasi
           </p>
 
+          {/* ── Done Button ── */}
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-sm font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Selesai
+          </button>
+
         </div>
       </div>
     </div>,
