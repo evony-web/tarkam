@@ -327,20 +327,10 @@ export function HeroSection({
             {heroTagline}
           </p>
 
-          {/* ═══════════════ SEASON CHAMPION AVATARS ═══════════════ */}
+          {/* ═══════════════ SEASON CLUB CHAMPION ═══════════════ */}
           {showChampionSkeleton ? (
             /* ─── Skeleton placeholder during season switch / initial load ─── */
-            <div className="hero-enter-5 flex items-center justify-center gap-3 sm:gap-8 md:gap-12 mb-6 sm:mb-10">
-              {/* Male skeleton */}
-              <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                <div className="relative">
-                  <div className="absolute -inset-1.5 rounded-full opacity-30" style={{ background: 'radial-gradient(circle, rgba(46,159,255,0.3) 0%, transparent 70%)' }} />
-                  <div className="relative w-20 h-20 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-idm-male/10 border-2 border-idm-male/20 animate-pulse" />
-                </div>
-                <div className="w-16 sm:w-20 h-2.5 rounded bg-idm-male/10 animate-pulse" />
-                <div className="w-12 h-1.5 rounded bg-idm-male/5 animate-pulse" />
-              </div>
-              {/* Club skeleton */}
+            <div className="hero-enter-5 flex items-center justify-center mb-6 sm:mb-10">
               <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03]">
                 <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 animate-pulse" />
                 <div className="space-y-1.5">
@@ -348,101 +338,37 @@ export function HeroSection({
                   <div className="w-10 h-1.5 rounded bg-idm-gold-warm/5 animate-pulse" />
                 </div>
               </div>
-              {/* Female skeleton */}
-              <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                <div className="relative">
-                  <div className="absolute -inset-1.5 rounded-full opacity-30" style={{ background: 'radial-gradient(circle, rgba(255,45,120,0.3) 0%, transparent 70%)' }} />
-                  <div className="relative w-20 h-20 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-idm-female/10 border-2 border-idm-female/20 animate-pulse" />
-                </div>
-                <div className="w-16 sm:w-20 h-2.5 rounded bg-idm-female/10 animate-pulse" />
-                <div className="w-12 h-1.5 rounded bg-idm-female/5 animate-pulse" />
-              </div>
             </div>
-          ) : hasChampions ? (
-            /* ─── Actual champion avatars with embedded skin visual ─── */
-            <div className="hero-enter-5 flex items-center justify-center gap-3 sm:gap-8 md:gap-12 mb-6 sm:mb-10">
-              {/* Male Champion — Left */}
-              {maleChampion && (
-                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                  <div className="relative group">
-                    {/* Glow ring — division color (blue for male) */}
-                    <div className="absolute -inset-1.5 rounded-full opacity-50 group-hover:opacity-80 transition-opacity duration-500" style={{ background: 'radial-gradient(circle, rgba(46,159,255,0.3) 0%, transparent 70%)' }} />
-                    {/* Avatar container — always division color ring */}
-                    <div className="relative w-20 h-20 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2" style={{
-                      borderColor: 'rgba(46,159,255,0.5)',
-                      boxShadow: '0 0 20px rgba(46,159,255,0.2), inset 0 0 10px rgba(46,159,255,0.1)',
-                    }}>
-                      <AvatarMedia src={maleChampionAvatar} alt={maleChampion.gamertag} fill sizes="96px" className="object-cover" priority />
-                      {/* Diamond shimmer overlay — division color */}
-                      <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(135deg, rgba(79,195,247,0.15) 0%, transparent 50%, rgba(0,188,212,0.1) 100%)' }} />
-                    </div>
+          ) : championClub ? (
+            /* ─── Season Club Champion Card ─── */
+            <div className="hero-enter-5 flex items-center justify-center mb-6 sm:mb-10">
+              <div className="relative flex items-center gap-2 sm:gap-2.5 p-4 sm:p-5 rounded-2xl border" style={{ background: 'rgba(239,249,35,0.06)', borderColor: 'rgba(239,249,35,0.2)', boxShadow: '0 0 20px rgba(239,249,35,0.08)' }}>
+                {/* Club Logo */}
+                {championClub?.logo ? (
+                  <div className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.15)' }}>
+                    <Image src={championClub.logo} alt={championClub.name} fill sizes="48px" className="object-cover" loading="lazy" />
                   </div>
-                  <div className="text-center">
-                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase" style={{ color: 'rgba(46,159,255,0.9)' }}>{maleChampion.gamertag}</span>
-                    <p className="text-[9px] sm:text-[10px] text-idm-gold-warm/50 font-semibold tracking-wider uppercase flex items-center justify-center gap-0.5">
-                      <span>💎</span> Season Champion
-                    </p>
+                ) : (
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(239,249,35,0.1)' }}>
+                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-idm-gold-warm/60" />
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Season Club Champion Card — Horizontal: logo left, name right */}
-              {maleChampion && femaleChampion && (
-                <div className="flex flex-col items-center gap-1">
-                  <div className="relative flex items-center gap-2 sm:gap-2.5 p-4 sm:p-5 rounded-2xl border" style={{ background: 'rgba(239,249,35,0.06)', borderColor: 'rgba(239,249,35,0.2)', boxShadow: '0 0 20px rgba(239,249,35,0.08)' }}>
-                    {/* Club Logo */}
-                    {championClub?.logo ? (
-                      <div className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.15)' }}>
-                        <Image src={championClub.logo} alt={championClub.name} fill sizes="48px" className="object-cover" loading="lazy" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(239,249,35,0.1)' }}>
-                        <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-idm-gold-warm/60" />
-                      </div>
-                    )}
-
-                    {/* Club Name + Season label */}
-                    <div className="flex flex-col">
-                      <span className="text-[10px] sm:text-xs md:text-sm font-black tracking-wider uppercase text-idm-gold-warm/80 leading-tight">
-                        {championClub?.name || 'Champion'}
-                      </span>
-                      <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold tracking-[0.15em] uppercase text-idm-gold-warm/35">
-                        Season Club
-                      </span>
-                    </div>
-                  </div>
+                {/* Club Name + Season label */}
+                <div className="flex flex-col">
+                  <span className="text-[10px] sm:text-xs md:text-sm font-black tracking-wider uppercase text-idm-gold-warm/80 leading-tight">
+                    {championClub?.name || 'Champion'}
+                  </span>
+                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold tracking-[0.15em] uppercase text-idm-gold-warm/35">
+                    Season Club
+                  </span>
                 </div>
-              )}
-
-              {/* Female Champion — Right */}
-              {femaleChampion && (
-                <div className="flex flex-col items-center gap-1.5 sm:gap-2">
-                  <div className="relative group">
-                    {/* Glow ring — division color (pink for female) */}
-                    <div className="absolute -inset-1.5 rounded-full opacity-50 group-hover:opacity-80 transition-opacity duration-500" style={{ background: 'radial-gradient(circle, rgba(255,45,120,0.3) 0%, transparent 70%)' }} />
-                    {/* Avatar container — always division color ring */}
-                    <div className="relative w-20 h-20 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2" style={{
-                      borderColor: 'rgba(255,45,120,0.5)',
-                      boxShadow: '0 0 20px rgba(255,45,120,0.2), inset 0 0 10px rgba(255,45,120,0.1)',
-                    }}>
-                      <AvatarMedia src={femaleChampionAvatar} alt={femaleChampion.gamertag} fill sizes="96px" className="object-cover" priority />
-                      {/* Diamond shimmer overlay — division color */}
-                      <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(135deg, rgba(255,45,120,0.15) 0%, transparent 50%, rgba(255,92,154,0.1) 100%)' }} />
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <span className="text-[10px] sm:text-xs font-bold tracking-wider uppercase" style={{ color: 'rgba(255,45,120,0.9)' }}>{femaleChampion.gamertag}</span>
-                    <p className="text-[9px] sm:text-[10px] text-idm-gold-warm/50 font-semibold tracking-wider uppercase flex items-center justify-center gap-0.5">
-                      <span>💎</span> Season Champion
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           ) : null}
 
           {/* ═══════════════ CTA BUTTONS ═══════════════ */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${hasChampions ? '' : 'hero-enter-5'}`}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${championClub ? '' : 'hero-enter-5'}`}>
             {/* Daftar Tarkam — Primary CTA → Registration */}
             <button
               onClick={() => onRegister('male')}
