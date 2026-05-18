@@ -371,8 +371,20 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
           />
         </AnimatedSection>
 
-        {/* Division Filter — same style as BracketHasilSection */}
-        <div className="stagger-item-fast flex justify-center mb-6">
+        {/* Section Title Row + Division Filter — left title, right tabs */}
+        <div className="stagger-item-fast flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
+              <Trophy className="w-3 h-3 text-idm-gold-warm" />
+            </div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider" style={{
+              background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>Hasil Pertandingan</h3>
+          </div>
+
+          {/* Division pills — right-aligned */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
             {([
               { key: 'all' as DivisionFilter, label: 'Semua' },
@@ -382,7 +394,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
               <button
                 key={div.key}
                 onClick={() => setHasilDivision(div.key)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                   hasilDivision === div.key
                     ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
                     : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
