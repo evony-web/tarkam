@@ -38,6 +38,7 @@ const RegistrationModal = dynamic(() => import('./registration-modal').then(m =>
 const VideoModal = dynamic(() => import('./video-modal').then(m => ({ default: m.VideoModal })), { ssr: false, loading: () => null });
 const PaymentModal = dynamic(() => import('./payment-modal').then(m => ({ default: m.PaymentModal })), { ssr: false, loading: () => null });
 const UnifiedLoginModal = dynamic(() => import('./unified-login-modal').then(m => ({ default: m.UnifiedLoginModal })), { ssr: false, loading: () => null });
+const DonationModal = dynamic(() => import('./donation-modal').then(m => ({ default: m.DonationModal })), { ssr: false, loading: () => null });
 
 // Shared hooks & components
 import { useSwipeNavigation, useScrollReveal, useParallax, SectionDivider } from './landing/shared';
@@ -281,6 +282,10 @@ export function LandingPage() {
   /* Payment Modal State */
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentModalDivision, setPaymentModalDivision] = useState<'male' | 'female'>('male');
+
+  /* Donation Modal State */
+  const [donationModalOpen, setDonationModalOpen] = useState(false);
+  const [donationModalDivision, setDonationModalDivision] = useState<'male' | 'female'>('male');
 
   const openVideoModal = useCallback((url: string, title: string) => {
     setVideoModalUrl(url);
@@ -728,6 +733,7 @@ export function LandingPage() {
         onEnterApp={enterApp}
         onRegister={(div) => { setRegistrationDefaultDivision(div); setRegistrationModalOpen(true); }}
         onPayment={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
+        onDonate={(div) => { setDonationModalDivision(div); setDonationModalOpen(true); }}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
@@ -877,6 +883,14 @@ export function LandingPage() {
         open={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
         division={paymentModalDivision}
+      />
+
+      {/* ========== DONATION MODAL ========== */}
+      <DonationModal
+        open={donationModalOpen}
+        onOpenChange={setDonationModalOpen}
+        defaultType="weekly"
+        cmsSettings={cms}
       />
 
       {/* ========== SCROLL PROGRESS BAR ========== */}

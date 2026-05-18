@@ -15,6 +15,7 @@ interface TournamentHubProps {
   onEnterApp: (division: 'male' | 'female') => void;
   onRegister: (division: 'male' | 'female') => void;
   onPayment: (division: 'male' | 'female') => void;
+  onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
   maleRegOpen?: boolean;
   femaleRegOpen?: boolean;
@@ -69,6 +70,7 @@ function TournamentCard({
   onEnterApp,
   onRegister,
   onPayment,
+  onDonate,
   onVideoPlay,
   isRegOpen,
 }: {
@@ -79,6 +81,7 @@ function TournamentCard({
   onEnterApp: (division: 'male' | 'female') => void;
   onRegister: (division: 'male' | 'female') => void;
   onPayment: (division: 'male' | 'female') => void;
+  onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
   isRegOpen?: boolean;
 }) {
@@ -293,12 +296,11 @@ function TournamentCard({
         {/* CTA buttons — stacked on mobile, side-by-side on sm+ */}
         <div className="flex flex-col sm:flex-row gap-2.5">
           <button
-            onClick={() => onEnterApp(division.key)}
-            className="tournament-cta-primary flex-1 py-3 min-h-[44px] rounded-2xl text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 relative overflow-hidden"
+            onClick={() => onDonate(division.key)}
+            className="flex-1 py-3 min-h-[44px] rounded-2xl text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] active:scale-[0.98]"
           >
-            <Play className="w-4 h-4 fill-current" />
-            <span>Masuk Arena</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <Heart className="w-4 h-4" />
+            <span>Sawer</span>
           </button>
           <button
             onClick={() => isRegistrationOpen && onRegister(division.key)}
@@ -339,6 +341,7 @@ export function TournamentHub({
   onEnterApp,
   onRegister,
   onPayment,
+  onDonate,
   onVideoPlay,
   maleRegOpen,
   femaleRegOpen,
@@ -409,6 +412,7 @@ export function TournamentHub({
               onEnterApp={onEnterApp}
               onRegister={onRegister}
               onPayment={onPayment}
+              onDonate={onDonate}
               onVideoPlay={onVideoPlay}
               isRegOpen={maleRegOpen}
             />
@@ -424,6 +428,7 @@ export function TournamentHub({
               onEnterApp={onEnterApp}
               onRegister={onRegister}
               onPayment={onPayment}
+              onDonate={onDonate}
               onVideoPlay={onVideoPlay}
               isRegOpen={femaleRegOpen}
             />
