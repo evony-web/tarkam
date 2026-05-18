@@ -627,7 +627,7 @@ export function LandingPage() {
           </div>
 
           {/* Right Actions: Theme Toggle + Login */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 ml-1.5 sm:ml-0">
             {/* Theme Toggle */}
             <LandingThemeToggle scrolled={scrolled} />
             {/* Login / User Button */}

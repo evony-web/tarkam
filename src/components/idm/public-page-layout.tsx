@@ -291,7 +291,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 ml-1.5 sm:ml-0">
             <PublicThemeToggle scrolled={scrolled} />
             <PublicAuthButton
               onOpenLogin={(tab) => { setLoginDefaultTab(tab); setLoginModalOpen(true); }}
