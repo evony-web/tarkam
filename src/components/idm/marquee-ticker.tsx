@@ -176,7 +176,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
   const trackRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(false);
   const [resizeTick, setResizeTick] = React.useState(0);
-  const [isPaused, setIsPaused] = React.useState(false);
 
   // Track mobile via ref + force re-render on resize
   useEffect(() => {
@@ -325,11 +324,7 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
   if (combinedItems.length === 0) return null;
 
   return (
-    <div
-      className="w-full overflow-hidden relative group"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
+    <div className="w-full overflow-hidden relative group">
       {/* Fade edges */}
       <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 z-10 pointer-events-none"
         style={{ background: 'linear-gradient(to right, hsl(var(--background)), transparent)' }}
@@ -352,7 +347,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
           width: 'max-content',
           willChange: 'transform',
           animation: `marquee-scroll ${scrollDuration}s linear infinite`,
-          animationPlayState: isPaused ? 'paused' : 'running',
         }}
       >
         {trackContent}
