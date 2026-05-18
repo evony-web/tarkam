@@ -444,14 +444,14 @@ export function HeroSection({
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Pulse glow ring */}
-              <div className="absolute -inset-1.5 rounded-2xl animate-pulse" style={{ background: 'rgba(239,249,35,0.15)', boxShadow: '0 0 30px rgba(239,249,35,0.3)' }} />
+              <div className="absolute -inset-1 rounded-2xl animate-pulse" style={{ background: 'rgba(239,249,35,0.10)', boxShadow: '0 0 16px rgba(239,249,35,0.2)' }} />
               {/* Glow background */}
-              <div className="absolute -inset-1 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500" style={{ background: 'rgba(239,249,35,0.25)' }} />
+              <div className="absolute -inset-1 rounded-2xl blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-500" style={{ background: 'rgba(239,249,35,0.18)' }} />
               <div className="relative flex items-center justify-center gap-2.5 px-6 sm:px-7 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-sm tracking-wide uppercase transition-all duration-300 hero-cta-primary-inner"
                 style={{
                   background: 'linear-gradient(135deg, #EFF923 0%, #F9CB25 50%, #F9CB25 100%)',
                   color: '#1c1917',
-                  boxShadow: '0 4px 20px rgba(239,249,35,0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
+                  boxShadow: '0 4px 14px rgba(239,249,35,0.25), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
                 <PenLine className="w-4 h-4" />
@@ -466,13 +466,13 @@ export function HeroSection({
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Glow on hover */}
-              <div className="absolute -inset-1 rounded-2xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-500" style={{ background: 'rgba(239,249,35,0.15)' }} />
+              <div className="absolute -inset-1 rounded-2xl blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-500" style={{ background: 'rgba(239,249,35,0.10)' }} />
               <div className="relative flex items-center justify-center gap-2.5 px-6 sm:px-7 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-sm tracking-wide uppercase border transition-all duration-300 hero-cta-secondary-inner"
                 style={{
                   background: 'rgba(239,249,35,0.08)',
                   borderColor: 'rgba(239,249,35,0.3)',
                   color: '#EFF923',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(239,249,35,0.1)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(239,249,35,0.1)',
                 }}
               >
                 <Eye className="w-4 h-4" />
