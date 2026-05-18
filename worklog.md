@@ -406,3 +406,35 @@ Stage Summary:
 - "Kompetisi" removed from landing nav, "Bracket" added to desktop nav
 - CTA navigates to Bracket view for full results
 - Navigation: Peringkat → Pemain → Juara → Bracket
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Fix mobile header - theme toggle and login button styling
+
+Work Log:
+- Identified issue: On mobile, the theme toggle and login button in the fixed header appeared "not compact" with visible card/container backgrounds and borders that looked different from desktop
+- First attempt: Made elements smaller (h-7 w-7), removed borders on mobile (border-transparent), hid admin shield (hidden sm:block) — user rejected this approach saying it removed the card/container style entirely and the admin shield disappeared
+- Second attempt (final): Restored card/container styling on mobile with proper borders and backgrounds, kept admin shield visible
+- Changes to `landing-page.tsx` LandingThemeToggle:
+  - Size: h-7 w-7 on mobile, h-8 w-8 on sm+ (slightly smaller on mobile)
+  - Icons: h-3.5 w-3.5 on mobile, h-4 w-4 on sm+
+  - When not scrolled: border-white/15 bg-white/5 (visible card style on hero dark bg)
+  - When scrolled: border-idm-gold-warm/20 bg-idm-gold-warm/5 (gold card style)
+- Changes to `landing-page.tsx` LandingAuthButton (not logged in):
+  - Login button: border-white/20 bg-white/5 on mobile hero (visible card), gold when scrolled
+  - Admin shield: Always visible (NOT hidden on mobile), text-white/50 when not scrolled
+  - Gap: gap-1 sm:gap-1.5
+- Changes to `landing-page.tsx` LandingAuthButton (logged in):
+  - Card: border-white/15 bg-white/5 when not scrolled, gold when scrolled
+  - Avatars: w-5 h-5 on mobile, w-6 h-6 on sm+ (proper size with ring + shadow)
+  - Text: text-[10px] on mobile, sm:text-xs (max-w-[60px] mobile)
+- Applied identical changes to `public-page-layout.tsx` PublicThemeToggle and PublicAuthButton
+
+Stage Summary:
+- Mobile header theme toggle and login button now have proper card/container styling (border + bg)
+- Admin shield icon is always visible on mobile
+- Elements are slightly more compact on mobile (h-7 vs h-8, smaller icons)
+- When on hero (not scrolled): white/glass card style on dark background
+- When scrolled: gold card style matching nav
+- Desktop view unchanged
