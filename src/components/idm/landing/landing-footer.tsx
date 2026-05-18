@@ -72,7 +72,7 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
   const logoUrl = cmsSettings.logo_url || '/logo1.webp';
   const siteTitle = cmsSettings.site_title || 'TARKAM IDM';
   const tagline = cmsSettings.footer_tagline || 'Idol Meta Fan Made Edition.';
-  const footerText = cmsSettings.footer_text || '© 2026 TARKAM IDM — Idol Meta Fan Made Edition. All rights reserved.';
+  const footerText = cmsSettings.footer_text || '© 2026 TARKAM IDM — Idol Meta Fan Made Edition.';
 
   /* ── Social URLs ── */
   const discordUrl = cmsSettings.social_discord_url || '';
@@ -199,7 +199,7 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
             <span className="hidden sm:inline text-muted-foreground/10 text-[11px]">|</span>
 
             <span className="text-muted-foreground/40 text-[11px] flex items-center gap-1.5">
-              Made with <span className="text-red-500/70 text-sm">❤️</span> by <span className="text-muted-foreground/60 font-medium">BorneoPride</span>
+              Made with <span className="text-red-500/70 text-sm">❤️</span> by <span className="text-muted-foreground/60 font-medium">KotabaruPride</span>
             </span>
           </div>
         </div>
