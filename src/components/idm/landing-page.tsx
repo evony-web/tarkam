@@ -5,7 +5,7 @@ import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -595,10 +595,11 @@ export function LandingPage() {
           {/* Desktop Nav Links — compact on medium screens */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
+              { view: 'landing' as AppView, label: 'Beranda' },
+              { view: 'bracket' as AppView, label: 'Bracket' },
               { view: 'peringkat' as AppView, label: 'Peringkat' },
               { view: 'players' as AppView, label: 'Pemain' },
               { view: 'highlights' as AppView, label: 'Juara' },
-              { view: 'bracket' as AppView, label: 'Bracket' },
             ].map(item => (
               <button
                 key={item.view}
@@ -647,10 +648,11 @@ export function LandingPage() {
         <div className="bg-background/95 backdrop-blur-lg">
           <div className="flex items-center justify-around h-16 px-1">
             {[
+              { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
+              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
-              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
             ].map(item => {
               const isActive = currentView === item.view;
               return (
