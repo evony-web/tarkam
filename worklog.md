@@ -464,3 +464,25 @@ Stage Summary:
 - Theme toggle stays as a separate h-7 circle button
 - Both elements are h-7 (28px) tall — consistent and compact in the h-14 header
 - Desktop view shows "Login" text as before
+
+---
+Task ID: 10c
+Agent: Main Agent
+Task: Revert mobile header to original design - restore Login text and proper card sizing
+
+Work Log:
+- Reverted all mobile header changes back to the ORIGINAL design (before any of my modifications)
+- LandingThemeToggle: Back to h-8 w-8 with h-4 w-4 icons (same as desktop), added `shrink-0`
+- LandingAuthButton (not logged in): Back to "Login" text visible on all screen sizes, with `border-foreground/15` style when not scrolled
+- LandingAuthButton admin shield: Back to `p-1 rounded-md` with opacity-50 (same as desktop)
+- LandingAuthButton (logged in): Back to proper `border-foreground/10 bg-foreground/5` when not scrolled
+- Added `shrink-0` to all right-side header elements to prevent flex stretching
+- PublicThemeToggle and PublicAuthButton: Identical changes applied
+- Removed the "toolbar" container experiment (rounded-full wrapper) — back to individual buttons
+- Key fix: Added `shrink-0` to theme toggle, login container, and logged-in button to prevent them from stretching to fill the h-14 header flex container
+
+Stage Summary:
+- Mobile header is now identical to desktop (same sizes, same styles)
+- "Login" text visible on mobile as requested
+- Added `shrink-0` to prevent flex items from stretching to header height
+- This should fix the "card as tall as header" issue — the buttons should now be content-sized
