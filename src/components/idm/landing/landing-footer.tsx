@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Instagram, Youtube } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
 
 /* ═══════════════════════════════════════════════════════════════
    Tarkam IDM — Premium Footer (Enhanced)
@@ -47,10 +48,10 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
 }
 
 /* ── Quick Link Item ── */
-function QuickLink({ label, sectionId }: { label: string; sectionId: string }) {
+function QuickLink({ label, view }: { label: string; view: string }) {
   const handleClick = () => {
-    const el = document.getElementById(sectionId);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    useAppStore.getState().setCurrentView(view as any);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -166,10 +167,10 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
 
           {/* ─── Right: Quick Links ─── */}
           <nav aria-label="Footer navigation" className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:gap-y-1">
-            <QuickLink label="Kompetisi" sectionId="kompetisi" />
-            <QuickLink label="Champion" sectionId="season-champion" />
-            <QuickLink label="Juara" sectionId="highlights" />
-            <QuickLink label="Club" sectionId="clubs" />
+            <QuickLink label="Bracket" view="bracket" />
+            <QuickLink label="Juara" view="highlights" />
+            <QuickLink label="Peringkat" view="peringkat" />
+            <QuickLink label="Pemain" view="players" />
           </nav>
         </div>
 
