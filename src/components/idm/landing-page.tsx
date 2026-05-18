@@ -42,6 +42,8 @@ const VideoModal = dynamic(() => import('./video-modal').then(m => ({ default: m
 const PaymentModal = dynamic(() => import('./payment-modal').then(m => ({ default: m.PaymentModal })), { ssr: false, loading: () => null });
 const UnifiedLoginModal = dynamic(() => import('./unified-login-modal').then(m => ({ default: m.UnifiedLoginModal })), { ssr: false, loading: () => null });
 const DonationModal = dynamic(() => import('./donation-modal').then(m => ({ default: m.DonationModal })), { ssr: false, loading: () => null });
+const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
+const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
 
 // Shared hooks & components
 import { useSwipeNavigation, useScrollReveal, useParallax, SectionDivider } from './landing/shared';
@@ -357,7 +359,7 @@ export function LandingPage() {
 
   const isDataLoading = isMaleLoading || (deferredQueriesReady && isFemaleLoading);
   // isSeasonSwitching: data exists (not initial load) but fetching new season data
-  const isSeasonSwitching = !isDataLoading && (isMaleFetching || isFemaleFetching);
+  const isSeasonSwitching = !isDataLoading && (isMalePlaceholder || isFemalePlaceholder);
   // isSeasonDataPlaceholder: true when showing OLD season data during a season switch
   // Used by Hero section to show skeleton instead of stale champion
   const isSeasonDataPlaceholder = isMalePlaceholder || isFemalePlaceholder;
@@ -771,7 +773,7 @@ export function LandingPage() {
         onEnterApp={enterApp}
         onRegister={(div) => { setRegistrationDefaultDivision(div || null); setRegistrationModalOpen(true); }}
         onPayment={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
-        onDonate={(div) => { setDonationModalDivision(div); setDonationModalOpen(true); }}
+        onDonate={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
@@ -867,10 +869,10 @@ export function LandingPage() {
 
       {/* ========== DONATION MODAL ========== */}
       <DonationModal
-        open={donationModalOpen}
-        onOpenChange={setDonationModalOpen}
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
         defaultType="weekly"
-        division={donationModalDivision}
+        division={paymentModalDivision}
         cmsSettings={cms}
       />
 

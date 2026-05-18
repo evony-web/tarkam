@@ -31,7 +31,7 @@ import { AvatarMedia } from '@/components/ui/avatar-media';
 
 // Import modular components — original
 import { CommunityHero } from './community-hero';
-import { CommunityLeaderboard } from './community-leaderboard';
+import { CommunityLeaderboard, PeringkatHeader } from './community-leaderboard';
 
 // Import modular components — new features
 
@@ -1078,20 +1078,26 @@ export function CommunityDashboard() {
       <div className="space-y-4 sm:space-y-6">
         {/* Sticky Champion Header — hidden when rankings section is in view */}
         <div className={`sticky top-0 z-30 -mx-1.5 sm:-mx-4 lg:-mx-5 px-1.5 sm:px-4 lg:px-5 py-2.5 bg-background/95 sm:backdrop-blur-md border-b border-idm-gold-warm/10 transition-all duration-300 ${isRankingsVisible ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
-          <ChampionsMvpHeader
-            selectedDivision={selectedDivision}
-            onDivisionChange={handleDivisionChange}
-          />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <Crown className="w-4 h-4 text-idm-gold-warm/70" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-idm-gold-warm/80">Champion</h3>
+            </div>
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
+              {(['all', 'male', 'female'] as const).map(d => (
+                <button key={d} onClick={() => handleDivisionChange(d)} className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${selectedDivision === d ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm border border-idm-gold-warm/25' : 'text-muted-foreground/70 border border-transparent hover:bg-muted/40'}`}>{d === 'all' ? 'Semua' : d === 'male' ? 'Cowo' : 'Cewe'}</button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <Section sectionId="champions">
           <LazySection placeholderHeight={600}>
             <AnimatedSection>
-              <ChampionsMvpContent
+              <MvpHallOfFame
                 maleData={maleData}
                 femaleData={femaleData}
                 selectedDivision={selectedDivision}
-                onPlayerClick={handlePlayerClick}
               />
             </AnimatedSection>
           </LazySection>
