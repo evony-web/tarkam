@@ -1,9 +1,9 @@
 'use client';
 
-import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard } from 'lucide-react';
+import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedSection, SectionHeader } from './shared';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, parseWitaDate, formatWIBWeekdayShort, formatWIBTime } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 interface TournamentHubProps {
@@ -245,36 +245,36 @@ function TournamentCard({
           {cardDescription}
         </p>
 
-        {/* Stats row — iOS clean stat tiles */}
+        {/* Info row — Date/Time, Arena, BPM (like dashboard hero) */}
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 mb-4">
-          <div className="ios-card relative p-2 sm:p-4 text-center tournament-stat-item tournament-stat-separator overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
-            <Users className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
-            <p className="relative text-lg font-extrabold tabular-nums" style={{ color: division.color }}>
-              {totalPlayers}
+          <div className="ios-card relative p-2 sm:p-3 text-center tournament-stat-item tournament-stat-separator overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
+            <Calendar className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
+            <p className="relative text-xs sm:text-sm font-bold tabular-nums" style={{ color: division.color }}>
+              {data?.activeTournament?.scheduledAt ? formatWIBWeekdayShort(parseWitaDate(data.activeTournament.scheduledAt)!) : '–'}
             </p>
-            <p className="relative text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
-              <Users className="w-2.5 h-2.5" />
-              Pemain
-            </p>
-          </div>
-          <div className="ios-card relative p-2 sm:p-4 text-center tournament-stat-item tournament-stat-separator overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
-            <Building2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
-            <p className="relative text-lg font-extrabold tabular-nums" style={{ color: division.color }}>
-              {totalClubs}
-            </p>
-            <p className="relative text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
-              <Building2 className="w-2.5 h-2.5" />
-              Club
+            <p className="relative text-[9px] sm:text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
+              <Clock className="w-2.5 h-2.5" />
+              {data?.activeTournament?.scheduledAt ? formatWIBTime(parseWitaDate(data.activeTournament.scheduledAt)!) : 'TBA'}
             </p>
           </div>
-          <div className="ios-card relative p-2 sm:p-4 text-center tournament-stat-item overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
-            <Gamepad2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
-            <p className="relative text-lg font-extrabold tabular-nums" style={{ color: division.color }}>
-              {weeklyCount}
+          <div className="ios-card relative p-2 sm:p-3 text-center tournament-stat-item tournament-stat-separator overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
+            <MapPin className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
+            <p className="relative text-xs sm:text-sm font-bold" style={{ color: division.color }}>
+              {data?.activeTournament?.location || 'Online'}
             </p>
-            <p className="relative text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
-              <Gamepad2 className="w-2.5 h-2.5" />
-              Match
+            <p className="relative text-[9px] sm:text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
+              <MapPin className="w-2.5 h-2.5" />
+              Arena
+            </p>
+          </div>
+          <div className="ios-card relative p-2 sm:p-3 text-center tournament-stat-item overflow-hidden" style={{ background: `linear-gradient(135deg, rgba(${division.colorRgb},0.06) 0%, rgba(${division.colorRgb},0.02) 100%)`, borderColor: `rgba(${division.colorRgb},0.1)` }}>
+            <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 opacity-[0.06]" style={{ color: division.color }} />
+            <p className="relative text-xs sm:text-sm font-bold tabular-nums" style={{ color: division.color }}>
+              {data?.activeTournament?.bpm || '–'}
+            </p>
+            <p className="relative text-[9px] sm:text-[10px] text-muted-foreground dark:text-[#a09880] flex items-center justify-center gap-1 mt-0.5">
+              <Heart className="w-2.5 h-2.5" />
+              BPM
             </p>
           </div>
         </div>
