@@ -12,8 +12,8 @@ export function BracketPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 space-y-4 sm:space-y-5">
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        {/* Header + Division Selector — title left, pills right */}
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
               <Radio className="w-4 h-4 text-idm-gold-warm" />
@@ -23,11 +23,9 @@ export function BracketPage() {
               <p className="text-[10px] text-muted-foreground/60">Bagan pertandingan & hasil Tarkam IDM</p>
             </div>
           </div>
-        </div>
 
-        {/* Division Selector */}
-        <div className="flex items-center justify-center">
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-muted/20 border border-border/10">
+          {/* Division pills — right-aligned */}
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
             {([
               { key: 'semua' as const, label: 'Semua' },
               { key: 'male' as const, label: 'Cowo' },
@@ -36,14 +34,10 @@ export function BracketPage() {
               <button
                 key={div.key}
                 onClick={() => setDivision(div.key)}
-                className={`px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                   division === div.key
-                    ? div.key === 'semua'
-                      ? 'bg-primary/15 text-primary border border-primary/30 shadow-sm'
-                      : div.key === 'male'
-                        ? 'bg-idm-male/15 text-idm-male border border-idm-male/30 shadow-sm'
-                        : 'bg-idm-female/15 text-idm-female border border-idm-female/30 shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
+                    : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
                 }`}
               >
                 {div.label}
