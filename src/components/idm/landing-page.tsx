@@ -595,11 +595,11 @@ export function LandingPage() {
           {/* Desktop Nav Links — compact on medium screens */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
-              { view: 'landing' as AppView, label: 'Beranda' },
-              { view: 'bracket' as AppView, label: 'Bracket' },
-              { view: 'peringkat' as AppView, label: 'Peringkat' },
-              { view: 'players' as AppView, label: 'Pemain' },
-              { view: 'highlights' as AppView, label: 'Juara' },
+              { view: 'landing' as AppView, label: 'Beranda', special: false },
+              { view: 'bracket' as AppView, label: 'Bracket', special: false },
+              { view: 'highlights' as AppView, label: 'Juara', special: true },
+              { view: 'peringkat' as AppView, label: 'Peringkat', special: false },
+              { view: 'players' as AppView, label: 'Pemain', special: false },
             ].map(item => (
               <button
                 key={item.view}
@@ -609,10 +609,16 @@ export function LandingPage() {
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
                     ? 'text-idm-gold-warm font-semibold'
+                    : item.special
+                    ? 'text-idm-gold-warm/80 hover:text-idm-gold-warm'
                     : 'text-muted-foreground hover:text-idm-gold-warm/70'
                 }`}
               >
-                {item.label}
+                {item.special && <span className="absolute inset-0 rounded-md animate-pulse bg-idm-gold-warm/[0.06] border border-idm-gold-warm/15" />}
+                <span className="relative flex items-center gap-1">
+                  {item.special && <Crown className="w-3.5 h-3.5 drop-shadow-[0_0_4px_rgba(239,249,35,0.4)]" />}
+                  {item.label}
+                </span>
                 {currentView === item.view && (
                   <div className="nav-indicator absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full" />
                 )}
@@ -646,15 +652,41 @@ export function LandingPage() {
         <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />
         {/* Frosted glass background */}
         <div className="bg-background/95 backdrop-blur-lg">
-          <div className="flex items-center justify-around h-16 px-1">
+          <div className="flex items-center justify-around h-16 px-1 relative">
             {[
               { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
               { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
+              { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
-              { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
             ].map(item => {
               const isActive = currentView === item.view;
+
+              // FAB-style for Juara button
+              if (item.special) {
+                return (
+                  <button
+                    key={item.view}
+                    onClick={() => setCurrentView(item.view)}
+                    className="relative -mt-5 z-20 cursor-pointer"
+                  >
+                    {/* Outer pulse ring */}
+                    <span className="absolute inset-0 rounded-full animate-ping opacity-20 bg-idm-gold-warm" style={{ animationDuration: '2s' }} />
+                    {/* Glow shadow */}
+                    <span className="absolute -inset-1 rounded-full bg-idm-gold-warm/20 blur-sm" />
+                    {/* Button body */}
+                    <span className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300 active:scale-90 ${
+                      isActive
+                        ? 'bg-idm-gold-warm shadow-[0_0_20px_rgba(239,249,35,0.5)]'
+                        : 'bg-gradient-to-br from-idm-gold-warm/90 to-yellow-500 shadow-[0_0_14px_rgba(239,249,35,0.3)]'
+                    }`}>
+                      <Crown className={`w-6 h-6 ${isActive ? 'text-black' : 'text-black/90'} fill-current`} />
+                    </span>
+                    <span className="block text-center text-[9px] font-bold mt-1 text-idm-gold-warm">{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={item.view}
@@ -662,23 +694,13 @@ export function LandingPage() {
                     setCurrentView(item.view);
                   }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
-                    item.special
-                      ? isActive
-                        ? 'text-idm-gold-warm'
-                        : 'text-idm-gold-warm/70'
-                      : isActive
-                      ? 'text-idm-gold-warm'
-                      : 'text-muted-foreground hover:text-idm-gold-warm/70'
+                    isActive
+                    ? 'text-idm-gold-warm'
+                    : 'text-muted-foreground hover:text-idm-gold-warm/70'
                   }`}
                 >
-                  {item.special && (
-                    <span className="absolute inset-0 rounded-xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10" />
-                  )}
-                  {item.special && !isActive && (
-                    <span className="absolute inset-0 rounded-xl animate-pulse bg-idm-gold-warm/[0.03] shadow-[0_0_8px_rgba(239,249,35,0.08)]" />
-                  )}
-                  <item.icon className={`relative z-10 w-5 h-5 ${item.special ? 'drop-shadow-[0_0_4px_rgba(239,249,35,0.3)]' : ''}`} />
-                  <span className={`relative z-10 text-[10px] font-medium mt-0.5 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
+                  <item.icon className="relative z-10 w-5 h-5" />
+                  <span className="relative z-10 text-[10px] font-medium mt-0.5">{item.label}</span>
                   {isActive && (
                     <div className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.6)]" />
                   )}
