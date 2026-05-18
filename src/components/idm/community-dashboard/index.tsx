@@ -1898,30 +1898,7 @@ export function CommunityDashboard() {
   const [paymentDivision, setPaymentDivision] = useState<'male' | 'female'>('male');
   // Division filter — new state for division-specific content
   const [selectedDivision, setSelectedDivision] = useState<DivisionFilter>('all');
-  // Peringkat leaderboard filter state — lifted from CommunityLeaderboard for sticky header
-  const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
-  // ★ INP optimization: wrap leaderboard sort in startTransition
-  const handleLeaderboardSortChange = useCallback((s: 'players' | 'clubs') => {
-    startTransition(() => setLeaderboardSort(s));
-  }, []);
-  const [leaderboardDivisionFilter, setLeaderboardDivisionFilter] = useState<'all' | 'male' | 'female'>('all');
-  // ★ INP optimization: wrap leaderboard filter in startTransition
-  const handleLeaderboardDivisionChange = useCallback((f: 'all' | 'male' | 'female') => {
-    startTransition(() => setLeaderboardDivisionFilter(f));
-  }, []);
-  // Track if rankings section is visible — hide sticky champion header when it is
-  const [isRankingsVisible, setIsRankingsVisible] = useState(false);
-  useEffect(() => {
-    const el = document.getElementById('section-rankings');
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsRankingsVisible(entry.isIntersecting),
-      { threshold: 0, rootMargin: '-60px 0px 0px 0px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  // Peringkat is no longer sticky — no need for intersection observer
+  // Peringkat section removed — now has its own dedicated navigation page
   // Season selector — null means viewing the active season
   const [selectedSeason, setSelectedSeason] = useState<SelectedSeason | null>(null);
 
@@ -2143,10 +2120,10 @@ export function CommunityDashboard() {
       ) : (
       <>
 
-      {/* ═══ 4. ⭐ Champions & MVP + Peringkat ═══ */}
+      {/* ═══ 4. ⭐ Champions & MVP ═══ */}
       <div className="space-y-4 sm:space-y-6">
-        {/* Sticky Champion Header — hidden when rankings section is in view */}
-        <div className={`sticky top-0 z-30 -mx-1.5 sm:-mx-4 lg:-mx-5 px-1.5 sm:px-4 lg:px-5 py-2.5 bg-background/95 backdrop-blur-md border-b border-idm-gold-warm/10 transition-all duration-300 ${isRankingsVisible ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
+        {/* Sticky Champion Header */}
+        <div className="sticky top-0 z-30 -mx-1.5 sm:-mx-4 lg:-mx-5 px-1.5 sm:px-4 lg:px-5 py-2.5 bg-background/95 backdrop-blur-md border-b border-idm-gold-warm/10">
           <ChampionsMvpHeader
             selectedDivision={selectedDivision}
             onDivisionChange={handleDivisionChange}
@@ -2164,32 +2141,7 @@ export function CommunityDashboard() {
           </AnimatedSection>
         </Section>
 
-        {/* ═══ 6. Peringkat/Standings — People check ranking changes after match ═══ */}
-        <Section sectionId="rankings" skipContentVisibility>
-          <AnimatedSection variant="fadeUp">
-            <div className="space-y-4">
-              <PeringkatHeader
-                leaderboardSort={leaderboardSort}
-                onLeaderboardSortChange={handleLeaderboardSortChange}
-                divisionFilter={leaderboardDivisionFilter}
-                onDivisionFilterChange={handleLeaderboardDivisionChange}
-                maleData={maleData}
-                femaleData={femaleData}
-              />
-              <DivisionStandingsSection
-                maleData={maleData}
-                femaleData={femaleData}
-                selectedDivision={selectedDivision}
-                onPlayerClick={handlePlayerClick}
-                onClubClick={handleClubClick}
-                leaderboardSort={leaderboardSort}
-                onLeaderboardSortChange={handleLeaderboardSortChange}
-                divisionFilter={leaderboardDivisionFilter}
-                onDivisionFilterChange={handleLeaderboardDivisionChange}
-              />
-            </div>
-          </AnimatedSection>
-        </Section>
+
       </div>
 
       {/* ═══ 7. Quick Stats Bar — Division-specific (when division selected) ═══ */}
