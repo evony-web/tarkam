@@ -321,7 +321,7 @@ export function LandingPage() {
     staleTime: 30000, // 30s — fast refresh since this is a lightweight query
     refetchInterval: 120000, // 2min polling — reduced from 60s to lower INP impact
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true, // ★ Keep for tournament-status — lightweight and critical for registration button
     gcTime: 60000,
     placeholderData: (prev) => prev, // keep previous data during refetch — prevents CLS
     notifyOnChangeProps: ['data', 'error'],
@@ -338,7 +338,7 @@ export function LandingPage() {
     refetchInterval: 300000, // 5min polling — reduced from 2min for INP optimization
     refetchIntervalInBackground: false,
     notifyOnChangeProps: ['data', 'error'],
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // ★ OPTIMIZED: disabled — polling handles freshness, refetchOnFocus causes INP spikes
     gcTime: 300000,
     placeholderData: (prev) => prev, // keep previous data during refetch/season switch — prevents FOUC
   });
@@ -354,7 +354,7 @@ export function LandingPage() {
     refetchInterval: 330000, // 5.5min polling — staggered 30s from male to avoid simultaneous INP spikes
     refetchIntervalInBackground: false,
     notifyOnChangeProps: ['data', 'error'],
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // ★ OPTIMIZED: disabled — polling handles freshness
     gcTime: 300000,
     placeholderData: (prev) => prev, // keep previous data during refetch/season switch — prevents FOUC
   });
@@ -382,7 +382,7 @@ export function LandingPage() {
     staleTime: 300000, // CMS changes rarely — 5min stale is fine
     refetchInterval: 600000, // 10min polling — CMS data barely changes
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // ★ OPTIMIZED: disabled — CMS rarely changes
     gcTime: 300000,
     placeholderData: (prev) => prev, // keep previous data during refetch — prevents CLS
     notifyOnChangeProps: ['data', 'error'],
@@ -404,7 +404,7 @@ export function LandingPage() {
     //   - Admin changes appear within max 2min without manual refresh
     staleTime: 300000, // 5min — data considered fresh for 5min
     gcTime: 300000, // Keep unused data for 5 min in memory
-    refetchOnWindowFocus: true, // Refetch when user comes back to tab
+    refetchOnWindowFocus: false, // ★ OPTIMIZED: disabled — polling handles freshness
     refetchOnReconnect: true, // Refetch when network reconnects
     refetchInterval: 660000, // 11min polling — staggered 1min from cms to avoid simultaneous INP spikes
     refetchIntervalInBackground: false,

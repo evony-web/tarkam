@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
 import { hexToRgba, formatCurrency } from '@/lib/utils';
@@ -8,14 +8,14 @@ import type { StatsData } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════════════
    TARKAM IDM — ESPN-STYLE MARQUEE TICKER
-   Stats + Live Feed in one seamless scrolling bar
-   JS-driven animation with requestAnimationFrame
+   ★ OPTIMIZED: CSS animation replaces rAF for compositor-thread
+   scrolling — eliminates main-thread INP impact entirely.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ========== Speed Configuration ========== */
-// Pixels per second — readable ESPN-style ticker speed
-const DESKTOP_SPEED = 30;
-const MOBILE_SPEED = 20;
+// Duration in seconds for one full scroll cycle — longer = slower (more readable)
+const DESKTOP_DURATION = 60;
+const MOBILE_DURATION = 90;
 const MOBILE_BREAKPOINT = 768;
 
 /* ========== Feed Item Types ========== */
@@ -76,30 +76,42 @@ function resolveAccent(hex: string, isLight: boolean): string {
   return hex;
 }
 
-/* ========== Single Feed Card — Unified compact horizontal style ========== */
-function FeedCard({ item }: { item: FeedItem }) {
-  const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === 'light';
+/* ========== Pre-computed card style cache ========== */
+// Avoids re-computing hexToRgba on every render
+const styleCache = new Map<string, { bg: string; border: string; shadow: string; timeColor: string; timeBg: string }>();
+function getCardStyles(accent: string) {
+  const cached = styleCache.get(accent);
+  if (cached) return cached;
+  const styles = {
+    bg: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x03)} 100%)`,
+    border: hexToRgba(accent, 0x20),
+    shadow: `drop-shadow(0 0 4px ${hexToRgba(accent, 0x40)})`,
+    timeColor: hexToRgba(accent, 0xaa),
+    timeBg: hexToRgba(accent, 0x10),
+  };
+  styleCache.set(accent, styles);
+  return styles;
+}
+
+/* ========== Single Feed Card — Optimized: no useTheme per card ========== */
+function FeedCard({ item, isLight }: { item: FeedItem; isLight: boolean }) {
   const rawAccent = item.accent || TYPE_ACCENT[item.type] || '#EFF923';
   const accent = resolveAccent(rawAccent, isLight);
   const isStat = item.type === 'stat';
+  const styles = getCardStyles(accent);
 
   const displayTitle = isStat && item.numericValue && item.numericValue > 0
     ? item.numericValue.toLocaleString('id-ID')
     : item.title;
-  const displaySubtitle = item.subtitle;
 
   return (
     <div
       className="flex items-center gap-2 px-3.5 py-1.5 rounded-md shrink-0 border select-none"
-      style={{
-        background: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x03)} 100%)`,
-        borderColor: hexToRgba(accent, 0x20),
-      }}
+      style={{ background: styles.bg, borderColor: styles.border }}
     >
       <span
         className="text-sm shrink-0"
-        style={{ filter: `drop-shadow(0 0 4px ${hexToRgba(accent, 0x40)})` }}
+        style={{ filter: styles.shadow }}
       >
         {item.icon}
       </span>
@@ -113,11 +125,11 @@ function FeedCard({ item }: { item: FeedItem }) {
         {displayTitle}
       </p>
 
-      {displaySubtitle && (
+      {item.subtitle && (
         <>
           <span className="text-muted-foreground/20 shrink-0 text-[8px]">◆</span>
           <p className="text-[10px] text-muted-foreground/70 truncate max-w-[100px] sm:max-w-[130px] hidden sm:block">
-            {displaySubtitle}
+            {item.subtitle}
           </p>
         </>
       )}
@@ -125,7 +137,7 @@ function FeedCard({ item }: { item: FeedItem }) {
       {!isStat && (
         <span
           className="text-[9px] font-medium shrink-0 tabular-nums px-1.5 py-0.5 rounded"
-          style={{ color: hexToRgba(accent, 0xaa), background: hexToRgba(accent, 0x10) }}
+          style={{ color: styles.timeColor, background: styles.timeBg }}
         >
           {formatTimeAgo(item.timestamp)}
         </span>
@@ -136,9 +148,7 @@ function FeedCard({ item }: { item: FeedItem }) {
           className="w-2 h-2 rounded-full shrink-0 ring-1 ring-offset-1 ring-offset-background"
           style={{
             backgroundColor: item.division === 'male' ? '#2E9FFF' : '#FF2D78',
-            boxShadow: `0 0 6px ${item.division === 'male' ? hexToRgba('#2E9FFF', 0x40) : hexToRgba('#FF2D78', 0x40)}`,
-            '--tw-ring-color': item.division === 'male' ? hexToRgba('#2E9FFF', 0x60) : hexToRgba('#FF2D78', 0x60),
-          } as React.CSSProperties}
+          }}
         />
       )}
     </div>
@@ -159,14 +169,23 @@ interface UnifiedMarqueeProps {
   leagueData?: any;
 }
 
-/* ========== Unified Marquee — JS-driven rAF animation ========== */
+/* ========== Unified Marquee — CSS animation (compositor thread) ========== */
 export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqueeProps = {}) {
   const qc = useQueryClient();
   const trackRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(0);
-  const rafRef = useRef<number>(0);
-  const isPausedRef = useRef(false);
-  const lastTimeRef = useRef(0);
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [isPaused, setIsPaused] = React.useState(false);
+
+  // Cache isMobile — only update on resize, not every frame
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === 'light';
 
   const { data } = useQuery<{ items: FeedItem[] }>({
     queryKey: ['feed'],
@@ -178,12 +197,13 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     staleTime: 120000,
     refetchInterval: 300000,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // ★ OPTIMIZED: don't refetch on focus — reduces INP
     refetchOnReconnect: true,
     placeholderData: (prev) => prev,
   });
 
   // Pusher real-time — ★ deferred to idle to avoid competing with initial interactions (INP)
+  // ★ OPTIMIZED: debounce invalidation to max once per 30s
   useEffect(() => {
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
     const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
@@ -192,13 +212,18 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     let pusher: any;
     let channel: any;
     let idleId: number | ReturnType<typeof setTimeout> | undefined;
+    let debounceRef: ReturnType<typeof setTimeout> | undefined;
 
     const connectPusher = () => {
       import('pusher-js').then(({ default: PusherJS }) => {
         pusher = new PusherJS(pusherKey, { cluster: pusherCluster });
         channel = pusher.subscribe('idm-feed');
+        // ★ Debounce: max one invalidation per 30 seconds
         channel.bind('feed-updated', () => {
-          qc.invalidateQueries({ queryKey: ['feed'] });
+          clearTimeout(debounceRef);
+          debounceRef = setTimeout(() => {
+            qc.invalidateQueries({ queryKey: ['feed'] });
+          }, 30000);
         });
       }).catch(() => {});
     };
@@ -206,12 +231,13 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     // Defer Pusher connection until idle — reduces main thread work during initial load
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       idleId = (window as unknown as { requestIdleCallback(cb: () => void, opts?: { timeout: number }): number })
-        .requestIdleCallback(connectPusher, { timeout: 3000 });
+        .requestIdleCallback(connectPusher, { timeout: 5000 }); // ★ increased timeout from 3s to 5s
     } else {
-      idleId = setTimeout(connectPusher, 2000);
+      idleId = setTimeout(connectPusher, 5000); // ★ increased from 2s to 5s
     }
 
     return () => {
+      clearTimeout(debounceRef);
       if (idleId !== undefined) {
         if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
           (window as unknown as { cancelIdleCallback(id: number): void }).cancelIdleCallback(idleId as unknown as number);
@@ -270,93 +296,29 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
   const trackContent = useMemo(() => {
     const elements: React.ReactNode[] = [];
     combinedItems.forEach((item, i) => {
-      elements.push(<FeedCard key={`card-${item.id}-${i}`} item={item} />);
+      elements.push(<FeedCard key={`card-${item.id}-${i}`} item={item} isLight={isLight} />);
       if (i < combinedItems.length - 1) {
         elements.push(<Separator key={`sep-${i}`} />);
       }
     });
     return elements;
-  }, [combinedItems]);
+  }, [combinedItems, isLight]);
 
-  // rAF-driven animation loop — completely bypasses CSS animation/transition conflicts
-  // ★ INP optimization: pause when tab is hidden to free main thread
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    // ★ Set initial position to right edge — content enters from right like ESPN ticker
-    const container = track.parentElement;
-    let containerWidth = 0;
-    if (container) {
-      containerWidth = container.offsetWidth;
-    }
-
-    // Pause rAF when tab is hidden, resume when visible
-    const handleVisibility = () => {
-      if (document.hidden) {
-        isPausedRef.current = true;
-      } else {
-        // Reset timestamp so we don't get a huge delta on resume
-        lastTimeRef.current = 0;
-        isPausedRef.current = false;
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    const animate = (timestamp: number) => {
-      if (lastTimeRef.current === 0) {
-        lastTimeRef.current = timestamp;
-      }
-
-      const delta = timestamp - lastTimeRef.current;
-      lastTimeRef.current = timestamp;
-
-      // Skip large time gaps (tab was hidden, etc.)
-      if (delta < 200 && !isPausedRef.current) {
-        const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-        const speed = isMobile ? MOBILE_SPEED : DESKTOP_SPEED;
-
-        const effectiveSpeed = speed;
-
-        const pixelsToMove = (effectiveSpeed * delta) / 1000;
-
-        offsetRef.current -= pixelsToMove;
-
-        // Seamless loop reset — only trigger for NEGATIVE offsets (normal left scroll)
-        // BUG FIX: Math.abs() also matched positive offsets (initial right-edge start),
-        // causing offset to grow endlessly and push content off-screen forever
-        const halfWidth = track.scrollWidth / 2;
-        if (halfWidth > 0 && offsetRef.current <= -halfWidth) {
-          offsetRef.current += halfWidth;
-        }
-
-        track.style.transform = `translateX(${offsetRef.current}px)`;
-      }
-
-      rafRef.current = requestAnimationFrame(animate);
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [trackContent]);
-
-  // Pause on hover (desktop only)
-  const handleMouseEnter = () => { isPausedRef.current = true; };
-  const handleMouseLeave = () => { isPausedRef.current = false; };
+  // ★ CSS animation duration based on content count and device
+  const scrollDuration = useMemo(() => {
+    // More items = longer duration to keep speed readable
+    const baseDuration = isMobile ? MOBILE_DURATION : DESKTOP_DURATION;
+    const itemFactor = Math.max(1, combinedItems.length / 10);
+    return Math.round(baseDuration * itemFactor);
+  }, [combinedItems.length, isMobile]);
 
   if (combinedItems.length === 0) return null;
 
   return (
     <div
       className="w-full overflow-hidden relative group"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
     >
       {/* Fade edges */}
       <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 z-10 pointer-events-none"
@@ -366,13 +328,20 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
         style={{ background: 'linear-gradient(to left, hsl(var(--background)), transparent)' }}
       />
 
-      {/* Scrolling track — 2x for seamless loop, JS-driven rAF */}
+      {/* Scrolling track — 2x for seamless loop, CSS animation on compositor thread */}
+      <style>{`
+        @keyframes marquee-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+      `}</style>
       <div
         ref={trackRef}
         className="flex items-center"
         style={{
           width: 'max-content',
-          willChange: 'transform',
+          animation: `marquee-scroll ${scrollDuration}s linear infinite`,
+          animationPlayState: isPaused ? 'paused' : 'running',
         }}
       >
         {trackContent}

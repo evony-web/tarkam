@@ -63,11 +63,17 @@ export function HeroSection({
   const [showBracketPicker, setShowBracketPicker] = useState(false);
 
   /* ─── YouTube iframe facade — defer loading until after LCP ─── */
+  // ★ OPTIMIZED: Disable YouTube on mobile entirely — heavy JS (500KB+) blocks main thread causing high INP
   const [ytIframeReady, setYtIframeReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    // Defer YouTube iframe load by 3 seconds after mount — lets LCP complete first
-    const timer = setTimeout(() => setYtIframeReady(true), 3000);
-    return () => clearTimeout(timer);
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
+    // Defer YouTube iframe load — 5s on desktop (was 3s), skip on mobile
+    if (!mobile) {
+      const timer = setTimeout(() => setYtIframeReady(true), 5000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   /* ─── Compute stats ─── */
@@ -117,7 +123,7 @@ export function HeroSection({
         />
 
         {/* CMS Video Background — takes priority over images when set */}
-        {heroBgVideo ? (
+        {heroBgVideo && !isMobile ? (
           (() => {
             // Detect YouTube URL and extract video ID + optional start time
             const ytMatch = heroBgVideo.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -294,10 +300,10 @@ export function HeroSection({
             /* ─── Skeleton placeholder during season switch / initial load ─── */
             <div className="hero-enter-5 flex items-center justify-center mb-6 sm:mb-10">
               <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03]">
-                <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10 animate-pulse" />
+                <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10" />
                 <div className="space-y-1.5">
-                  <div className="w-16 h-2 rounded bg-idm-gold-warm/10 animate-pulse" />
-                  <div className="w-10 h-1.5 rounded bg-idm-gold-warm/5 animate-pulse" />
+                  <div className="w-16 h-2 rounded bg-idm-gold-warm/10" />
+                  <div className="w-10 h-1.5 rounded bg-idm-gold-warm/5" />
                 </div>
               </div>
             </div>
@@ -337,7 +343,7 @@ export function HeroSection({
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Pulse glow ring */}
-              <div className="absolute -inset-0.5 rounded-2xl animate-pulse" style={{ background: 'rgba(239,249,35,0.06)', boxShadow: '0 0 10px rgba(239,249,35,0.12)' }} />
+              <div className="absolute -inset-0.5 rounded-2xl" style={{ background: 'rgba(239,249,35,0.06)', boxShadow: '0 0 10px rgba(239,249,35,0.12)' }} />
               {/* Glow background */}
               <div className="absolute -inset-1 rounded-2xl blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-500" style={{ background: 'rgba(239,249,35,0.18)' }} />
               <div className="relative flex items-center justify-center gap-2.5 px-6 sm:px-7 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[48px] rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-sm tracking-wide uppercase transition-all duration-300 hero-cta-primary-inner"
