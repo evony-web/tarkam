@@ -2,13 +2,13 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, ChevronDown, Trophy, Users } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
-import type { StatsData, TopPlayer, SeasonChampionPlayer } from '@/types/stats';
+import type { StatsData, TopPlayer, SeasonChampionPlayer, SultanOfWeekly, SultanPlayer } from '@/types/stats';
 import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { getDivisionTheme } from '@/hooks/use-division-theme';
-import { getAvatarUrl, clubToString } from '@/lib/utils';
+import { getAvatarUrl, clubToString, hexToRgba } from '@/lib/utils';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 
 // Import champion section components
@@ -522,6 +522,241 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
 
 
 /* ═══════════════════════════════════════════
+   Sultan of the Week Card — Compact plaque for HighlightsPage
+   Shows the top penyawer from the latest week
+   ═══════════════════════════════════════════ */
+const MAROON = '#800020';
+const MAROON_LIGHT = '#d4576a';
+
+function SultanOfWeekCard({
+  sultan,
+  onPlayerClick,
+}: {
+  sultan: SultanOfWeekly;
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+}) {
+  const ct = useCommunityTheme();
+  const sultanDivision = sultan.tournamentDivision as 'male' | 'female';
+  const divisionAccent = sultanDivision === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionLabel = sultanDivision === 'male' ? 'COWO' : 'CEWE';
+  const DivisionIcon = sultanDivision === 'male' ? Music : Shield;
+  const hasPlayer = !!sultan.player;
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}
+        style={{ borderColor: hexToRgba(MAROON, 0.2) }}>
+        {/* Maroon accent bar */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})` }} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ backgroundColor: hexToRgba(MAROON, 0.15), border: `1px solid ${hexToRgba(MAROON, 0.25)}` }}>
+            <Heart className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: MAROON_LIGHT }}>
+            Sultan of the Week
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <Badge className="text-[8px] font-bold border" style={{
+              color: divisionAccent, backgroundColor: hexToRgba(divisionAccent, 0.1),
+              borderColor: hexToRgba(divisionAccent, 0.2) }}>
+              {divisionLabel}
+            </Badge>
+            <Badge className="text-[8px] font-bold border" style={{
+              color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1),
+              borderColor: hexToRgba(MAROON, 0.2) }}>
+              W{sultan.weekNumber}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-3 sm:p-5">
+          {hasPlayer ? (
+            <button
+              onClick={() => onPlayerClick({
+                ...sultan.player!,
+                name: sultan.player!.gamertag,
+                club: sultan.player!.club ?? undefined,
+                division: sultanDivision,
+              }, sultanDivision)}
+              className="flex items-center gap-3 sm:gap-4 w-full text-left cursor-pointer group/sultan"
+            >
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2"
+                  style={{ borderColor: hexToRgba(MAROON, 0.4), boxShadow: `0 0 12px ${hexToRgba(MAROON, 0.15)}` }}>
+                  <AvatarMedia
+                    src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
+                    alt={sultan.player!.gamertag}
+                    width={64} height={64}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                {/* Crown badge */}
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})` }}>
+                  <Heart className="w-2.5 h-2.5 text-white" />
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate group-hover/sultan:text-idm-gold-warm transition-colors">
+                  {sultan.player!.gamertag}
+                </p>
+                <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Week {sultan.weekNumber}</p>
+                {(sultan.player!.city || sultan.player!.club) && (
+                  <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5">
+                    {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="shrink-0 flex flex-col items-end gap-1">
+                <span className="text-[10px] font-black tabular-nums" style={{ color: MAROON_LIGHT }}>
+                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                </span>
+                <span className="text-[9px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+              </div>
+            </button>
+          ) : (
+            /* No player matched — show donor name only */
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center border-2"
+                style={{ borderColor: hexToRgba(MAROON, 0.2), background: hexToRgba(MAROON, 0.06) }}>
+                <Heart className="w-5 h-5" style={{ color: hexToRgba(MAROON, 0.4) }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{sultan.donorName}</p>
+                <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Week {sultan.weekNumber}</p>
+              </div>
+              <div className="shrink-0 flex flex-col items-end gap-1">
+                <span className="text-[10px] font-black tabular-nums" style={{ color: MAROON_LIGHT }}>
+                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                </span>
+                <span className="text-[9px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════
+   Sultan of Season Card — Emerald theme for HighlightsPage
+   Shows the top penyawer from the latest completed season
+   ═══════════════════════════════════════════ */
+const EMERALD = '#43A047';
+const EMERALD_LIGHT = '#66BB6A';
+
+function SultanOfSeasonCardPage({
+  sultans,
+  onPlayerClick,
+}: {
+  sultans: { seasonNumber: number; sultan: SultanPlayer }[];
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+}) {
+  const ct = useCommunityTheme();
+  const latestSultan = sultans[0];
+  if (!latestSultan) return null;
+
+  const { sultan, seasonNumber } = latestSultan;
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}
+        style={{ borderColor: hexToRgba(EMERALD, 0.2) }}>
+        {/* Emerald accent bar */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})` }} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ backgroundColor: hexToRgba(EMERALD, 0.15), border: `1px solid ${hexToRgba(EMERALD, 0.25)}` }}>
+            <Gem className="w-3 h-3" style={{ color: EMERALD_LIGHT }} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: EMERALD_LIGHT }}>
+            Sultan of Season
+          </span>
+          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
+            <Gem className="w-2.5 h-2.5 mr-0.5" />S{seasonNumber}
+          </Badge>
+        </div>
+
+        {/* Body */}
+        <div className="p-3 sm:p-5">
+          <button
+            onClick={() => onPlayerClick({
+              id: sultan.id,
+              name: sultan.gamertag,
+              gamertag: sultan.gamertag,
+              avatar: sultan.avatar,
+              tier: sultan.tier,
+              points: sultan.points,
+              totalWins: 0,
+              streak: 0,
+              maxStreak: 0,
+              totalMvp: 0,
+              matches: 0,
+              division: (sultan.division === 'female' ? 'female' : 'male') as 'male' | 'female',
+              city: sultan.city ?? undefined,
+              club: sultan.club?.name ?? undefined,
+            }, (sultan.division === 'female' ? 'female' : 'male') as 'male' | 'female')}
+            className="flex items-center gap-3 sm:gap-4 w-full text-left cursor-pointer group/sultan-season"
+          >
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2"
+                style={{ borderColor: EMERALD, boxShadow: `0 0 12px ${hexToRgba(EMERALD, 0.25)}` }}>
+                <AvatarMedia
+                  src={getAvatarUrl(sultan.gamertag, sultan.division === 'female' ? 'female' : 'male', sultan.avatar)}
+                  alt={sultan.gamertag}
+                  width={64} height={64}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+              {/* Emerald gem badge */}
+              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${EMERALD_LIGHT}, ${EMERALD})` }}>
+                <Gem className="w-2.5 h-2.5 text-white" />
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate group-hover/sultan-season:text-idm-gold-warm transition-colors"
+                style={{ color: EMERALD_LIGHT }}>
+                {sultan.gamertag}
+              </p>
+              <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Season {seasonNumber}</p>
+              {sultan.club?.name && (
+                <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5">{sultan.club.name}</p>
+              )}
+            </div>
+
+            {/* Emerald icon */}
+            <div className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: hexToRgba(EMERALD, 0.1), border: `1px solid ${hexToRgba(EMERALD, 0.2)}` }}>
+              <span className="text-base">💵</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════
    Highlights (Juara) Page — Main Component
    Contains: Reigning Champion, Season 1 Club Champion, Weekly Champions, MVP Spotlight, MVP Hall of Fame
    ═══════════════════════════════════════════ */
@@ -577,6 +812,40 @@ export function HighlightsPage() {
     placeholderData: (prev) => prev,
   });
 
+  // ─── Sultan of the Week data ───
+  const maleSultanList = maleData?.sultanOfWeekly || [];
+  const femaleSultanList = femaleData?.sultanOfWeekly || [];
+  const latestMaleSultan = maleSultanList.length > 0 ? maleSultanList[maleSultanList.length - 1] : null;
+  const latestFemaleSultan = femaleSultanList.length > 0 ? femaleSultanList[femaleSultanList.length - 1] : null;
+  // Pick the Sultan with the highest totalAmount across both divisions
+  const topSultanOfWeek: SultanOfWeekly | null = latestMaleSultan && latestFemaleSultan
+    ? (latestMaleSultan.totalAmount >= latestFemaleSultan.totalAmount ? latestMaleSultan : latestFemaleSultan)
+    : latestMaleSultan || latestFemaleSultan;
+  // Filter by selected division
+  const showSultanOfWeek = topSultanOfWeek && (
+    selectedDivision === 'all' ||
+    topSultanOfWeek.tournamentDivision === selectedDivision
+  );
+
+  // ─── Sultan of Season data ───
+  const seasonSultans = React.useMemo(() => {
+    const sultans: { seasonNumber: number; sultan: SultanPlayer }[] = [];
+    const seenSeasonNumbers = new Set<number>();
+    const allSeasons = [...(maleData?.allSeasons || []), ...(femaleData?.allSeasons || [])];
+    for (const season of allSeasons) {
+      if (season.status === 'completed' && season.sultanPlayer && !seenSeasonNumbers.has(season.number)) {
+        seenSeasonNumbers.add(season.number);
+        sultans.push({ seasonNumber: season.number, sultan: season.sultanPlayer });
+      }
+    }
+    sultans.sort((a, b) => b.seasonNumber - a.seasonNumber);
+    // Filter by division
+    if (selectedDivision !== 'all') {
+      return sultans.filter(s => s.sultan.division === selectedDivision);
+    }
+    return sultans;
+  }, [maleData, femaleData, selectedDivision]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Content */}
@@ -611,6 +880,22 @@ export function HighlightsPage() {
           <div className="animate-fade-enter-sm">
             <WeeklyChampionCard maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} onPlayerClick={handlePlayerClick} />
           </div>
+
+          {/* Sultan of the Week */}
+          {showSultanOfWeek && topSultanOfWeek && (
+            <SultanOfWeekCard
+              sultan={topSultanOfWeek}
+              onPlayerClick={handlePlayerClick}
+            />
+          )}
+
+          {/* Sultan of Season */}
+          {seasonSultans.length > 0 && (
+            <SultanOfSeasonCardPage
+              sultans={seasonSultans}
+              onPlayerClick={handlePlayerClick}
+            />
+          )}
 
           {/* MVP Spotlight */}
           <div className="animate-fade-enter-sm">
