@@ -650,6 +650,55 @@ function SultanOfWeekCard({
 }
 
 
+/* ─── Ghost Sultan of the Week — Empty state ─── */
+function GhostSultanOfWeekCard() {
+  const ct = useCommunityTheme();
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden opacity-55`}
+        style={{ borderColor: hexToRgba(MAROON, 0.1) }}>
+        {/* Maroon accent bar — dimmed */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${hexToRgba(MAROON, 0.3)}, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)})` }} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ backgroundColor: hexToRgba(MAROON, 0.08), border: `1px solid ${hexToRgba(MAROON, 0.12)}` }}>
+            <Heart className="w-3 h-3" style={{ color: hexToRgba(MAROON_LIGHT, 0.3) }} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: hexToRgba(MAROON_LIGHT, 0.4) }}>
+            Sultan of the Week
+          </span>
+          <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[8px] font-bold">TBA</Badge>
+        </div>
+
+        {/* Ghost body */}
+        <div className="p-3 sm:p-5">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Ghost avatar */}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center border-2"
+              style={{ borderColor: hexToRgba(MAROON, 0.1), background: hexToRgba(MAROON, 0.03) }}>
+              <Heart className="w-5 h-5" style={{ color: hexToRgba(MAROON, 0.15) }} />
+            </div>
+            {/* Ghost info */}
+            <div className="flex-1 min-w-0">
+              <div className="h-4 w-24 rounded bg-muted/30 mb-1.5" />
+              <div className="h-3 w-32 rounded bg-muted/20" />
+            </div>
+            {/* Ghost stats */}
+            <div className="shrink-0 flex flex-col items-end gap-1.5">
+              <div className="h-3 w-12 rounded bg-muted/20" />
+              <div className="h-3 w-10 rounded bg-muted/15" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 /* ═══════════════════════════════════════════
    Sultan of Season Card — Emerald theme for HighlightsPage
    Shows the top penyawer from the latest completed season
@@ -749,6 +798,54 @@ function SultanOfSeasonCardPage({
               <span className="text-base">💵</span>
             </div>
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ─── Ghost Sultan of Season — Empty state ─── */
+function GhostSultanOfSeasonCard() {
+  const ct = useCommunityTheme();
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden opacity-55`}
+        style={{ borderColor: hexToRgba(EMERALD, 0.1) }}>
+        {/* Emerald accent bar — dimmed */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${hexToRgba(EMERALD, 0.3)}, ${hexToRgba(EMERALD_LIGHT, 0.3)}, ${hexToRgba(EMERALD, 0.3)})` }} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ backgroundColor: hexToRgba(EMERALD, 0.08), border: `1px solid ${hexToRgba(EMERALD, 0.12)}` }}>
+            <Gem className="w-3 h-3" style={{ color: hexToRgba(EMERALD_LIGHT, 0.3) }} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: hexToRgba(EMERALD_LIGHT, 0.4) }}>
+            Sultan of Season
+          </span>
+          <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[8px] font-bold">TBA</Badge>
+        </div>
+
+        {/* Ghost body */}
+        <div className="p-3 sm:p-5">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Ghost avatar */}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center border-2"
+              style={{ borderColor: hexToRgba(EMERALD, 0.1), background: hexToRgba(EMERALD, 0.03) }}>
+              <Gem className="w-5 h-5" style={{ color: hexToRgba(EMERALD, 0.15) }} />
+            </div>
+            {/* Ghost info */}
+            <div className="flex-1 min-w-0">
+              <div className="h-4 w-24 rounded bg-muted/30 mb-1.5" />
+              <div className="h-3 w-32 rounded bg-muted/20" />
+            </div>
+            {/* Ghost icon */}
+            <div className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-muted/15 border border-muted/10">
+              <span className="text-sm opacity-30">💵</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -882,19 +979,23 @@ export function HighlightsPage() {
           </div>
 
           {/* Sultan of the Week */}
-          {showSultanOfWeek && topSultanOfWeek && (
+          {showSultanOfWeek && topSultanOfWeek ? (
             <SultanOfWeekCard
               sultan={topSultanOfWeek}
               onPlayerClick={handlePlayerClick}
             />
+          ) : (
+            <GhostSultanOfWeekCard />
           )}
 
           {/* Sultan of Season */}
-          {seasonSultans.length > 0 && (
+          {seasonSultans.length > 0 ? (
             <SultanOfSeasonCardPage
               sultans={seasonSultans}
               onPlayerClick={handlePlayerClick}
             />
+          ) : (
+            <GhostSultanOfSeasonCard />
           )}
 
           {/* MVP Spotlight */}
