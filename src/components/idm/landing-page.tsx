@@ -427,7 +427,7 @@ export function LandingPage() {
 
   const enterBracket = (division: 'male' | 'female') => {
     setDivision(division);
-    setCurrentView('matchday');
+    setCurrentView('bracket');
   };
 
   const enterCommunity = () => {
