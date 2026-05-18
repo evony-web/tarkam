@@ -1147,8 +1147,8 @@ export function HighlightsPage() {
 
         {/* ═══ 1. Champion & MVP Sections ═══ */}
         <div className="space-y-4 sm:space-y-5">
-          {/* Sticky Division Filter Header */}
-          <div className="sticky top-0 z-30 -mx-1.5 sm:-mx-2 lg:-mx-3 px-1.5 sm:px-2 lg:px-3 py-2.5 bg-background/95 backdrop-blur-md border-b border-idm-gold-warm/10">
+          {/* Sticky Division Filter Header — sticks below fixed nav (h-14) */}
+          <div className="sticky top-14 z-30 -mx-1.5 sm:-mx-2 lg:-mx-3 px-1.5 sm:px-2 lg:px-3 py-2.5 bg-background/95 backdrop-blur-md border-b border-idm-gold-warm/10">
             <ChampionsMvpHeader
               selectedDivision={selectedDivision}
               onDivisionChange={handleDivisionChange}
