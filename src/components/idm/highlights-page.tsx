@@ -2,11 +2,11 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, Trophy, ChevronDown } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData, TopPlayer, SeasonChampionPlayer } from '@/types/stats';
-import { useCommunityTheme, getCommunityTheme } from '@/hooks/use-community-theme';
+import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { getAvatarUrl, clubToString } from '@/lib/utils';
 
@@ -18,9 +18,7 @@ import { SharePopup } from './social-share-button';
 
 // Lazy load section components
 import dynamic from 'next/dynamic';
-const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
 const PlayerProfile = dynamic(() => import('./player-profile').then(m => ({ default: m.PlayerProfile })), { ssr: false, loading: () => null });
-const ClubProfile = dynamic(() => import('./club-profile').then(m => ({ default: m.ClubProfile })), { ssr: false, loading: () => null });
 
 
 type DivisionFilter = 'all' | 'male' | 'female';
@@ -290,14 +288,12 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
 
 /* ═══════════════════════════════════════════
    Highlights (Juara) Page — Main Component
-   Contains: Reigning Champion, Weekly Champions, MVP Spotlight,
-   Sultan of the Week, MVP Hall of Fame, Season Champions
+   Contains: Reigning Champion, Weekly Champions, MVP Spotlight, MVP Hall of Fame
    ═══════════════════════════════════════════ */
 export function HighlightsPage() {
 
   // State
   const [selectedPlayer, setSelectedPlayer] = useState<(StatsData['topPlayers'][0] & { division?: string }) | null>(null);
-  const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string; members?: any[] }) | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<DivisionFilter>('all');
 
   // Division change handler
@@ -315,7 +311,7 @@ export function HighlightsPage() {
   }, []);
 
   // Data fetching — male stats
-  const { data: maleData, isLoading: isMaleLoading, isFetching: isMaleFetching, isPlaceholderData: isMalePlaceholder } = useQuery<StatsData>({
+  const { data: maleData } = useQuery<StatsData>({
     queryKey: ['stats', 'male'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=male');
@@ -331,7 +327,7 @@ export function HighlightsPage() {
   });
 
   // Data fetching — female stats
-  const { data: femaleData, isLoading: isFemaleLoading, isFetching: isFemaleFetching, isPlaceholderData: isFemalePlaceholder } = useQuery<StatsData>({
+  const { data: femaleData } = useQuery<StatsData>({
     queryKey: ['stats', 'female'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=female');
@@ -345,25 +341,6 @@ export function HighlightsPage() {
     gcTime: 300000,
     placeholderData: (prev) => prev,
   });
-
-  // Data fetching — league data
-  const { data: leagueData } = useQuery<{ hasData: boolean; clubs?: any[]; stats?: any; preSeason?: boolean; reason?: string; season?: any; tarkamChampion?: any }>({
-    queryKey: ['league-landing'],
-    queryFn: async () => {
-      const res = await fetch('/api/league');
-      if (!res.ok) throw new Error('League API failed');
-      return res.json();
-    },
-    staleTime: 300000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    refetchInterval: 660000,
-    refetchIntervalInBackground: false,
-  });
-
-  const isDataLoading = isMaleLoading || isFemaleLoading;
-  const isSeasonDataPlaceholder = isMalePlaceholder || isFemalePlaceholder;
 
   return (
     <div className="min-h-screen bg-background">
@@ -404,18 +381,7 @@ export function HighlightsPage() {
           </div>
         </div>
 
-        {/* ═══ 2. Season Champions ═══ */}
-        <SeasonChampionSection
-          maleData={maleData}
-          femaleData={femaleData}
-          isDataLoading={isDataLoading}
-          setSelectedPlayer={setSelectedPlayer}
-          setSelectedClub={setSelectedClub}
-          leagueData={leagueData}
-          skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
-          isSeasonDataPlaceholder={isSeasonDataPlaceholder}
-          hideHeader
-        />
+
       </div>
 
       {/* Modals */}
@@ -424,13 +390,6 @@ export function HighlightsPage() {
           player={selectedPlayer}
           onClose={() => setSelectedPlayer(null)}
           skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
-        />
-      )}
-
-      {selectedClub && (
-        <ClubProfile
-          club={selectedClub}
-          onClose={() => setSelectedClub(null)}
         />
       )}
     </div>
