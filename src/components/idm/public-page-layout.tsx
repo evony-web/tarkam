@@ -186,7 +186,6 @@ const publicNavItems: { view: AppView; label: string; icon: typeof Swords; scrol
   { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award },
   { view: 'players', label: 'Pemain', icon: Music },
   { view: 'highlights', label: 'Juara', icon: Crown },
-  { view: 'champions', label: 'Season', icon: Trophy },
   { view: 'clubs', label: 'Club', icon: Shield },
 ];
 

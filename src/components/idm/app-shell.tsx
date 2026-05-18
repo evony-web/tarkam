@@ -73,9 +73,6 @@ const PlayersPage = dynamic(() => import('./players-page').then(m => ({ default:
 const HighlightsPage = dynamic(() => import('./highlights-page').then(m => ({ default: m.HighlightsPage })), {
   loading: () => viewLoading,
 });
-const ChampionsPage = dynamic(() => import('./champions-page').then(m => ({ default: m.ChampionsPage })), {
-  loading: () => viewLoading,
-});
 const ClubsPage = dynamic(() => import('./clubs-page').then(m => ({ default: m.ClubsPage })), {
   loading: () => viewLoading,
 });
@@ -159,7 +156,6 @@ const communityNavItems: NavItemDef[] = [
   { id: 'peringkat', label: 'Peringkat', icon: Award },
   { id: 'players', label: 'Pemain', icon: Music },
   { id: 'highlights', label: 'Juara', icon: Crown },
-  { id: 'champions', label: 'Season', icon: Trophy },
   { id: 'clubs', label: 'Club', icon: Shield },
   { id: 'matchday', label: 'Arena Live', icon: Radio },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
@@ -355,7 +351,6 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             else if (item.id === 'matchday') iconBg = 'bg-red-500/15';
             else if (item.id === 'players') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'champions') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'clubs') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'peringkat') iconBg = 'bg-idm-gold-warm/15';
             else iconBg = dt.iconBg;
@@ -602,7 +597,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'champions', 'clubs', 'community', 'peringkat'];
+  const publicViews: AppView[] = ['players', 'highlights', 'clubs', 'community', 'peringkat'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -626,7 +621,6 @@ export function AppShell() {
         case 'community': return <CommunityDashboard />;
         case 'players': return <PlayersPage />;
         case 'highlights': return <HighlightsPage />;
-        case 'champions': return <ChampionsPage />;
         case 'clubs': return <ClubsPage />;
         case 'peringkat': return <PeringkatPage />;
         default: return <CommunityDashboard />;
@@ -684,7 +678,6 @@ export function AppShell() {
                 admin: 'Admin',
                 players: 'Pemain',
                 highlights: 'Juara',
-                champions: 'Season',
                 clubs: 'Club',
                 peringkat: 'Peringkat',
               }[currentView as string] || ''}</span>
@@ -751,7 +744,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' || currentView === 'champions' || currentView === 'clubs';
+            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' || currentView === 'clubs';
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile

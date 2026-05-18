@@ -599,7 +599,6 @@ export function LandingPage() {
               { view: 'peringkat' as AppView, label: 'Peringkat' },
               { view: 'players' as AppView, label: 'Pemain' },
               { view: 'highlights' as AppView, label: 'Juara' },
-              { view: 'champions' as AppView, label: 'Season' },
               { view: 'clubs' as AppView, label: 'Club' },
             ].map(item => (
               <button
