@@ -6,7 +6,7 @@ import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import {
   Image as ImageIcon, Type, Layout, Save, Plus, Trash2, ChevronDown,
   ChevronUp, Eye, EyeOff, Edit3, X, Loader2, Palette,
-  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Heart, Link2, Trophy, Shield, Swords, Crown, Video, ShoppingBag
+  FileText, Settings2, Globe, Sparkles, PanelTop, PanelBottom, Link2, Trophy, Shield, Swords, Crown, Video, ShoppingBag
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,12 +54,8 @@ interface CmsSection {
 
 /* ========== Section Icon Map ========== */
 const sectionIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  header: PanelTop,
   hero: Sparkles,
-  about: Heart,
   kompetisi: Type,
-  champions: Layout,
-  mvp: Layout,
   clubs: Layout,
   footer: PanelBottom,
 };
