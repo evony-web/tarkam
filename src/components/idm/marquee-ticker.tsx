@@ -284,6 +284,13 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     const track = trackRef.current;
     if (!track) return;
 
+    // Start from right edge — content enters from the right like ESPN ticker
+    const container = track.parentElement;
+    if (container && offsetRef.current === 0) {
+      offsetRef.current = container.offsetWidth;
+      track.style.transform = `translateX(${offsetRef.current}px)`;
+    }
+
     // Pause rAF when tab is hidden, resume when visible
     const handleVisibility = () => {
       if (document.hidden) {
