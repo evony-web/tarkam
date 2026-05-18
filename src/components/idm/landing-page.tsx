@@ -670,15 +670,11 @@ export function LandingPage() {
                     onClick={() => setCurrentView(item.view)}
                     className="relative -mt-5 z-20 cursor-pointer"
                   >
-                    {/* Outer pulse ring */}
-                    <span className="absolute inset-0 rounded-full animate-ping opacity-20 bg-idm-gold-warm" style={{ animationDuration: '2s' }} />
-                    {/* Glow shadow */}
-                    <span className="absolute -inset-1 rounded-full bg-idm-gold-warm/20 blur-sm" />
                     {/* Button body */}
-                    <span className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300 active:scale-90 ${
+                    <span className={`relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 active:scale-90 ${
                       isActive
-                        ? 'bg-idm-gold-warm shadow-[0_0_20px_rgba(239,249,35,0.5)]'
-                        : 'bg-gradient-to-br from-idm-gold-warm/90 to-yellow-500 shadow-[0_0_14px_rgba(239,249,35,0.3)]'
+                        ? 'bg-idm-gold-warm'
+                        : 'bg-gradient-to-br from-idm-gold-warm/90 to-yellow-500'
                     }`}>
                       <Crown className={`w-6 h-6 ${isActive ? 'text-black' : 'text-black/90'} fill-current`} />
                     </span>
