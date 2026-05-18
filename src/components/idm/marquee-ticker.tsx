@@ -299,11 +299,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     const animate = (timestamp: number) => {
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = timestamp;
-        // Start from right edge on first frame
-        const container = track.parentElement;
-        if (container && offsetRef.current === 0) {
-          offsetRef.current = container.offsetWidth;
-        }
       }
 
       const delta = timestamp - lastTimeRef.current;
