@@ -711,8 +711,10 @@ export function LandingPage() {
       </div>
 
       {/* Cari Turnamen Kamu — Search your tournament status */}
-      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
-        <MyTournamentCard />
+      <div className="section-reveal">
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
+          <MyTournamentCard />
+        </div>
       </div>
 
       {/* Kompetisi — Tarkam Arena (first section after hero) */}
