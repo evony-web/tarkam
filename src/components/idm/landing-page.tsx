@@ -284,6 +284,7 @@ export function LandingPage() {
 
   /* Payment Modal State */
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [donationModalOpen, setDonationModalOpen] = useState(false);
   const [paymentModalDivision, setPaymentModalDivision] = useState<'male' | 'female'>('male');
 
   /* Mobile performance: defer non-critical queries on small screens */
@@ -773,7 +774,7 @@ export function LandingPage() {
         onEnterApp={enterApp}
         onRegister={(div) => { setRegistrationDefaultDivision(div || null); setRegistrationModalOpen(true); }}
         onPayment={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
-        onDonate={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
+        onDonate={(div) => { setPaymentModalDivision(div); setDonationModalOpen(true); }}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
@@ -869,8 +870,8 @@ export function LandingPage() {
 
       {/* ========== DONATION MODAL ========== */}
       <DonationModal
-        open={paymentModalOpen}
-        onOpenChange={setPaymentModalOpen}
+        open={donationModalOpen}
+        onOpenChange={setDonationModalOpen}
         defaultType="weekly"
         division={paymentModalDivision}
         cmsSettings={cms}
