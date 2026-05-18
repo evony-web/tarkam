@@ -7,7 +7,7 @@ import {
   Home, LogOut, KeyRound, LogIn,
   PanelLeftClose, ChevronRight, Download, X, UserCircle,
   Calendar, ShoppingBag, Radio, BookOpen, UserPlus, ArrowLeft,
-  Sun, Moon
+  Sun, Moon, Crown, Trophy, Music
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
@@ -65,6 +65,18 @@ const MarketplaceView = dynamic(() => import('./marketplace-view').then(m => ({ 
   loading: () => viewLoading,
 });
 const BracketPage = dynamic(() => import('./bracket-page').then(m => ({ default: m.BracketPage })), {
+  loading: () => viewLoading,
+});
+const PlayersPage = dynamic(() => import('./players-page').then(m => ({ default: m.PlayersPage })), {
+  loading: () => viewLoading,
+});
+const HighlightsPage = dynamic(() => import('./highlights-page').then(m => ({ default: m.HighlightsPage })), {
+  loading: () => viewLoading,
+});
+const ChampionsPage = dynamic(() => import('./champions-page').then(m => ({ default: m.ChampionsPage })), {
+  loading: () => viewLoading,
+});
+const ClubsPage = dynamic(() => import('./clubs-page').then(m => ({ default: m.ClubsPage })), {
   loading: () => viewLoading,
 });
 
@@ -140,6 +152,10 @@ type NavItemDef = {
 
 const communityNavItems: NavItemDef[] = [
   { id: 'community', label: 'Komunitas', icon: Users },
+  { id: 'players', label: 'Pemain', icon: Music },
+  { id: 'highlights', label: 'Juara', icon: Crown },
+  { id: 'champions', label: 'Season', icon: Trophy },
+  { id: 'clubs', label: 'Club', icon: Shield },
   { id: 'matchday', label: 'Arena Live', icon: Radio },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
   { id: 'league', label: 'Peraturan', icon: BookOpen },
@@ -332,6 +348,10 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             else if (item.id === 'marketplace') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'league') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'matchday') iconBg = 'bg-red-500/15';
+            else if (item.id === 'players') iconBg = 'bg-idm-gold-warm/15';
+            else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
+            else if (item.id === 'champions') iconBg = 'bg-idm-gold-warm/15';
+            else if (item.id === 'clubs') iconBg = 'bg-idm-gold-warm/15';
             else iconBg = dt.iconBg;
           }
 
@@ -600,6 +620,10 @@ export function AppShell() {
 
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
       case 'bracket': return <BracketPage />;
+      case 'players': return <PlayersPage />;
+      case 'highlights': return <HighlightsPage />;
+      case 'champions': return <ChampionsPage />;
+      case 'clubs': return <ClubsPage />;
       default: return <CommunityDashboard />;
     }
   };
@@ -630,6 +654,10 @@ export function AppShell() {
                 bracket: 'Bracket',
                 register: 'Daftar',
                 admin: 'Admin',
+                players: 'Pemain',
+                highlights: 'Juara',
+                champions: 'Season',
+                clubs: 'Club',
               }[currentView as string] || ''}</span>
             )}
           </span>
@@ -694,7 +722,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league';
+            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' || currentView === 'champions' || currentView === 'clubs';
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile
@@ -707,7 +735,7 @@ export function AppShell() {
       {/* Mobile Bottom Nav — 5 items with center FAB (Live) + gold dot indicators */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="flex justify-around items-end py-1 px-1 relative">
-          {/* Left group: Home + Komunitas */}
+          {/* Home */}
           <button
             onClick={() => { hapticTap(); setCurrentView('landing'); }}
             className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
@@ -721,15 +749,16 @@ export function AppShell() {
             )}
           </button>
 
+          {/* Pemain */}
           <button
-            onClick={() => { hapticTap(); setCurrentView('community'); }}
+            onClick={() => { hapticTap(); setCurrentView('players'); }}
             className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'community' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
+              currentView === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
             }`}
           >
-            <Users className={`w-5 h-5 transition-transform duration-200 ${currentView === 'community' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Komunitas</span>
-            {currentView === 'community' && (
+            <Music className={`w-5 h-5 transition-transform duration-200 ${currentView === 'players' ? 'scale-110' : ''}`} />
+            <span className="text-[10px] font-semibold leading-tight">Pemain</span>
+            {currentView === 'players' && (
               <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
             )}
           </button>
@@ -754,29 +783,30 @@ export function AppShell() {
             </span>
           </div>
 
-          {/* Right group: Marketplace + Peraturan */}
+          {/* Juara */}
           <button
-            onClick={() => { hapticTap(); setCurrentView('marketplace'); }}
+            onClick={() => { hapticTap(); setCurrentView('highlights'); }}
             className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'marketplace' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
+              currentView === 'highlights' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
             }`}
           >
-            <ShoppingBag className={`w-5 h-5 transition-transform duration-200 ${currentView === 'marketplace' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Market</span>
-            {currentView === 'marketplace' && (
+            <Crown className={`w-5 h-5 transition-transform duration-200 ${currentView === 'highlights' ? 'scale-110' : ''}`} />
+            <span className="text-[10px] font-semibold leading-tight">Juara</span>
+            {currentView === 'highlights' && (
               <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
             )}
           </button>
 
+          {/* Club */}
           <button
-            onClick={() => { hapticTap(); setCurrentView('league'); }}
+            onClick={() => { hapticTap(); setCurrentView('clubs'); }}
             className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'league' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
+              currentView === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
             }`}
           >
-            <BookOpen className={`w-5 h-5 transition-transform duration-200 ${currentView === 'league' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Aturan</span>
-            {currentView === 'league' && (
+            <Shield className={`w-5 h-5 transition-transform duration-200 ${currentView === 'clubs' ? 'scale-110' : ''}`} />
+            <span className="text-[10px] font-semibold leading-tight">Club</span>
+            {currentView === 'clubs' && (
               <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
             )}
           </button>

@@ -1,11 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Play, Sun, Moon } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -244,7 +244,7 @@ function LandingAuthButton({
 }
 
 export function LandingPage() {
-  const { setCurrentView, setDivision, setInitialDashboardTab } = useAppStore();
+  const { setCurrentView, setDivision, setInitialDashboardTab, currentView } = useAppStore();
   const [selectedPlayerRaw, setSelectedPlayerRaw] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
   const [preferredSkinType, setPreferredSkinType] = useState<string | null>(null);
   // Wrapper: always clear preferredSkinType when selecting from non-MVP contexts
@@ -415,8 +415,6 @@ export function LandingPage() {
      - rAF throttle already in place, now also guards against no-op state updates */
   const [scrolled, setScrolled] = useState(false);
   const scrolledRef = useRef(false);
-  const [activeSection, setActiveSection] = useState('');
-  const activeSectionRef = useRef('');
   const scrollTickingRef = useRef(false);
 
   useEffect(() => {
@@ -436,27 +434,6 @@ export function LandingPage() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const sectionIds = ['kompetisi', 'players', 'highlights', 'season-champion', 'experiences', 'clubs'];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            // Only update state when section actually changes — prevents re-renders
-            if (activeSectionRef.current !== id) {
-              activeSectionRef.current = id;
-              setActiveSection(id);
-            }
-          }
-        });
-      },
-      { rootMargin: '-40% 0px -55% 0px' }
-    );
-    sectionIds.forEach((id) => { const el = document.getElementById(id); if (el) observer.observe(el); });
-    return () => observer.disconnect();
   }, []);
 
   /* Section Reveal — REMOVED: redundant IntersectionObserver
@@ -593,11 +570,6 @@ export function LandingPage() {
     return <LandingSkeleton />;
   };
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <div className="relative min-h-screen flex flex-col bg-background landing-scroll pb-24 md:pb-0">
 
@@ -619,28 +591,23 @@ export function LandingPage() {
           {/* Desktop Nav Links — compact on medium screens */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
-              { id: 'kompetisi', label: 'Kompetisi', mdLabel: 'Kompetisi' },
-              { id: 'players', label: 'Player', mdLabel: 'Player' },
-              { id: 'highlights', label: 'Juara', mdLabel: 'Juara' },
-              { id: 'season-champion', label: 'Season', mdLabel: 'Season' },
-              { id: 'experiences', label: 'Video', mdLabel: 'Video' },
-              { id: 'clubs', label: 'Club', mdLabel: 'Club' },
-
+              { view: 'community' as AppView, label: 'Kompetisi' },
+              { view: 'players' as AppView, label: 'Pemain' },
+              { view: 'highlights' as AppView, label: 'Juara' },
+              { view: 'champions' as AppView, label: 'Season' },
+              { view: 'clubs' as AppView, label: 'Club' },
             ].map(item => (
               <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                aria-label={`Navigate to ${item.label} section`}
-                aria-current={activeSection === item.id ? 'true' : undefined}
+                key={item.view}
+                onClick={() => setCurrentView(item.view)}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
-                  activeSection === item.id
+                  currentView === item.view
                     ? 'text-idm-gold-warm font-semibold'
                     : 'text-muted-foreground hover:text-idm-gold-warm/70'
                 }`}
               >
-                <span className="hidden md:inline">{item.label}</span>
-                <span className="md:hidden">{item.mdLabel}</span>
-                {activeSection === item.id && (
+                {item.label}
+                {currentView === item.view && (
                   <div className="nav-indicator absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full" />
                 )}
               </button>
@@ -675,18 +642,17 @@ export function LandingPage() {
         <div className="bg-background/95 backdrop-blur-lg">
           <div className="flex items-center justify-around h-16 px-1">
             {[
-              { id: 'kompetisi', label: 'Kompetisi', icon: Swords, special: false },
-              { id: 'players', label: 'Player', icon: Music, special: false },
-              { id: 'highlights', label: 'Juara', icon: Crown, special: true },
-              { id: 'season-champion', label: 'Season', icon: Trophy, special: false },
-              { id: 'experiences', label: 'Video', icon: Play, special: false },
-
+              { view: 'community' as AppView, label: 'Kompetisi', icon: Swords, special: false },
+              { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
+              { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
+              { view: 'champions' as AppView, label: 'Season', icon: Trophy, special: false },
+              { view: 'clubs' as AppView, label: 'Club', icon: Shield, special: false },
             ].map(item => {
-              const isActive = activeSection === item.id;
+              const isActive = currentView === item.view;
               return (
                 <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  key={item.view}
+                  onClick={() => setCurrentView(item.view)}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     item.special
                       ? isActive
@@ -705,7 +671,6 @@ export function LandingPage() {
                   )}
                   <item.icon className={`relative z-10 w-5 h-5 ${item.special ? 'drop-shadow-[0_0_4px_rgba(239,249,35,0.3)]' : ''}`} />
                   <span className={`relative z-10 text-[10px] font-medium mt-0.5 ${item.special ? 'font-bold' : ''}`}>{item.label}</span>
-                  {/* Gold dot indicator — replaces the line for a premium iOS feel */}
                   {isActive && (
                     <div className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.6)]" />
                   )}

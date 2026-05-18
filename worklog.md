@@ -73,3 +73,124 @@ Optimize the landing page for INP (504ms → target <200ms) and FCP (2.22s → t
 
 ## Verification
 - `bun run lint` — ✅ No errors
+
+---
+
+# Worklog — Task 2: Create Standalone Page View Components
+
+## Date: 2026-03-04
+
+## Task
+Create 4 standalone page view components that wrap existing section components with their own data fetching, enabling page-based navigation instead of scroll-based.
+
+## Files Created
+
+### 1. `/home/z/my-project/src/components/idm/players-page.tsx`
+- Full page view for Players (Pemain)
+- Fetches male and female stats data using React Query with season selector support (`selectedSeasonId`)
+- Renders existing `PlayersSection` component as main content
+- Page header with back button, title, and "Daftar" registration button
+- Manages state: `selectedPlayer`, `showAllMalePlayers`, `showAllFemalePlayers`, `selectedSeasonId`
+- Includes `PlayerProfile` modal and `RegistrationModal`
+- Dynamic imports for code splitting
+
+### 2. `/home/z/my-project/src/components/idm/highlights-page.tsx`
+- Full page view for Highlights/Juara
+- Fetches male and female stats data + league data + CMS data using React Query
+- Renders existing `HighlightsSection` component
+- Page header with back button, title, and Crown icon
+- Manages state: `selectedPlayer`, `preferredSkinType`, `videoModal` state
+- Includes `PlayerProfile` modal (with `preferredSkinType` for MVP context) and `VideoModal`
+- `setSelectedPlayer` wrapper clears `preferredSkinType` for non-MVP contexts (same pattern as landing-page.tsx)
+
+### 3. `/home/z/my-project/src/components/idm/champions-page.tsx`
+- Full page view for Season Champions
+- Fetches male and female stats data + league data using React Query
+- Renders existing `SeasonChampionSection` component
+- Page header with back button, title, and Trophy icon
+- Manages state: `selectedPlayer`, `selectedClub`
+- Includes `PlayerProfile` modal and `ClubProfile` modal
+- Passes `isSeasonDataPlaceholder` and `skinMap` to SeasonChampionSection
+
+### 4. `/home/z/my-project/src/components/idm/clubs-page.tsx`
+- Full page view for Clubs
+- Fetches male and female stats data + league data + CMS data using React Query with season selector support
+- Renders existing `ClubsSection` component
+- Page header with back button, title, and Shield icon
+- Manages state: `selectedClub`, `showAllClubs`, `selectedSeasonId`
+- Includes `ClubProfile` modal
+
+## Design Decisions
+- All pages use `'use client'` directive for client-side rendering
+- Consistent page header pattern: sticky, backdrop blur, back button → landing view, title + subtitle
+- Data fetching patterns match existing landing-page.tsx (staleTime, refetchInterval, placeholderData, etc.)
+- Dynamic imports with `ssr: false` for all section components and modals to reduce initial bundle
+- Each page is self-contained with its own data fetching — works independently
+- State management uses `useState` and `useCallback` from React
+- Uses `useAppStore` from `@/lib/store` for `setCurrentView` navigation
+- All modals conditionally rendered only when their state is non-null
+
+## Verification
+- `bun run lint` — ✅ No errors
+- Dev server running without compilation errors
+
+## Task 3+4+5: Page-based navigation (scroll → view)
+
+**Date:** 2026-03-05
+
+### Summary
+Changed from scroll-based single-page navigation to page-based navigation. When clicking a nav item like "Pemain", it now opens a separate page/view instead of scrolling to the section.
+
+### Changes Made
+
+#### `src/components/idm/app-shell.tsx`
+1. **Added icon imports**: `Crown`, `Trophy`, `Music` to the lucide-react import
+2. **Added dynamic imports** for 4 new page components: `PlayersPage`, `HighlightsPage`, `ChampionsPage`, `ClubsPage`
+3. **Updated `communityNavItems`**: Added 5 new items (Pemain/Music, Juara/Crown, Season/Trophy, Club/Shield) between Komunitas and Arena Live
+4. **Updated `renderView()` switch**: Added cases for `'players'`, `'highlights'`, `'champions'`, `'clubs'`
+5. **Updated sidebar icon backgrounds**: Added `iconBg` entries for new view IDs (`players`, `highlights`, `champions`, `clubs`)
+6. **Updated `isFullBleed` check**: Added new view names so they get full-bleed mobile styling
+7. **Updated mobile header view name mapping**: Added `'players': 'Pemain'`, `'highlights': 'Juara'`, `'champions': 'Season'`, `'clubs': 'Club'`
+8. **Replaced mobile bottom nav**: Changed from (Home, Komunitas, Live-FAB, Market, Aturan) to (Home, Pemain/Music, Live-FAB, Juara/Crown, Club/Shield)
+
+#### `src/components/idm/landing-page.tsx`
+1. **Added `AppView` type import** from `@/lib/store`
+2. **Added `currentView`** to the `useAppStore()` destructure
+3. **Removed `Play` icon** import (no longer used in mobile nav)
+4. **Removed `scrollToSection` function** and `activeSection` state + IntersectionObserver
+5. **Updated Desktop Nav Links**: Changed from scroll-based (`scrollToSection(item.id)`, `activeSection === item.id`) to view-based (`setCurrentView(item.view)`, `currentView === item.view`)
+6. **Updated Mobile Bottom Nav**: Changed from scroll-based to view-based navigation with new items (Kompetisi/Swords, Pemain/Music, Juara/Crown-special, Season/Trophy, Club/Shield)
+7. **Kept `scrolled` state and scroll listener** since they're used for nav background styling
+
+### Verification
+- ESLint: No errors
+- Dev server: Running without errors
+---
+Task ID: 1-6
+Agent: Main Agent + Subagents
+Task: Change from scroll-based navigation to page-based navigation - clicking nav items opens separate page views instead of scrolling to sections
+
+Work Log:
+- Updated AppView type in store.ts to add: "players" | "highlights" | "champions" | "clubs"
+- Created 4 standalone page view components:
+  - players-page.tsx: Full page for Pemain with own data fetching, season selector, player profile modals
+  - highlights-page.tsx: Full page for Juara with MVP cards, weekly champions, video modals
+  - champions-page.tsx: Full page for Season Champions with duo champion display
+  - clubs-page.tsx: Full page for Club directory with season selector, club profiles
+- Updated app-shell.tsx:
+  - Added dynamic imports for all 4 new page components
+  - Added renderView cases for players, highlights, champions, clubs
+  - Updated communityNavItems with 8 items: Komunitas, Pemain, Juara, Season, Club, Arena Live, Marketplace, Peraturan
+  - Updated mobile bottom nav: Home, Pemain, Live (FAB), Juara, Club
+- Updated landing-page.tsx:
+  - Desktop nav: Changed from scrollToSection() to setCurrentView() with view-based items
+  - Mobile bottom nav: Changed from scroll-based to view-based navigation
+  - Removed scrollToSection function and activeSection IntersectionObserver (no longer needed)
+  - Kept scrolled state for nav background styling
+
+Stage Summary:
+- Navigation is now page-based instead of scroll-based
+- Each section (Pemain, Juara, Season, Club) opens as a separate page with its own data fetching
+- Landing page remains as the home/summary page
+- Lint passes clean, dev server running without errors
+- All new pages have back buttons to return to landing
