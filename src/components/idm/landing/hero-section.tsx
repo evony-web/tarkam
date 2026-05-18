@@ -264,48 +264,11 @@ export function HeroSection({
           />
         )}
 
-        {/* Grid overlay — subtle esports tech feel — only when no video */}
-        {!heroBgVideo && (
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.015]"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(239,249,35,0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(239,249,35,0.3) 1px, transparent 1px)
-              `,
-              backgroundSize: '60px 60px',
-            }}
-          />
-        )}
 
-        {/* 1. Animated Diagonal Accent Lines */}
-        <div className="hero-diagonal-line hero-diagonal-line-1" aria-hidden="true" />
-        <div className="hero-diagonal-line hero-diagonal-line-2" aria-hidden="true" />
-        <div className="hero-diagonal-line hero-diagonal-line-3" aria-hidden="true" />
 
-        {/* 5. Floating Geometric Accents */}
-        <div className="hero-geo-accent hero-geo-diamond-1" aria-hidden="true" />
-        <div className="hero-geo-accent hero-geo-diamond-2" aria-hidden="true" />
-        <div className="hero-geo-accent hero-geo-hex" aria-hidden="true" />
 
-        {/* ── Floating Particles — reduced to 6 for performance ── */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          {particles.map((p) => (
-            <div
-              key={p.id}
-              className="absolute rounded-full hero-particle"
-              style={{
-                left: `${p.x}%`,
-                width: `${p.size}px`,
-                height: `${p.size}px`,
-                background: `radial-gradient(circle, rgba(239,249,35,${p.opacity}) 0%, rgba(239,249,35,${(p.opacity * 0.3).toFixed(2)}) 60%, transparent 100%)`,
-                '--duration': `${p.duration}s`,
-                '--delay': `${p.delay}s`,
-                '--p-opacity': p.opacity,
-              } as React.CSSProperties}
-            />
-          ))}
-        </div>
+
+
 
         {/* ═══════════════ HERO CONTENT ═══════════════ */}
         <div className="relative z-10 text-center px-4 sm:px-6 max-w-5xl mx-auto w-full flex-1 flex flex-col items-center justify-center pt-[8vh] sm:pt-[18vh] pb-20 sm:pb-24">
