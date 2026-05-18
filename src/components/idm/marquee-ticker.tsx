@@ -299,6 +299,11 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     const animate = (timestamp: number) => {
       if (lastTimeRef.current === 0) {
         lastTimeRef.current = timestamp;
+        // Start from right edge — content enters from right like ESPN ticker
+        const container = track.parentElement;
+        if (container && offsetRef.current === 0) {
+          offsetRef.current = container.offsetWidth;
+        }
       }
 
       const delta = timestamp - lastTimeRef.current;
@@ -308,7 +313,11 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
       if (delta < 200 && !isPausedRef.current) {
         const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
         const speed = isMobile ? MOBILE_SPEED : DESKTOP_SPEED;
-        const pixelsToMove = (speed * delta) / 1000;
+
+        // Boost speed while content is still off-screen to the right (fills in quickly)
+        const effectiveSpeed = offsetRef.current > 0 ? speed * 6 : speed;
+
+        const pixelsToMove = (effectiveSpeed * delta) / 1000;
 
         offsetRef.current -= pixelsToMove;
 
