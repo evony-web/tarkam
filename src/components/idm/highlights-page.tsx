@@ -2,19 +2,23 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, ChevronDown } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown, Trophy, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData, TopPlayer, SeasonChampionPlayer } from '@/types/stats';
 import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { getDivisionTheme } from '@/hooks/use-division-theme';
 import { getAvatarUrl, clubToString } from '@/lib/utils';
+import { ClubLogoImage } from '@/components/idm/club-logo-image';
 
 // Import champion section components
 import { WeeklyChampionCard } from './community-dashboard/weekly-champion-card';
 import { MvpSpotlight } from './community-dashboard/mvp-spotlight';
 import { MvpHallOfFame } from './community-dashboard/mvp-hall-of-fame';
 import { SharePopup } from './social-share-button';
+
+/** color-mix shorthand for theme-aware transparency */
+const cm = (color: string, pct: number) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
 
 // Lazy load section components
 import dynamic from 'next/dynamic';
@@ -286,9 +290,191 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
 });
 
 
+/* ─── Club Champion Member type ─── */
+interface ClubChampionMember {
+  id: string;
+  gamertag: string;
+  avatar?: string | null;
+  tier: string;
+  points: number;
+  division: 'male' | 'female';
+}
+
+/* ═══════════════════════════════════════════
+   Season 1 Club Champion Card
+   Premium showcase of the club that won Season 1
+   ═══════════════════════════════════════════ */
+const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
+  maleData,
+  femaleData,
+  selectedDivision,
+}: {
+  maleData?: StatsData;
+  femaleData?: StatsData;
+  selectedDivision: DivisionFilter;
+}) {
+  const ct = useCommunityTheme();
+
+  // Find season 1 completed data from both divisions
+  const maleSeason1 = maleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+  const femaleSeason1 = femaleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+
+  // Merge champion club entries from both divisions
+  const clubEntries: { club: NonNullable<StatsData['allSeasons']>[0]['championClub']; division: 'male' | 'female' }[] = [];
+  if (maleSeason1?.championClub) clubEntries.push({ club: maleSeason1.championClub, division: 'male' });
+  if (femaleSeason1?.championClub) clubEntries.push({ club: femaleSeason1.championClub, division: 'female' });
+
+  // If no season 1 club champion, don't render
+  if (clubEntries.length === 0) return null;
+
+  // Check division filter
+  const showMale = selectedDivision === 'all' || selectedDivision === 'male';
+  const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
+  const filteredEntries = clubEntries.filter(e => (e.division === 'male' ? showMale : showFemale));
+  if (filteredEntries.length === 0) return null;
+
+  // Merge members from all filtered entries (deduplicate by id, sum points)
+  const memberMap = new Map<string, ClubChampionMember>();
+  for (const entry of filteredEntries) {
+    if (entry.club?.members) {
+      for (const m of entry.club.members) {
+        const existing = memberMap.get(m.id);
+        if (existing) {
+          existing.points += m.points;
+        } else {
+          memberMap.set(m.id, { ...m });
+        }
+      }
+    }
+  }
+  const allMembers = Array.from(memberMap.values()).sort((a, b) => b.points - a.points);
+  const clubData = filteredEntries[0]?.club;
+  if (!clubData) return null;
+
+  const totalPoints = clubData.totalPoints || allMembers.reduce((s, m) => s + m.points, 0);
+  const memberCount = allMembers.length;
+  const maleMembers = allMembers.filter(m => m.division === 'male');
+  const femaleMembers = allMembers.filter(m => m.division === 'female');
+  const captainMember = allMembers[0];
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}>
+        <div className={ct.casinoBar} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
+            <Trophy className={`w-3 h-3 ${ct.neonText}`} />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Season 1 Club Champion</span>
+          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
+            <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
+          </Badge>
+        </div>
+
+        {/* Club Champion Content */}
+        <div className="p-3 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+            {/* Club Logo + Crown */}
+            <div className="relative shrink-0">
+              <div
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-idm-gold-warm/15 bg-white/[0.02]"
+                style={{ boxShadow: '0 0 24px rgba(239,249,35,0.06)' }}
+              >
+                <ClubLogoImage clubName={clubData.name} dbLogo={clubData.logo} alt={clubData.name} width={96} height={96} className="w-full h-full object-cover" />
+              </div>
+              {/* Crown badge */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-idm-gold-warm/80 flex items-center justify-center" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.3)' }}>
+                <Crown className="w-3 h-3 text-[#080a14]" />
+              </div>
+            </div>
+
+            {/* Club Info */}
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <h4 className="text-lg sm:text-xl font-black uppercase tracking-wide text-foreground">
+                {clubData.name}
+              </h4>
+              <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+                Club terbaik Tarkam IDM Season 1
+              </p>
+
+              {/* Stats row */}
+              <div className="flex items-center gap-2 mt-2.5 justify-center sm:justify-start flex-wrap">
+                <span className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border border-idm-gold-warm/15 px-2 py-0.5 rounded-md font-bold tabular-nums">
+                  {totalPoints}pts
+                </span>
+                {maleMembers.length > 0 && (
+                  <span className="bg-idm-male/8 text-idm-male-light text-[10px] border border-idm-male/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                    <Users className="w-3 h-3" />{maleMembers.length} Cowo
+                  </span>
+                )}
+                {femaleMembers.length > 0 && (
+                  <span className="bg-idm-female/8 text-idm-female-light text-[10px] border border-idm-female/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                    <Users className="w-3 h-3" />{femaleMembers.length} Cewe
+                  </span>
+                )}
+                <span className="bg-muted/5 text-muted-foreground text-[10px] border border-border/15 px-2 py-0.5 rounded-md font-bold">
+                  {memberCount} Total
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Performers — member avatars */}
+          {allMembers.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-idm-gold-warm/8">
+              <p className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mb-2.5">Top Performers</p>
+              <div className="flex flex-wrap gap-2">
+                {allMembers.slice(0, 5).map((member) => (
+                  <div key={member.id} className="group/member relative flex flex-col items-center">
+                    <div
+                      className={`w-11 h-11 rounded-xl overflow-hidden border transition-all duration-200 ${
+                        member.division === 'male'
+                          ? 'border-idm-male/15'
+                          : 'border-idm-female/15'
+                      } ${captainMember?.id === member.id ? 'ring-1 ring-idm-gold-warm/30 border-idm-gold-warm/20' : ''}`}
+                    >
+                      <AvatarMedia
+                        src={getAvatarUrl(member.gamertag, member.division, member.avatar)}
+                        alt={member.gamertag}
+                        width={44}
+                        height={44}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      {/* Captain badge */}
+                      {captainMember?.id === member.id && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-idm-gold-warm/70 flex items-center justify-center z-10">
+                          <Crown className="w-2 h-2 text-[#080a14]" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[8px] font-bold mt-0.5 truncate max-w-[44px] text-center text-foreground/60">{member.gamertag}</p>
+                    <p className="text-[7px] font-black tabular-nums" style={{ color: member.division === 'male' ? 'var(--idm-male-light)' : 'var(--idm-female-light)' }}>{member.points}pts</p>
+                  </div>
+                ))}
+                {allMembers.length > 5 && (
+                  <div className="flex flex-col items-center">
+                    <div className="w-11 h-11 rounded-xl flex flex-col items-center justify-center border border-dashed border-border/30 bg-muted/5">
+                      <span className="text-[10px] font-black text-muted-foreground/50">+{allMembers.length - 5}</span>
+                    </div>
+                    <p className="text-[8px] font-bold mt-0.5 text-muted-foreground/40">lainnya</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+
 /* ═══════════════════════════════════════════
    Highlights (Juara) Page — Main Component
-   Contains: Reigning Champion, Weekly Champions, MVP Spotlight, MVP Hall of Fame
+   Contains: Reigning Champion, Season 1 Club Champion, Weekly Champions, MVP Spotlight, MVP Hall of Fame
    ═══════════════════════════════════════════ */
 export function HighlightsPage() {
 
@@ -363,6 +549,13 @@ export function HighlightsPage() {
             femaleData={femaleData}
             selectedDivision={selectedDivision}
             onPlayerClick={handlePlayerClick}
+          />
+
+          {/* Season 1 Club Champion */}
+          <SeasonOneClubChampion
+            maleData={maleData}
+            femaleData={femaleData}
+            selectedDivision={selectedDivision}
           />
 
           {/* Weekly Champions */}
