@@ -35,13 +35,14 @@ interface SimilarPlayer {
 interface RegistrationModalProps {
   open: boolean;
   onClose: () => void;
-  defaultDivision?: 'male' | 'female';
+  defaultDivision?: 'male' | 'female' | null;
 }
 
 export function RegistrationModal({ open, onClose, defaultDivision }: RegistrationModalProps) {
   const dt = useDivisionTheme();
   const { setPlayerAuth, refreshPlayerSession } = useAppStore();
   const [division, setDivision] = useState<'male' | 'female'>(defaultDivision || 'male');
+  const [step, setStep] = useState<'pick' | 'form'>(defaultDivision ? 'form' : 'pick');
   const [formData, setFormData] = useState({
     name: '',
     joki: '',
@@ -334,12 +335,16 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
     setCreateAccount(false);
     setSubmitResult(null);
     setWarningState(null);
+    setStep(defaultDivision ? 'form' : 'pick');
     onClose();
   };
 
   // Sync defaultDivision when it changes
   useEffect(() => {
-    if (defaultDivision) setDivision(defaultDivision);
+    if (defaultDivision) {
+      setDivision(defaultDivision);
+      setStep('form');
+    }
   }, [defaultDivision]);
 
   // Lock body scroll when modal is open + Close on Escape
@@ -389,23 +394,89 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
           {/* Header */}
           <div className="shrink-0 bg-background border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10 rounded-t-2xl">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
-                <UserPlus className={`w-5 h-5 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${step === 'pick' ? 'bg-idm-gold-warm/10' : division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
+                <UserPlus className={`w-5 h-5 ${step === 'pick' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gradient-fury">Daftar Peserta</h2>
-                <p className="text-[10px] text-muted-foreground">IDM League</p>
+                <h2 className="text-lg font-bold text-gradient-fury">
+                  {step === 'pick' ? 'Pilih Divisi' : 'Daftar Peserta'}
+                </h2>
+                <p className="text-[10px] text-muted-foreground">
+                  {step === 'pick' ? 'Pilih divisi terlebih dahulu' : 'IDM League'}
+                </p>
               </div>
             </div>
-            <button
-              onClick={handleClose}
-              aria-label="Tutup form pendaftaran"
-              className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-2">
+              {step === 'form' && (
+                <button
+                  onClick={() => setStep('pick')}
+                  aria-label="Kembali pilih divisi"
+                  className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
+                >
+                  <ChevronDown className="w-5 h-5 text-muted-foreground rotate-90" />
+                </button>
+              )}
+              <button
+                onClick={handleClose}
+                aria-label="Tutup form pendaftaran"
+                className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
+          {/* ═══ Division Picker Step ═══ */}
+          {step === 'pick' && (
+            <div className="p-5 space-y-5">
+              <p className="text-sm text-muted-foreground text-center">
+                Pilih divisi pertandingan yang ingin kamu ikuti
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Cowo Division Card */}
+                <button
+                  onClick={() => { setDivision('male'); setStep('form'); }}
+                  className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-male/20 bg-idm-male/5 hover:border-idm-male/50 hover:bg-idm-male/10 transition-all duration-300 cursor-pointer active:scale-95"
+                >
+                  {/* Division icon */}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-male/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Music className="w-7 h-7 sm:w-8 sm:h-8 text-idm-male" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base sm:text-lg font-black text-idm-male uppercase tracking-wider">Cowo</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Divisi Laki-laki ♂</p>
+                  </div>
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ boxShadow: '0 0 24px rgba(46,159,255,0.15)' }} />
+                </button>
+
+                {/* Cewe Division Card */}
+                <button
+                  onClick={() => { setDivision('female'); setStep('form'); }}
+                  className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-female/20 bg-idm-female/5 hover:border-idm-female/50 hover:bg-idm-female/10 transition-all duration-300 cursor-pointer active:scale-95"
+                >
+                  {/* Division icon */}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-female/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-7 h-7 sm:w-8 sm:h-8 text-idm-female" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base sm:text-lg font-black text-idm-female uppercase tracking-wider">Cewe</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Divisi Perempuan ♀</p>
+                  </div>
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ boxShadow: '0 0 24px rgba(255,45,120,0.15)' }} />
+                </button>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground/50 text-center">
+                Pastikan memilih divisi yang sesuai
+              </p>
+            </div>
+          )}
+
+          {/* ═══ Form Step ═══ */}
+          {step === 'form' && (
           <div className="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {/* Success State */}
                 {submitResult && (
@@ -1016,6 +1087,7 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
                   </>
                 )}
         </div>
+          )}
       </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Zap, Star, Eye, ArrowRight, Flame, Users, Trophy, Swords } from 'lucide-react';
+import { Zap, Star, Eye, ArrowRight, Flame, Users, Trophy, Swords, PenLine } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/utils';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData } from '@/types/stats';
@@ -438,9 +438,9 @@ export function HeroSection({
 
           {/* ═══════════════ CTA BUTTONS ═══════════════ */}
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mx-auto mb-6 sm:mb-10 ${hasChampions ? '' : 'hero-enter-5'}`}>
-            {/* Masuk Arena — Primary CTA → Community Dashboard */}
+            {/* Daftar Tarkam — Primary CTA → Registration */}
             <button
-              onClick={onEnterCommunity}
+              onClick={() => onRegister('male')}
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Pulse glow ring */}
@@ -454,8 +454,8 @@ export function HeroSection({
                   boxShadow: '0 4px 20px rgba(239,249,35,0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
               >
-                <Flame className="w-4 h-4" />
-                Masuk Arena
+                <PenLine className="w-4 h-4" />
+                Daftar Tarkam
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </button>

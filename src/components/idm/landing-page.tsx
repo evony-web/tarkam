@@ -264,7 +264,7 @@ export function LandingPage() {
 
   /* Registration Modal State */
   const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
-  const [registrationDefaultDivision, setRegistrationDefaultDivision] = useState<'male' | 'female'>('male');
+  const [registrationDefaultDivision, setRegistrationDefaultDivision] = useState<'male' | 'female' | null>(null);
 
   /* Login Modal State */
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -716,7 +716,7 @@ export function LandingPage() {
         cmsSettings={cms}
         onEnterApp={enterApp}
         onEnterCommunity={enterCommunity}
-        onRegister={(div) => { setRegistrationDefaultDivision(div); setRegistrationModalOpen(true); }}
+        onRegister={() => { setRegistrationDefaultDivision(null); setRegistrationModalOpen(true); }}
         onViewBracket={enterBracket}
         onVideoPlay={openVideoModal}
         isSeasonDataPlaceholder={isSeasonDataPlaceholder}
@@ -744,7 +744,7 @@ export function LandingPage() {
         cmsSections={cmsSections}
         cmsSettings={cms}
         onEnterApp={enterApp}
-        onRegister={(div) => { setRegistrationDefaultDivision(div); setRegistrationModalOpen(true); }}
+        onRegister={(div) => { setRegistrationDefaultDivision(div || null); setRegistrationModalOpen(true); }}
         onPayment={(div) => { setPaymentModalDivision(div); setPaymentModalOpen(true); }}
         onDonate={(div) => { setDonationModalDivision(div); setDonationModalOpen(true); }}
         onVideoPlay={openVideoModal}
