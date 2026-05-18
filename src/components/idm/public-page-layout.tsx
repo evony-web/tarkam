@@ -3,7 +3,7 @@
 import { useAppStore, type AppView } from '@/lib/store';
 import Image from 'next/image';
 import {
-  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home, Award,
+  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home, Award, Target,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore, useState, useEffect, useCallback, useRef } from 'react';
@@ -162,10 +162,10 @@ function PublicAuthButton({
             )}
             {isPlayer && (
               <button
-                onClick={() => { setShowMenu(false); useAppStore.getState().setCurrentView('dashboard'); }}
+                onClick={() => { setShowMenu(false); useAppStore.getState().setCurrentView('landing'); setTimeout(() => document.getElementById('cari-turnamen')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
                 className="w-full flex items-center gap-2 px-2.5 py-2 text-xs text-muted-foreground hover:text-idm-gold-warm hover:bg-idm-gold-warm/5 rounded-lg transition-colors cursor-pointer"
               >
-                <UserCircle className="w-3.5 h-3.5" /> Dashboard
+                <Target className="w-3.5 h-3.5" /> Status Turnamen
               </button>
             )}
             <button

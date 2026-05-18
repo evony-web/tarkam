@@ -558,12 +558,25 @@ export function AppShell() {
     );
   }
 
+  /* ═══ Dashboard-only guard: non-admin players should NOT see the sidebar layout ═══ */
+  const isDashboardView = ['dashboard', 'admin', 'matchday', 'league', 'marketplace', 'register'].includes(currentView as string);
+  if (isDashboardView && !adminAuth.isAuthenticated) {
+    // Non-admin users should never reach the sidebar layout — redirect to landing
+    setTimeout(() => setCurrentView('landing'), 0);
+    return (
+      <>
+        <LandingPage />
+        <DonationPopup show={donationPopup.show} message={donationPopup.message} onClose={hideDonationPopup} />
+      </>
+    );
+  }
+
   const renderView = () => {
     switch (currentView) {
       case 'dashboard': return <CommunityDashboard />;
       case 'matchday': return <MatchDayCenter />;
       case 'league': return <LeagueView />;
-      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : (() => { setTimeout(() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('community'); }, 0); return null; })();
+      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : (() => { setTimeout(() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }, 0); return null; })();
       case 'register': return <RegistrationForm />;
 
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;

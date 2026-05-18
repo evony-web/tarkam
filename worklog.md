@@ -595,3 +595,25 @@ Stage Summary:
 - Auto-query uses player's own division, not the global store division
 - Manual search still works for looking up other players
 - No lint errors introduced
+
+---
+Task ID: 12
+Agent: Main Agent
+Task: Restrict dashboard to admin only, replace "Dashboard" with "Status Turnamen" in player menus, move Explorer/mouse lower on mobile
+
+Work Log:
+- **Dashboard restriction**: Added guard in `app-shell.tsx` — non-admin users trying to access dashboard views (dashboard, admin, matchday, league, marketplace, register) get redirected to landing page
+- **LandingAuthButton** (`landing-page.tsx`): Replaced "Dashboard" menu item with "Status Turnamen" that scrolls to `#cari-turnamen` section (where MyTournamentCard auto-shows player status)
+- **PublicAuthButton** (`public-page-layout.tsx`): Same change — "Status Turnamen" navigates to landing then scrolls to tournament status section
+- Added `id="cari-turnamen"` to the MyTournamentCard section div in landing-page.tsx
+- **Admin redirect fallback**: Changed `setCurrentView('community')` to `setCurrentView('landing')` in admin auth guard
+- **Explorer/mouse position**: Changed `bottom-6 sm:bottom-10` to `bottom-2 sm:bottom-10` in hero-section.tsx to lower the "Explore" text and mouse emoji on mobile
+- Added `Target` icon import to landing-page.tsx and public-page-layout.tsx
+- Lint passes (pre-existing hero-section.tsx error unchanged)
+- Dev server compiles successfully
+
+Stage Summary:
+- Dashboard is now admin-only — players cannot access sidebar layout
+- Player dropdown shows "Status Turnamen" which scrolls to their auto-shown tournament status
+- "Explore" text and mouse icon moved lower on mobile (bottom-2 vs bottom-6)
+- Desktop layout unchanged (bottom-10 still)

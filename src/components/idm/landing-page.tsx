@@ -5,7 +5,7 @@ import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home, Target, Play, XCircle, CheckCircle2, Clock, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -232,10 +232,10 @@ function LandingAuthButton({
             )}
             {isPlayer && (
               <button
-                onClick={() => { setShowMenu(false); useAppStore.getState().setCurrentView('dashboard'); }}
+                onClick={() => { setShowMenu(false); document.getElementById('cari-turnamen')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}
                 className="w-full flex items-center gap-2 px-2.5 py-2 text-xs text-muted-foreground hover:text-idm-gold-warm hover:bg-idm-gold-warm/5 rounded-lg transition-colors cursor-pointer"
               >
-                <UserCircle className="w-3.5 h-3.5" /> Dashboard
+                <Target className="w-3.5 h-3.5" /> Status Turnamen
               </button>
             )}
             <button
@@ -758,7 +758,7 @@ export function LandingPage() {
       </div>
 
       {/* Cari Turnamen Kamu — Search your tournament status */}
-      <div className="section-reveal bg-deep border-y border-border/30 dark:border-0">
+      <div id="cari-turnamen" className="section-reveal bg-deep border-y border-border/30 dark:border-0">
         <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
           <MyTournamentCard />
         </div>
