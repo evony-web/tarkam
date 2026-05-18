@@ -21,7 +21,6 @@ const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m =>
 const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="h-[360px]" /> });
 const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
 
-const ExperiencesSection = dynamic(() => import('./landing/experiences-section').then(m => ({ default: m.ExperiencesSection })), { ssr: false, loading: () => <div className="h-[380px]" /> });
 const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => ({ default: m.ClubsSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
 const SponsorsSection = dynamic(() => import('./landing/sponsors-section').then(m => ({ default: m.SponsorsSection })), { ssr: false, loading: () => null });
 const LandingFooter = dynamic(() => import('./landing/landing-footer').then(m => ({ default: m.LandingFooter })), { ssr: false, loading: () => null });
@@ -755,21 +754,6 @@ export function LandingPage() {
         isDataLoading={isDataLoading}
         setSelectedPlayer={setSelectedPlayer}
         setSelectedClub={setSelectedClub}
-      />
-      </div>
-
-      <SectionDivider />
-
-      {/* Experiences — Video Highlights */}
-      <div className="section-reveal">
-      <ExperiencesSection
-        maleData={maleData}
-        femaleData={femaleData}
-        leagueData={leagueData}
-        cmsSections={cmsSections}
-        cmsSettings={cms}
-        onEnterApp={enterApp}
-        onVideoPlay={openVideoModal}
       />
       </div>
 
