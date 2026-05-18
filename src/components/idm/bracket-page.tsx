@@ -11,19 +11,19 @@ export function BracketPage() {
     <div className="min-h-screen bg-background">
       {/* Page Title Banner — matching Peringkat page */}
       <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-5 sm:py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
               <Radio className="w-4 h-4 text-idm-gold-warm" />
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-foreground">Bracket & Hasil</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Bracket & hasil tarkam</p>
+              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">Bracket & hasil tarkam</p>
             </div>
           </div>
 
           {/* Division pills — right-aligned */}
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 shrink-0">
             {([
               { key: 'semua' as const, label: 'Semua' },
               { key: 'male' as const, label: 'Cowo' },
