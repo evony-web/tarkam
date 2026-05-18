@@ -92,12 +92,14 @@ interface DonationModalProps {
   division?: 'male' | 'female';
   /** CMS settings map for payment configuration */
   cmsSettings?: Record<string, string>;
+  /** Called after successful donation submission — used to open payment reminder modal */
+  onSuccess?: (division: 'male' | 'female') => void;
 }
 
 /* Step states for multi-step flow */
 type ModalStep = 'form' | 'division' | 'result';
 
-export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, division: divisionProp, cmsSettings = {} }: DonationModalProps) {
+export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, division: divisionProp, cmsSettings = {}, onSuccess }: DonationModalProps) {
   const dt = useDivisionTheme();
   const division = useAppStore((s) => s.division);
   const addNotification = useAppStore((s) => s.addNotification);
@@ -198,6 +200,8 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           setActivePayment(availablePayments[0].key);
         }
         setStep('result');
+        // Notify parent so PaymentModal can open as payment reminder
+        onSuccess?.(div);
       } else {
         setSubmitResult({ success: false, message: data.error || 'Gagal memproses donasi' });
         setStep('result');

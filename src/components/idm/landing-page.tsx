@@ -875,6 +875,12 @@ export function LandingPage() {
         defaultType="weekly"
         division={paymentModalDivision}
         cmsSettings={cms}
+        onSuccess={(div) => {
+          // Close DonationModal, then open PaymentModal as payment reminder
+          setDonationModalOpen(false);
+          setPaymentModalDivision(div);
+          setPaymentModalOpen(true);
+        }}
       />
 
       {/* ========== SCROLL PROGRESS BAR ========== */}
