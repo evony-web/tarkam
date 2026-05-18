@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, isPostgreSQL } from '@/lib/db';
 import { verifyPassword, createPlayerSessionToken, hashPassword, isBcryptHash } from '@/lib/auth';
 import { checkRateLimit, getClientIp, RATE_LIMITS, rateLimitHeaders } from '@/lib/rate-limit';
 import { createPlayerAuditLog } from '@/lib/audit';
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Migrate bcrypt hash to scrypt on successful login
+    // Migrate bcrypt hash to scrypt on successful login (non-blocking)
     if (isBcryptHash(account.passwordHash)) {
       try {
         const newHash = await hashPassword(password);
@@ -77,51 +77,75 @@ export async function POST(request: NextRequest) {
           data: { passwordHash: newHash, lastLoginAt: new Date() },
         });
       } catch (migrateError) {
-        console.error('Player hash migration error (non-critical):', migrateError);
+        console.error('[PLAYER_LOGIN] Hash migration error (non-critical):', migrateError);
         // Still update last login even if migration fails
+        try {
+          await db.account.update({
+            where: { id: account.id },
+            data: { lastLoginAt: new Date() },
+          });
+        } catch (updateError) {
+          console.error('[PLAYER_LOGIN] Last login update error (non-critical):', updateError);
+        }
+      }
+    } else {
+      // Update last login (non-blocking — don't fail login if this errors)
+      try {
         await db.account.update({
           where: { id: account.id },
           data: { lastLoginAt: new Date() },
         });
+      } catch (updateError) {
+        console.error('[PLAYER_LOGIN] Last login update error (non-critical):', updateError);
       }
-    } else {
-      // Update last login
-      await db.account.update({
-        where: { id: account.id },
-        data: { lastLoginAt: new Date() },
-      });
     }
 
     // Create player session token (format: player:accountId:playerId:timestamp:signature)
     const token = createPlayerSessionToken(account.id, account.playerId);
 
-    // Get active skins for the player
-    const playerSkins = await db.playerSkin.findMany({
-      where: {
-        accountId: account.id,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
-      },
-      include: {
-        skin: { select: { id: true, type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
-      },
-      orderBy: { skin: { priority: 'desc' } },
-    });
+    // Get active skins for the player (non-blocking — don't fail login if skins query fails)
+    let skinsData: Array<{
+      type: string;
+      icon: string;
+      displayName: string;
+      colorClass: string;
+      priority: number;
+      duration: string;
+      reason: string | null;
+      expiresAt: string | null;
+      donorBadgeCount?: number;
+    }> = [];
 
-    // Build skins array with donorBadgeCount support
-    const skinsData = playerSkins.map(ps => ({
-      type: ps.skin.type,
-      icon: ps.skin.icon,
-      displayName: ps.skin.displayName,
-      colorClass: ps.skin.colorClass,
-      priority: ps.skin.priority,
-      duration: ps.skin.duration,
-      reason: ps.reason,
-      expiresAt: ps.expiresAt?.toISOString() ?? null,
-      donorBadgeCount: ps.skin.type === 'donor' ? account.donorBadgeCount : undefined,
-    }));
+    try {
+      const playerSkins = await db.playerSkin.findMany({
+        where: {
+          accountId: account.id,
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } },
+          ],
+        },
+        include: {
+          skin: { select: { id: true, type: true, displayName: true, icon: true, colorClass: true, priority: true, duration: true } },
+        },
+        orderBy: { skin: { priority: 'desc' } },
+      });
+
+      skinsData = playerSkins.map(ps => ({
+        type: ps.skin.type,
+        icon: ps.skin.icon,
+        displayName: ps.skin.displayName,
+        colorClass: ps.skin.colorClass,
+        priority: ps.skin.priority,
+        duration: ps.skin.duration,
+        reason: ps.reason,
+        expiresAt: ps.expiresAt?.toISOString() ?? null,
+        donorBadgeCount: ps.skin.type === 'donor' ? account.donorBadgeCount : undefined,
+      }));
+    } catch (skinError) {
+      // Neon HTTP adapter may fail on complex queries — don't block login
+      console.error('[PLAYER_LOGIN] Skin fetch error (non-critical, login continues):', skinError);
+    }
 
     // If player has donor badges but no active donor skin, add virtual donor_badge entry
     if (account.donorBadgeCount > 0 && !skinsData.some(s => s.type === 'donor')) {
@@ -138,7 +162,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // ★ Audit log: player login
+    // ★ Audit log: player login (fire-and-forget)
     void createPlayerAuditLog({
       playerId: account.playerId,
       playerName: account.player.gamertag,
@@ -169,7 +193,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Player login error:', error);
+    console.error('[PLAYER_LOGIN] Fatal error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan server' },
       { status: 500, headers: { 'Cache-Control': 'no-store' } }

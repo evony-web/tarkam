@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateAdmin, createSessionToken, hashPassword, isBcryptHash } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, isPostgreSQL } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit';
 import { checkRateLimit, getClientIp, RATE_LIMITS, rateLimitHeaders } from '@/lib/rate-limit';
 import { validateInput, loginSchema } from '@/lib/validation';
@@ -38,30 +38,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Migrate bcrypt hash to scrypt on successful login
+    // Migrate bcrypt hash to scrypt on successful login (non-blocking)
     try {
       const adminRecord = await db.admin.findUnique({ where: { id: admin.id } });
       if (adminRecord && isBcryptHash(adminRecord.passwordHash)) {
         const newHash = await hashPassword(password);
-        await db.admin.update({
-          where: { id: admin.id },
-          data: { passwordHash: newHash },
-        });
+        if (isPostgreSQL) {
+          // Neon HTTP adapter doesn't support $executeRaw — use normal update
+          await db.admin.update({
+            where: { id: admin.id },
+            data: { passwordHash: newHash },
+          });
+        } else {
+          await db.admin.update({
+            where: { id: admin.id },
+            data: { passwordHash: newHash },
+          });
+        }
       }
     } catch (migrateError) {
-      console.error('Hash migration error (non-critical):', migrateError);
-      // Don't fail the login if migration fails — try raw SQL as fallback
-      try {
-        const adminRows = await db.$queryRaw<Array<{ passwordHash: string }>>`
-          SELECT "passwordHash" FROM "Admin" WHERE id = ${admin.id}
-        `;
-        if (adminRows[0] && isBcryptHash(adminRows[0].passwordHash)) {
-          const newHash = await hashPassword(password);
-          await db.$executeRaw`
-            UPDATE "Admin" SET "passwordHash" = ${newHash} WHERE id = ${admin.id}
-          `;
-        }
-      } catch {}
+      console.error('[ADMIN_LOGIN] Hash migration error (non-critical):', migrateError);
+      // Don't fail the login if migration fails
     }
 
     const token = createSessionToken(admin.id, admin.role);
@@ -80,7 +77,8 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    await createAuditLog({
+    // Audit log (fire-and-forget)
+    void createAuditLog({
       adminId: admin.id,
       adminName: admin.username,
       action: 'login',
@@ -90,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: any) {
-    console.error('Login error:', error);
+    console.error('[ADMIN_LOGIN] Fatal error:', error);
     return NextResponse.json(
       { error: 'Terjadi kesalahan server' },
       { status: 500, headers: { 'Cache-Control': 'no-store' } }
