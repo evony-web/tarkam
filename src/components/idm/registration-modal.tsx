@@ -801,13 +801,10 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
                     </p>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        const otherDiv = division === 'male' ? 'female' : 'male';
-                        setDivision(otherDiv);
-                      }}
+                      onClick={handleClose}
                       className="text-xs"
                     >
-                      Coba Divisi {division === 'male' ? '💃 Cewe' : '🕺 Cowo'}
+                      Tutup
                     </Button>
                   </div>
                 )}
