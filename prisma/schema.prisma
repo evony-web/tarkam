@@ -1,12 +1,12 @@
-// Local development schema (SQLite)
-// Production: change provider to "postgresql" before push
+// Production schema (PostgreSQL for Vercel/Neon)
+// Local dev: change provider back to "sqlite"
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
