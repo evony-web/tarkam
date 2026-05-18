@@ -180,14 +180,6 @@ function PublicAuthButton({
   );
 }
 
-/* ═══ Navigation items for public pages ═══ */
-const publicNavItems: { view: AppView; label: string; icon: typeof Swords; scrollTo?: boolean }[] = [
-  { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy },
-  { view: 'highlights' as AppView, label: 'Juara', icon: Crown },
-  { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award },
-  { view: 'players', label: 'Pemain', icon: Music },
-];
-
 /* ═══ Public Page Layout ═══
    A landing-page-style layout for public views.
    Has: Fixed top nav, mobile bottom nav, footer, scroll progress, back to top.
@@ -265,21 +257,31 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
             <span className={`text-gradient-fury text-sm font-bold tracking-tight transition-all duration-500 ${scrolled ? 'nav-logo-text-glow' : ''}`}>{cmsSiteTitle}</span>
           </button>
 
-          {/* Desktop Nav Links */}
+          {/* Desktop Nav Links — same items & style as landing page */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
-            {publicNavItems.map(item => (
+            {[
+              { view: 'landing' as AppView, label: 'Beranda', special: false },
+              { view: 'bracket' as AppView, label: 'Bracket', special: false },
+              { view: 'highlights' as AppView, label: 'Juara', special: true },
+              { view: 'peringkat' as AppView, label: 'Peringkat', special: false },
+              { view: 'players' as AppView, label: 'Pemain', special: false },
+            ].map(item => (
               <button
                 key={item.view}
-                onClick={() => {
-                  setCurrentView(item.view);
-                }}
+                onClick={() => setCurrentView(item.view)}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
                     ? 'text-idm-gold-warm font-semibold'
+                    : item.special
+                    ? 'text-idm-gold-warm/80 hover:text-idm-gold-warm'
                     : 'text-muted-foreground hover:text-idm-gold-warm/70'
                 }`}
               >
-                {item.label}
+                {item.special && <span className="absolute inset-0 rounded-md animate-pulse bg-idm-gold-warm/[0.06] border border-idm-gold-warm/15" />}
+                <span className="relative flex items-center gap-1">
+                  {item.special && <Crown className="w-3.5 h-3.5 drop-shadow-[0_0_4px_rgba(239,249,35,0.4)]" />}
+                  {item.label}
+                </span>
                 {currentView === item.view && (
                   <div className="nav-indicator absolute bottom-0 left-1 right-1 h-[2px] bg-idm-gold-warm rounded-full" />
                 )}
@@ -305,42 +307,52 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
         </div>
       </nav>
 
-      {/* ══════ MOBILE BOTTOM NAVIGATION ══════ */}
+      {/* ══════ MOBILE BOTTOM NAVIGATION — same as landing page ══════ */}
       <nav aria-label="Section navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
         <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />
         <div className="bg-background/95 backdrop-blur-lg">
-          <div className="flex items-center justify-around h-16 px-1">
-            {/* Home button */}
-            <button
-              onClick={() => setCurrentView('landing')}
-              className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
-                currentView === 'landing' ? 'text-idm-gold-warm' : 'text-muted-foreground hover:text-idm-gold-warm/70'
-              }`}
-            >
-              <Home className="relative z-10 w-5 h-5" />
-              <span className="relative z-10 text-[10px] font-medium mt-0.5">Home</span>
-            </button>
-
-            {publicNavItems.slice(0, 4).map(item => {
+          <div className="flex items-center justify-around h-16 px-1 relative">
+            {[
+              { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
+              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
+              { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
+              { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
+              { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
+            ].map(item => {
               const isActive = currentView === item.view;
-              const isSpecial = item.view === 'highlights'; // Crown = special
+
+              // FAB-style for Juara button — same as landing page
+              if (item.special) {
+                return (
+                  <button
+                    key={item.view}
+                    onClick={() => setCurrentView(item.view)}
+                    className="relative -mt-5 z-20 cursor-pointer"
+                  >
+                    <span className={`relative flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 active:scale-90 ${
+                      isActive
+                        ? 'bg-idm-gold-warm'
+                        : 'bg-gradient-to-br from-idm-gold-warm/90 to-yellow-500'
+                    }`}>
+                      <Crown className={`w-6 h-6 ${isActive ? 'text-black' : 'text-black/90'} fill-current`} />
+                    </span>
+                    <span className="block text-center text-[9px] font-bold mt-1 text-idm-gold-warm">{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
                 <button
                   key={item.view}
-                  onClick={() => {
-                    setCurrentView(item.view);
-                  }}
+                  onClick={() => setCurrentView(item.view)}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
-                    isSpecial
-                      ? isActive ? 'text-idm-gold-warm' : 'text-idm-gold-warm/70'
-                      : isActive ? 'text-idm-gold-warm' : 'text-muted-foreground hover:text-idm-gold-warm/70'
+                    isActive
+                    ? 'text-idm-gold-warm'
+                    : 'text-muted-foreground hover:text-idm-gold-warm/70'
                   }`}
                 >
-                  {isSpecial && (
-                    <span className="absolute inset-0 rounded-xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10" />
-                  )}
-                  <item.icon className={`relative z-10 w-5 h-5 ${isSpecial ? 'drop-shadow-[0_0_4px_rgba(239,249,35,0.3)]' : ''}`} />
-                  <span className={`relative z-10 text-[10px] font-medium mt-0.5 ${isSpecial ? 'font-bold' : ''}`}>{item.label}</span>
+                  <item.icon className="relative z-10 w-5 h-5" />
+                  <span className="relative z-10 text-[10px] font-medium mt-0.5">{item.label}</span>
                   {isActive && (
                     <div className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.6)]" />
                   )}
