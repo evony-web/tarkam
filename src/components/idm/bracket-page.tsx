@@ -18,7 +18,7 @@ export function BracketPage() {
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-foreground">Bracket & Hasil</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Bagan pertandingan & hasil Tarkam IDM</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Bracket & hasil tarkam</p>
             </div>
           </div>
 
