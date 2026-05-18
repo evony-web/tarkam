@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X, HandHeart, Gift, MessageCircle } from 'lucide-react';
+import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { AnimatedSection, SectionHeader } from './shared';
-import { formatCurrency, parseWitaDate, formatWIBWeekdayShort, formatWIBTime, formatWIBDateShort } from '@/lib/utils';
+import { formatCurrency, parseWitaDate, formatWIBWeekdayShort, formatWIBTime } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
 interface TournamentHubProps {
@@ -20,6 +20,7 @@ interface TournamentHubProps {
   onEnterApp: (division: 'male' | 'female') => void;
   onRegister: (division: 'male' | 'female') => void;
   onPayment: (division: 'male' | 'female') => void;
+  onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
   maleRegOpen?: boolean;
   femaleRegOpen?: boolean;
@@ -64,118 +65,6 @@ const DIVISION = {
     patternOpacity: 'opacity-[0.04]',
   },
 } as const;
-
-/* ─── Donor List Modal ─── */
-function DonorListModal({
-  open,
-  onOpenChange,
-  division,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  division: typeof DIVISION.male | typeof DIVISION.female;
-}) {
-  const { data, isLoading } = useQuery({
-    queryKey: ['donors-approved', division.key],
-    queryFn: async () => {
-      const res = await fetch(`/api/donations?type=weekly&division=${division.key}&status=approved&limit=50`);
-      if (!res.ok) throw new Error('Gagal memuat data');
-      return res.json();
-    },
-    enabled: open,
-    staleTime: 30000,
-  });
-
-  const donations: { id: string; donorName: string; amount: number; message: string | null; createdAt: string; type: string }[] = data?.donations || [];
-  const totalAmount = data?.total?.amount || 0;
-  const totalCount = data?.total?.count || 0;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="sm:max-w-lg p-0 overflow-hidden border-border/50 bg-background max-h-[85vh] flex flex-col">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Penyawer {division.title}</DialogTitle>
-          <DialogDescription>Daftar penyawer yang sudah disetujui admin untuk {division.title}</DialogDescription>
-        </DialogHeader>
-
-        {/* Modal Header */}
-        <div className={`relative h-16 bg-gradient-to-br from-idm-gold-warm via-idm-gold-warm/80 to-[#e8d5a3]/60 overflow-hidden shrink-0`}>
-          <div className="absolute inset-0 bg-black/10" />
-          <div className="relative z-10 flex items-center justify-between h-full px-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                <HandHeart className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-white">List Penyawer</h2>
-                <p className="text-[10px] text-white/70">{division.title} • {totalCount} penyawer</p>
-              </div>
-            </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              aria-label="Tutup"
-              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
-
-        {/* Total summary */}
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border/30 bg-idm-gold-warm/5">
-          <Gift className="w-4 h-4 text-idm-gold-warm" />
-          <span className="text-[10px] text-muted-foreground">Total Sawer {division.title}</span>
-          <span className="text-xs font-bold text-idm-gold-warm ml-auto">{formatCurrency(totalAmount)}</span>
-        </div>
-
-        {/* Modal Body — scrollable */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-          {isLoading ? (
-            <div className="py-10 text-center">
-              <div className="animate-spin-slow inline-block mb-3">
-                <HandHeart className="w-8 h-8 text-idm-gold-warm" />
-              </div>
-              <p className="text-sm text-muted-foreground">Memuat data penyawer...</p>
-            </div>
-          ) : donations.length === 0 ? (
-            <div className="py-10 text-center">
-              <HandHeart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-muted-foreground">Belum ada penyawer</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">Belum ada yang sawer di divisi {division.title}</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {donations.map((d, idx) => (
-                <div key={d.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03]">
-                  {/* Number */}
-                  <span className="text-[10px] font-bold text-muted-foreground/50 w-5 text-right tabular-nums">{idx + 1}</span>
-                  {/* Avatar */}
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold bg-idm-gold-warm/10 text-idm-gold-warm">
-                    {d.donorName.charAt(0).toUpperCase()}
-                  </div>
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold truncate">{d.donorName}</p>
-                    {d.message && (
-                      <p className="text-[9px] text-muted-foreground truncate flex items-center gap-0.5">
-                        <MessageCircle className="w-2 h-2" />{d.message}
-                      </p>
-                    )}
-                  </div>
-                  {/* Amount + date */}
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] font-bold text-idm-gold-warm">{formatCurrency(d.amount)}</p>
-                    <p className="text-[8px] text-muted-foreground/60">{formatWIBDateShort(new Date(d.createdAt))}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 /* ────────────────────────── Tournament Card ────────────────────────── */
 /* ─── Participants Modal ─── */
@@ -308,6 +197,7 @@ function TournamentCard({
   onEnterApp,
   onRegister,
   onPayment,
+  onDonate,
   onVideoPlay,
   isRegOpen,
 }: {
@@ -318,6 +208,7 @@ function TournamentCard({
   onEnterApp: (division: 'male' | 'female') => void;
   onRegister: (division: 'male' | 'female') => void;
   onPayment: (division: 'male' | 'female') => void;
+  onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
   isRegOpen?: boolean;
 }) {
@@ -329,8 +220,6 @@ function TournamentCard({
 
   /* ─── Participants modal state + count query ─── */
   const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
-  /* ─── Donor list modal state ─── */
-  const [donorListModalOpen, setDonorListModalOpen] = useState(false);
   const { data: participantsData } = useQuery({
     queryKey: ['tournament-participants-count', division.key],
     queryFn: async () => {
@@ -560,7 +449,7 @@ function TournamentCard({
         {/* CTA buttons — stacked on mobile, side-by-side on sm+ */}
         <div className="flex flex-col sm:flex-row gap-2.5">
           <button
-            onClick={() => setDonorListModalOpen(true)}
+            onClick={() => onDonate(division.key)}
             className="flex-1 py-3 min-h-[44px] rounded-2xl text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] active:scale-[0.98]"
           >
             <Heart className="w-4 h-4" />
@@ -598,13 +487,6 @@ function TournamentCard({
         onOpenChange={setParticipantsModalOpen}
         division={division}
       />
-
-      {/* Donor List Modal */}
-      <DonorListModal
-        open={donorListModalOpen}
-        onOpenChange={setDonorListModalOpen}
-        division={division}
-      />
     </div>
   );
 }
@@ -619,6 +501,7 @@ export function TournamentHub({
   onEnterApp,
   onRegister,
   onPayment,
+  onDonate,
   onVideoPlay,
   maleRegOpen,
   femaleRegOpen,
@@ -689,6 +572,7 @@ export function TournamentHub({
               onEnterApp={onEnterApp}
               onRegister={onRegister}
               onPayment={onPayment}
+              onDonate={onDonate}
               onVideoPlay={onVideoPlay}
               isRegOpen={maleRegOpen}
             />
@@ -704,6 +588,7 @@ export function TournamentHub({
               onEnterApp={onEnterApp}
               onRegister={onRegister}
               onPayment={onPayment}
+              onDonate={onDonate}
               onVideoPlay={onVideoPlay}
               isRegOpen={femaleRegOpen}
             />

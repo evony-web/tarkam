@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 // motion removed — replaced with CSS animations
 import {
-  Gift, Heart, Sparkles, Wallet,
+  Gift, Heart, Sparkles, Wallet, HandHeart, MessageCircle,
   Loader2, CheckCircle2, X, Copy, Check, Phone,
   Zap, Star
 } from 'lucide-react';
@@ -16,8 +16,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatWIBDateShort } from '@/lib/utils';
 
 
 type DonationType = 'weekly' | 'season';
@@ -87,30 +88,23 @@ interface DonationModalProps {
   defaultAmount?: number;
   /** If true, hide the Sawer tab toggle and force season mode */
   hideSawer?: boolean;
+  /** Division filter — when provided, shows donor list for this division and pre-selects it */
+  division?: 'male' | 'female';
   /** CMS settings map for payment configuration */
   cmsSettings?: Record<string, string>;
 }
 
-const presetAmounts: { amount: number; label: string; emoji: string }[] = [
-  { amount: 5000, label: '5K', emoji: '☕' },
-  { amount: 10000, label: '10K', emoji: '🥉' },
-  { amount: 25000, label: '25K', emoji: '🍟' },
-  { amount: 50000, label: '50K', emoji: '🥈' },
-  { amount: 100000, label: '100K', emoji: '🥇' },
-  { amount: 250000, label: '250K', emoji: '💎' },
-];
-
 /* Step states for multi-step flow */
 type ModalStep = 'form' | 'division' | 'result';
 
-export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, cmsSettings = {} }: DonationModalProps) {
+export function DonationModal({ open, onOpenChange, defaultType = 'season', defaultAmount, hideSawer = false, division: divisionProp, cmsSettings = {} }: DonationModalProps) {
   const dt = useDivisionTheme();
   const division = useAppStore((s) => s.division);
   const addNotification = useAppStore((s) => s.addNotification);
 
   const [step, setStep] = useState<ModalStep>('form');
   const [donationType, setDonationType] = useState<DonationType>(defaultType);
-  const [selectedDivision, setSelectedDivision] = useState<'male' | 'female'>(division === 'female' ? 'female' : 'male');
+  const [selectedDivision, setSelectedDivision] = useState<'male' | 'female'>(divisionProp || (division === 'female' ? 'female' : 'male'));
 
   // If hideSawer is true, always use season type
   const effectiveType = hideSawer ? 'season' : donationType;
@@ -126,6 +120,22 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
   const finalAmount = customAmount ? parseInt(customAmount.replace(/\D/g, '')) || 0 : (selectedAmount || 0);
 
   const isFormValid = donorName.trim().length > 0 && finalAmount >= 1000;
+
+  /* ─── Fetch approved donors for the selected division ─── */
+  const effectiveDivision = divisionProp || selectedDivision;
+  const { data: donorData, isLoading: isDonorLoading } = useQuery({
+    queryKey: ['donors-approved', effectiveDivision],
+    queryFn: async () => {
+      const res = await fetch(`/api/donations?type=weekly&division=${effectiveDivision}&status=approved&limit=50`);
+      if (!res.ok) throw new Error('Gagal memuat data');
+      return res.json();
+    },
+    enabled: open && step === 'form',
+    staleTime: 30000,
+  });
+  const approvedDonors: { id: string; donorName: string; amount: number; message: string | null; createdAt: string }[] = donorData?.donations || [];
+  const totalDonorAmount = donorData?.total?.amount || 0;
+  const totalDonorCount = donorData?.total?.count || 0;
 
   // Determine which payment methods are available
   // QRIS: available if donation_qris_image has a value
@@ -200,14 +210,14 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
     }
   };
 
-  /** Form submit — for weekly go to division picker, for season submit directly */
+  /** Form submit — for weekly go to division picker (unless division prop is provided), for season submit directly */
   const handleFormSubmit = () => {
     if (!isFormValid || isSubmitting) return;
-    if (effectiveType === 'weekly') {
+    if (effectiveType === 'weekly' && !divisionProp) {
       setStep('division');
     } else {
-      // Season donation — no division picker needed, submit with default
-      submitDonation(selectedDivision);
+      // Season donation or weekly with pre-selected division — submit directly
+      submitDonation(divisionProp || selectedDivision);
     }
   };
 
@@ -353,27 +363,54 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                 </div>
               )}
 
-              {/* Preset Amounts */}
+              {/* ═══ Donor List — replaces preset amounts ═══ */}
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-2 block">Pilih Nominal</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {presetAmounts.map((btn) => (
-                    <button
-                      key={btn.amount}
-                      type="button"
-                      onClick={() => { setSelectedAmount(btn.amount); setCustomAmount(''); }}
-                      className={`hover-scale-sm px-2 py-3 rounded-2xl border text-center transition-all duration-200 ${
-                        selectedAmount === btn.amount && !customAmount
-                          ? `${config.borderAccent} ${config.bgSubtle} ${config.textAccent} border-2 shadow-sm`
-                          : `border-border/50 bg-background/50 ${config.hoverBg} hover:border-border`
-                      }`}
-                    >
-                      <span className="text-base">{btn.emoji}</span>
-                      <p className={`text-xs font-bold mt-0.5 ${selectedAmount === btn.amount && !customAmount ? config.textAccent : ''}`}>
-                        Rp {btn.label}
-                      </p>
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <HandHeart className="w-3.5 h-3.5 text-idm-gold-warm" />
+                    List Penyawer {effectiveDivision === 'female' ? '💃 Cewe' : '🕺 Cowo'}
+                  </label>
+                  {totalDonorCount > 0 && (
+                    <span className="text-[9px] font-semibold text-idm-gold-warm">
+                      Total {formatCurrency(totalDonorAmount)}
+                    </span>
+                  )}
+                </div>
+                <div className="max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]">
+                  {isDonorLoading ? (
+                    <div className="py-6 text-center">
+                      <Loader2 className="w-5 h-5 text-idm-gold-warm animate-spin mx-auto mb-1.5" />
+                      <p className="text-[10px] text-muted-foreground">Memuat penyawer...</p>
+                    </div>
+                  ) : approvedDonors.length === 0 ? (
+                    <div className="py-5 text-center">
+                      <HandHeart className="w-6 h-6 text-muted-foreground/20 mx-auto mb-1.5" />
+                      <p className="text-[10px] text-muted-foreground/60">Belum ada penyawer</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-idm-gold-warm/5">
+                      {approvedDonors.map((d, idx) => (
+                        <div key={d.id} className="flex items-center gap-2 px-3 py-1.5">
+                          <span className="text-[9px] font-bold text-muted-foreground/40 w-4 text-right tabular-nums">{idx + 1}</span>
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold bg-idm-gold-warm/10 text-idm-gold-warm shrink-0">
+                            {d.donorName.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-semibold truncate">{d.donorName}</p>
+                            {d.message && (
+                              <p className="text-[8px] text-muted-foreground/60 truncate flex items-center gap-0.5">
+                                <MessageCircle className="w-2 h-2" />{d.message}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-[9px] font-bold text-idm-gold-warm">{formatCurrency(d.amount)}</p>
+                            <p className="text-[7px] text-muted-foreground/40">{formatWIBDateShort(new Date(d.createdAt))}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
