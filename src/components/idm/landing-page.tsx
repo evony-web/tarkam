@@ -58,10 +58,10 @@ function LandingThemeToggle({ scrolled }: { scrolled: boolean }) {
   if (!mounted) {
     return (
       <button
-        className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-opacity opacity-50"
+        className="inline-flex h-7 w-7 items-center justify-center rounded-full transition-opacity opacity-50"
         aria-label="Toggle theme"
       >
-        <div className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        <div className="h-3.5 w-3.5" />
       </button>
     );
   }
@@ -71,23 +71,23 @@ function LandingThemeToggle({ scrolled }: { scrolled: boolean }) {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`btn-press inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-all duration-300 cursor-pointer border active:scale-95 ${
+      className={`btn-press inline-flex h-7 w-7 items-center justify-center rounded-full transition-all duration-300 cursor-pointer border active:scale-95 ${
         scrolled
           ? 'border-idm-gold-warm/20 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/15 text-idm-gold-warm'
           : 'border-white/15 bg-white/5 hover:bg-white/15 text-white/70 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/15 dark:text-white/70'
       }`}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <div className="relative h-3.5 w-3.5 sm:h-4 sm:w-4 overflow-hidden">
+      <div className="relative h-3.5 w-3.5 overflow-hidden">
         <Sun
-          className={`absolute inset-0 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300 ${
+          className={`absolute inset-0 h-3.5 w-3.5 transition-all duration-300 ${
             isDark
               ? 'rotate-90 scale-0 opacity-0'
               : 'rotate-0 scale-100 opacity-100'
           }`}
         />
         <Moon
-          className={`absolute inset-0 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300 ${
+          className={`absolute inset-0 h-3.5 w-3.5 transition-all duration-300 ${
             isDark
               ? 'rotate-0 scale-100 opacity-100'
               : '-rotate-90 scale-0 opacity-0'
@@ -136,29 +136,36 @@ function LandingAuthButton({
 
   if (!isLoggedIn) {
     return (
-      <div className="flex items-center gap-1 sm:gap-1.5">
+      <div className={`flex items-center rounded-full p-0.5 gap-0.5 ${
+        scrolled
+          ? 'border border-idm-gold-warm/15 bg-idm-gold-warm/5'
+          : 'border border-white/10 bg-white/5'
+      }`}>
+        {/* Login — icon-only on mobile, text on sm+ */}
         <button
           onClick={() => onOpenLogin('peserta')}
           aria-label="Login akun"
-          className={`btn-press relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-semibold transition-all duration-200 cursor-pointer border active:scale-95 ${
+          className={`btn-press flex items-center justify-center sm:gap-1.5 h-7 sm:h-7 sm:px-2.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer active:scale-95 ${
             scrolled
-              ? 'border-idm-gold-warm/25 text-idm-gold-warm hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/40'
-              : 'border-white/20 bg-white/5 hover:bg-white/10 text-white/80 dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/80'
+              ? 'text-idm-gold-warm hover:bg-idm-gold-warm/10'
+              : 'text-white/80 hover:bg-white/10'
           }`}
         >
           <LogIn className="w-3.5 h-3.5" />
-          <span>Login</span>
+          <span className="hidden sm:inline">Login</span>
         </button>
         {/* Admin login shortcut */}
         <button
           onClick={() => onOpenLogin('admin')}
           aria-label="Admin login"
-          className={`btn-press p-1 rounded-md transition-all duration-200 cursor-pointer opacity-50 hover:opacity-100 ${
-            scrolled ? 'text-idm-gold-warm/70 hover:text-idm-gold-warm' : 'text-white/50 hover:text-white/90 dark:text-white/50 dark:hover:text-white/90'
+          className={`btn-press flex items-center justify-center h-7 w-7 rounded-full transition-all duration-200 cursor-pointer opacity-50 hover:opacity-100 active:scale-95 ${
+            scrolled
+              ? 'hover:bg-idm-gold-warm/10'
+              : 'hover:bg-white/10'
           }`}
           title="Login Admin"
         >
-          <Shield className="w-3.5 h-3.5 text-idm-gold-warm drop-shadow-[0_0_4px_rgba(239,249,35,0.4)]" />
+          <Shield className="w-3 h-3 text-idm-gold-warm drop-shadow-[0_0_4px_rgba(239,249,35,0.4)]" />
         </button>
       </div>
     );
@@ -627,7 +634,7 @@ export function LandingPage() {
           </div>
 
           {/* Right Actions: Theme Toggle + Login */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1.5">
             {/* Theme Toggle */}
             <LandingThemeToggle scrolled={scrolled} />
             {/* Login / User Button */}

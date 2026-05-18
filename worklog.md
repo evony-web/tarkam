@@ -438,3 +438,29 @@ Stage Summary:
 - When on hero (not scrolled): white/glass card style on dark background
 - When scrolled: gold card style matching nav
 - Desktop view unchanged
+
+---
+Task ID: 10b
+Agent: Main Agent
+Task: Fix mobile header compactness - second attempt with toolbar approach
+
+Work Log:
+- Analyzed the issue: On mobile (375px), the right side of the h-14 header had too many separate elements (theme toggle circle + login button with text + admin shield) making it look not compact
+- Root causes found:
+  - `.glow-pulse` on logo creates 40px box-shadow that bleeds visually
+  - `.btn-press:hover` adds scale(1.03) translateY(-1px) which can trigger on mobile touch
+  - Login button with "Login" text + icon + border + padding was the tallest element
+- New approach: Unified toolbar pattern for the login area
+  - Wrapped Login + Admin shield in a single rounded-full container with shared border/bg
+  - Login button: icon-only on mobile (no "Login" text), shows text on sm+ breakpoint
+  - Admin shield: compact h-7 w-7 circle inside the toolbar
+  - Container has `p-0.5 gap-0.5` for tight spacing
+- Theme toggle: Consistent h-7 w-7 (no sm: breakpoint size change), h-3.5 w-3.5 icons
+- Both landing-page.tsx and public-page-layout.tsx updated with identical pattern
+
+Stage Summary:
+- Mobile header right side is now a compact toolbar: [🔒 Login icon | 🛡️ Shield] in one pill
+- "Login" text only shows on sm+ breakpoint, icon-only on mobile
+- Theme toggle stays as a separate h-7 circle button
+- Both elements are h-7 (28px) tall — consistent and compact in the h-14 header
+- Desktop view shows "Login" text as before
