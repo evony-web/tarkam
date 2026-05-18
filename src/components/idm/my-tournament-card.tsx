@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search, Swords, Trophy, Crown, Clock, MapPin, Heart, Users,
   ChevronDown, ChevronUp, Zap, CheckCircle2, XCircle, Play,
   Music, Calendar, Shield, Target, Radio,
-  Info, Star, X
+  Info, X
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,34 +109,68 @@ function StatusBadge({ status, division }: { status: string; division: string })
   );
 }
 
+/* ─── Stat Pill Component ─── */
+function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
+  const dt = useDivisionTheme();
+  return (
+    <div className={`text-center p-1.5 sm:p-2 rounded-lg bg-background/50 border border-border/20`}>
+      <p className={`text-xs sm:text-sm font-bold ${color}`}>{value}</p>
+      <p className="text-[8px] sm:text-[9px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
-   Main Component — Search bar always visible, results in modal
+   Main Component — Auto-shows logged-in player + Search for others
    ═══════════════════════════════════════════════════════════════ */
 export function MyTournamentCard() {
-  const { division } = useAppStore();
+  const { division, playerAuth } = useAppStore();
   const dt = useDivisionTheme();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Manual search state
   const [searchName, setSearchName] = useState('');
-  const [submittedName, setSubmittedName] = useState('');
+  const [manualSubmittedName, setManualSubmittedName] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
 
-  /* ─── My-status query — only when searching ─── */
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['my-tournament-status', submittedName, division],
+  // Detect logged-in player
+  const isLoggedIn = playerAuth.isAuthenticated && !!playerAuth.account;
+  const playerGamertag = isLoggedIn ? playerAuth.account!.player.gamertag : null;
+  const playerDivision = isLoggedIn ? (playerAuth.account!.player.division === 'male' ? 'male' as const : 'female' as const) : null;
+  const playerStats = isLoggedIn ? playerAuth.account!.player : null;
+
+  // Use the player's division when logged in, otherwise use store division
+  const effectiveDivision = (isLoggedIn && playerDivision) ? playerDivision : (division === 'female' ? 'female' as const : 'male' as const);
+
+  /* ─── Auto query for logged-in player (derived, no setState in effect) ─── */
+  const { data: autoData, isLoading: autoLoading } = useQuery({
+    queryKey: ['my-tournament-status', playerGamertag, effectiveDivision],
     queryFn: async () => {
-      const res = await fetch(`/api/tournaments/my-status?name=${encodeURIComponent(submittedName)}&division=${division}&gamertag=${encodeURIComponent(submittedName)}`);
+      const res = await fetch(`/api/tournaments/my-status?name=${encodeURIComponent(playerGamertag!)}&division=${effectiveDivision}&gamertag=${encodeURIComponent(playerGamertag!)}`);
       if (!res.ok) throw new Error('Gagal mengambil data');
       return res.json();
     },
-    enabled: !!submittedName,
-    refetchInterval: modalOpen ? 30000 : false,
+    enabled: isLoggedIn && !!playerGamertag,
+    refetchInterval: 300000,
+    staleTime: 30000,
   });
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  /* ─── Manual search query (for modal, different key to avoid cache collision) ─── */
+  const { data: manualData, isLoading: manualLoading, error: manualError } = useQuery({
+    queryKey: ['my-tournament-status-search', manualSubmittedName, effectiveDivision],
+    queryFn: async () => {
+      const res = await fetch(`/api/tournaments/my-status?name=${encodeURIComponent(manualSubmittedName)}&division=${effectiveDivision}&gamertag=${encodeURIComponent(manualSubmittedName)}`);
+      if (!res.ok) throw new Error('Gagal mengambil data');
+      return res.json();
+    },
+    enabled: !!manualSubmittedName && manualSubmittedName !== playerGamertag,
+    refetchInterval: false,
+  });
 
   const handleSearch = () => {
     if (!searchName.trim()) return;
-    setSubmittedName(searchName.trim());
+    setManualSubmittedName(searchName.trim());
     setShowAllMatches(false);
     setModalOpen(true);
   };
@@ -144,13 +178,277 @@ export function MyTournamentCard() {
   const handleModalClose = (open: boolean) => {
     if (!open) {
       setModalOpen(false);
-      // Keep submittedName so data stays cached, just close the modal
     }
   };
 
-  /* ─── RENDER: Modal content based on search results ─── */
+  /* ─── RENDER: Inline status for logged-in player (auto-shown) ─── */
+  const renderLoggedInStatus = () => {
+    if (!isLoggedIn || !playerStats) return null;
+
+    if (autoLoading && !autoData) {
+      return (
+        <div className={`rounded-xl border ${dt.borderSubtle} p-4`}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`w-9 h-9 rounded-full ${dt.iconBg} animate-pulse`} />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 w-24 rounded bg-muted/30 animate-pulse" />
+              <div className="h-2 w-32 rounded bg-muted/20 animate-pulse" />
+            </div>
+          </div>
+          <div className="grid grid-cols-5 gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-12 rounded-lg bg-muted/20 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    const data = autoData;
+    const hasTournament = data?.found && data?.hasActiveTournament;
+    const hasTeam = hasTournament && data?.myTeam;
+
+    // Base player card — always shown for logged-in user
+    return (
+      <div className="space-y-2.5">
+        {/* Player Info Header */}
+        <div className={`rounded-xl border p-3 sm:p-4 ${hasTeam ? (data.isChampion ? 'border-yellow-500/40 bg-yellow-500/5' : data.isEliminated ? 'border-red-500/20 bg-red-500/5' : `${dt.borderSubtle} ${dt.bgSubtle}`) : 'border-border/30'}`}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${dt.iconBg}`}>
+              <span className={`text-xs font-bold ${dt.neonText}`}>{playerStats.gamertag.charAt(0).toUpperCase()}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate">{playerStats.gamertag}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {playerStats.name}{playerStats.city ? ` • ${playerStats.city}` : ''}
+              </p>
+            </div>
+            {hasTeam ? (
+              data.isChampion ? (
+                <Badge className="bg-yellow-500/15 text-yellow-500 border-0 text-[9px]"><Crown className="w-3 h-3 mr-0.5" /> Juara!</Badge>
+              ) : data.isEliminated ? (
+                <Badge className="bg-red-500/15 text-red-400 border-0 text-[9px]"><XCircle className="w-3 h-3 mr-0.5" /> Out</Badge>
+              ) : (
+                <Badge className="bg-green-500/15 text-green-400 border-0 text-[9px]"><Play className="w-3 h-3 mr-0.5" /> Aktif</Badge>
+              )
+            ) : (
+              <Badge className={`text-[9px] border-0 ${playerStats.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}`}>
+                {playerStats.division === 'male' ? '♂ Cowo' : '♀ Cewe'}
+              </Badge>
+            )}
+          </div>
+
+          {/* Stats Row — PTS, W, L, MVP, Streak */}
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-3">
+            <StatPill label="PTS" value={playerStats.points} color={dt.neonText} />
+            <StatPill label="W" value={playerStats.totalWins} color="text-green-400" />
+            <StatPill label="L" value={Math.max(0, playerStats.matches - playerStats.totalWins)} color="text-red-400" />
+            <StatPill label="MVP" value={playerStats.totalMvp} color="text-yellow-500" />
+            <StatPill label="Streak" value={playerStats.streak} color="text-orange-400" />
+          </div>
+
+          {/* Team + Tournament info when in a team */}
+          {hasTeam && (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {data.isChampion && <Crown className="w-4 h-4 text-yellow-500" />}
+                  <span className={`text-sm font-bold ${data.isChampion ? 'text-yellow-500' : data.isEliminated ? 'text-red-400' : dt.neonText}`}>
+                    {data.myTeam.name}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {data.myTeam.teammates.map((t: Teammate) => (
+                  <div key={t.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] ${
+                    t.isMe
+                      ? `bg-gradient-to-r ${effectiveDivision === 'male' ? 'from-idm-male/20 to-idm-male/5' : 'from-idm-female/20 to-idm-female/5'} border ${effectiveDivision === 'male' ? 'border-idm-male/30' : 'border-idm-female/30'}`
+                      : 'bg-muted/20'
+                  }`}>
+                    <span className={t.isMe ? 'font-bold' : ''}>{t.gamertag}</span>
+                    {t.isMe && <span className="text-[8px] opacity-60">(kamu)</span>}
+                  </div>
+                ))}
+              </div>
+              <div className={`px-3 py-2 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-semibold text-muted-foreground">{data.tournament.name} • Week {data.tournament.weekNumber}</span>
+                  <Badge className={`${dt.casinoBadge} text-[9px]`}>{data.tournament.format?.replace('_', ' ').toUpperCase()}</Badge>
+                </div>
+                <TournamentProgress status={data.tournament.status} />
+              </div>
+            </>
+          )}
+
+          {/* No active tournament or not in team */}
+          {!hasTournament && data?.found && (
+            <div className="text-center mt-2">
+              <Clock className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+              <p className="text-[11px] font-semibold">Belum Ada Turnamen Aktif</p>
+              <p className="text-[10px] text-muted-foreground">{data.message}</p>
+            </div>
+          )}
+          {hasTournament && !hasTeam && (
+            <div className="mt-2">
+              <div className={`p-2.5 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle} mb-2`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold">{data.tournament.name}</span>
+                  <Badge className={`${dt.casinoBadge} text-[9px]`}>W{data.tournament.weekNumber}</Badge>
+                </div>
+                <TournamentProgress status={data.tournament.status} />
+              </div>
+              <div className="text-center">
+                <Shield className={`w-5 h-5 ${dt.neonText} mx-auto mb-1 opacity-50`} />
+                <p className="text-[11px] font-semibold">
+                  {data.tournament.isCompleted ? 'Turnamen Selesai' :
+                   data.tournament.status === 'registration' ? 'Pendaftaran Dibuka' :
+                   data.tournament.status === 'approval' ? 'Menunggu Persetujuan' :
+                   'Belum Masuk Tim'}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {data.tournament.isCompleted ? 'Cek hasilnya di Bracket.' :
+                   data.tournament.status === 'approval' ? (data.participationStatus === 'registered' ? 'Pendaftaran menunggu persetujuan.' : data.participationStatus === 'approved' ? 'Disetujui! Tim akan dibentuk.' : data.message) :
+                   data.message}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Live / Next / Eliminated / Champion cards */}
+        {hasTeam && (
+          <>
+            {data.liveMatch && (
+              <div className="p-3 rounded-xl border border-red-500/30 bg-red-500/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <Zap className="w-3 h-3 text-red-500 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-red-500">LIVE SEKARANG!</h3>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <span className="text-xs font-bold">{data.myTeam.name}</span>
+                  <span className="text-sm font-bold tabular-nums text-red-400">
+                    {data.liveMatch.myScore ?? 0} - {data.liveMatch.opponentScore ?? 0}
+                  </span>
+                  <span className="text-xs font-bold">{data.liveMatch.opponent.name}</span>
+                </div>
+              </div>
+            )}
+
+            {data.nextMatch && !data.isEliminated && !data.liveMatch && (
+              <div className={`p-3 rounded-xl border ${dt.borderSubtle} ${dt.bgSubtle}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${dt.iconBg}`}>
+                    <Swords className={`w-3 h-3 ${dt.neonText}`} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold">Lawan Selanjutnya</h3>
+                    <p className="text-[10px] text-muted-foreground">
+                      {getRoundLabel(data.nextMatch.round, Math.max(...(data.myMatches || []).map((m: MatchInfo) => m.round), 1))}
+                    </p>
+                  </div>
+                </div>
+                <div className={`p-2.5 rounded-lg border ${dt.borderSubtle}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold">{data.nextOpponent?.name || 'TBD'}</span>
+                    <Badge className={`${dt.casinoBadge} text-[9px]`}>Lawan</Badge>
+                  </div>
+                  {data.nextOpponent?.players?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {data.nextOpponent.players.map((p: OpponentPlayer) => (
+                        <div key={p.id} className="px-1.5 py-0.5 rounded-full bg-muted/30 text-[9px]">{p.gamertag}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {data.isEliminated && !data.isChampion && (
+              <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5">
+                <div className="flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <div>
+                    <h3 className="text-xs font-bold text-red-400">Tim Tereliminasi</h3>
+                    <p className="text-[10px] text-muted-foreground">{data.eliminationInfo || 'Tim gugur dari bracket'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {data.isChampion && (
+              <div className="p-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 text-center">
+                <Trophy className="w-6 h-6 text-yellow-500 mx-auto mb-1" />
+                <h3 className="text-xs font-bold text-yellow-500">Selamat, Juara!</h3>
+                <p className="text-[10px] text-muted-foreground">{data.myTeam.name} menang!</p>
+              </div>
+            )}
+
+            {/* Match History — compact */}
+            {data.myMatches?.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className={`w-4 h-4 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                    <Music className={`w-2.5 h-2.5 ${dt.neonText}`} />
+                  </div>
+                  <h3 className="text-[10px] font-semibold uppercase tracking-wider">Riwayat</h3>
+                  <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.completedMatchCount} Main</Badge>
+                </div>
+                <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
+                  {(showAllMatches ? data.myMatches : data.myMatches.slice(0, 4)).map((m: MatchInfo) => {
+                    const isLive = m.status === 'live';
+                    const totalRounds = Math.max(...data.myMatches.map((mm: MatchInfo) => mm.round), 1);
+                    return (
+                      <div key={m.id} className={`p-2 rounded-lg border ${
+                        isLive ? 'border-red-500/30' :
+                        m.won ? `border-green-500/20 ${dt.bgSubtle}` :
+                        m.lost ? 'border-red-500/10' :
+                        'border-border/20'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[9px] font-semibold text-muted-foreground">{getRoundLabel(m.round, totalRounds)}</span>
+                          <div className="flex items-center gap-1">
+                            {isLive && <Badge className="bg-red-500/15 text-red-500 border-0 text-[7px] animate-pulse">LIVE</Badge>}
+                            {m.won && <Badge className="bg-green-500/15 text-green-400 border-0 text-[7px]">W</Badge>}
+                            {m.lost && <Badge className="bg-red-500/15 text-red-400 border-0 text-[7px]">L</Badge>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] font-semibold flex-1 ${m.won ? 'text-green-400' : ''}`}>{data.myTeam.name}</span>
+                          <span className={`text-xs font-bold tabular-nums ${m.won ? 'text-green-400' : m.lost ? 'text-red-400' : ''}`}>
+                            {m.myScore !== null && m.opponentScore !== null ? `${m.myScore}-${m.opponentScore}` : 'VS'}
+                          </span>
+                          <span className={`text-[10px] font-semibold flex-1 text-right ${m.lost ? 'text-red-400' : ''}`}>{m.opponent.name}</span>
+                        </div>
+                        {m.mvpPlayer && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Crown className="w-2 h-2 text-yellow-500" />
+                            <span className="text-[8px] text-yellow-500 font-medium">MVP: {m.mvpPlayer.gamertag}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {data.myMatches.length > 4 && (
+                    <button onClick={() => setShowAllMatches(!showAllMatches)} className="w-full py-1 text-[9px] text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors">
+                      {showAllMatches ? <>Tutup <ChevronUp className="w-2.5 h-2.5" /></> : <>Lihat semua ({data.myMatches.length}) <ChevronDown className="w-2.5 h-2.5" /></>}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  /* ─── RENDER: Modal content for manual search ─── */
   const renderModalContent = () => {
-    if (isLoading) {
+    if (manualLoading) {
       return (
         <div className="py-10 text-center">
           <div className="animate-spin-slow inline-block mb-3">
@@ -161,16 +459,18 @@ export function MyTournamentCard() {
       );
     }
 
-    if (error) {
+    if (manualError) {
       return (
         <div className="text-center py-8">
           <XCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
           <h3 className="text-base font-bold text-red-400 mb-1">Gagal Memuat Data</h3>
           <p className="text-xs text-muted-foreground mb-3">Terjadi kesalahan saat mencari. Coba lagi.</p>
-          <Button size="sm" variant="outline" onClick={() => { setSubmittedName(''); setSearchName(''); setModalOpen(false); }}>Tutup</Button>
+          <Button size="sm" variant="outline" onClick={() => { setManualSubmittedName(''); setSearchName(''); setModalOpen(false); }}>Tutup</Button>
         </div>
       );
     }
+
+    const data = manualData;
 
     if (!data?.found) {
       return (
@@ -237,21 +537,12 @@ export function MyTournamentCard() {
                data.tournament.status === 'approval' ? (data.participationStatus === 'registered' ? 'Pendaftaran kamu sedang menunggu persetujuan admin.' : data.participationStatus === 'approved' ? 'Kamu sudah disetujui! Tim akan segera dibentuk.' : data.message) :
                data.message}
             </p>
-            {data.prizeInfo && (
-              <div className={`mt-3 p-3 sm:p-4 rounded-lg ${dt.bgSubtle} border ${dt.borderSubtle} text-left`}>
-                <p className="text-[10px] font-semibold mb-1.5">Hasil Turnamen</p>
-                {data.prizeInfo.isWinner && <p className="text-[10px] text-yellow-500 font-bold">Juara!</p>}
-                {data.prizeInfo.teamRank && <p className="text-[10px] text-muted-foreground">Peringkat: #{data.prizeInfo.teamRank}</p>}
-                {data.prizeInfo.pointsEarned > 0 && <p className="text-[10px] text-muted-foreground">Poin: +{data.prizeInfo.pointsEarned}</p>}
-                {data.prizeInfo.isMvp && <p className="text-[10px] text-yellow-500 font-medium">MVP Turnamen</p>}
-              </div>
-            )}
           </div>
         </div>
       );
     }
 
-    /* ─── FULL RESULTS: Player Has a Team ─── */
+    /* ─── FULL RESULTS: Player Has a Team (modal) ─── */
     const tournament = data.tournament;
     const myTeam = data.myTeam;
     const myMatches = data.myMatches || [];
@@ -292,7 +583,7 @@ export function MyTournamentCard() {
             {myTeam.teammates.map((t: Teammate) => (
               <div key={t.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] ${
                 t.isMe
-                  ? `bg-gradient-to-r ${division === 'male' ? 'from-idm-male/20 to-idm-male/5' : 'from-idm-female/20 to-idm-female/5'} border ${division === 'male' ? 'border-idm-male/30' : 'border-idm-female/30'}`
+                  ? `bg-gradient-to-r ${effectiveDivision === 'male' ? 'from-idm-male/20 to-idm-male/5' : 'from-idm-female/20 to-idm-female/5'} border ${effectiveDivision === 'male' ? 'border-idm-male/30' : 'border-idm-female/30'}`
                   : `${dt.bgSubtle}`
               }`}>
                 <span className={t.isMe ? 'font-bold' : ''}>{t.gamertag}</span>
@@ -463,19 +754,24 @@ export function MyTournamentCard() {
   };
 
   /* ═══════════════════════════════════════════════════════════════
-     RENDER: Search bar only + Modal for results
+     RENDER: Main — Auto status for logged-in + Search for others
      ═══════════════════════════════════════════════════════════════ */
   return (
     <>
+      {/* ── Logged-in Player Status (auto-shown inline) ── */}
+      {isLoggedIn && renderLoggedInStatus()}
+
       {/* ── Search Input Bar (always visible) ── */}
-      <div className="rounded-xl border border-border/30 p-4 relative z-10">
+      <div className={`rounded-xl border border-border/30 p-4 relative z-10 ${isLoggedIn ? 'mt-2.5' : ''}`}>
         <div className="flex items-center gap-3 mb-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dt.iconBg}`}>
             <Target className={`w-5 h-5 ${dt.neonText}`} />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-bold text-gradient-fury">Cari Turnamen Kamu</h3>
-            <p className="text-[10px] text-muted-foreground">Ketik nama atau nickname lalu tekan Enter / Cari</p>
+            <p className="text-[10px] text-muted-foreground">
+              {isLoggedIn ? 'Status kamu sudah tampil di atas. Cari pemain lain:' : 'Ketik nama atau nickname lalu tekan Enter / Cari'}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -483,7 +779,7 @@ export function MyTournamentCard() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               ref={inputRef}
-              placeholder="Contoh: montiel, Afroki..."
+              placeholder={isLoggedIn ? "Cari pemain lain..." : "Contoh: montiel, Afroki..."}
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSearch(); } }}
@@ -495,7 +791,7 @@ export function MyTournamentCard() {
           <Button
             onClick={handleSearch}
             disabled={!searchName.trim()}
-            className={`h-11 px-4 text-sm font-bold gap-1.5 shrink-0 ${division === 'male' ? 'bg-idm-male hover:bg-idm-male/90 text-white' : 'bg-idm-female hover:bg-idm-female/90 text-white'}`}
+            className={`h-11 px-4 text-sm font-bold gap-1.5 shrink-0 ${effectiveDivision === 'male' ? 'bg-idm-male hover:bg-idm-male/90 text-white' : 'bg-idm-female hover:bg-idm-female/90 text-white'}`}
           >
             <Search className="w-4 h-4" />
             Cari
@@ -503,17 +799,17 @@ export function MyTournamentCard() {
         </div>
       </div>
 
-      {/* ── Result Modal ── */}
+      {/* ── Result Modal (for manual search only) ── */}
       <Dialog open={modalOpen} onOpenChange={handleModalClose}>
         <DialogContent showCloseButton={false} className="sm:max-w-lg p-0 overflow-hidden border-border/50 bg-background max-h-[85vh] flex flex-col">
           {/* Accessible title - visually hidden */}
           <DialogHeader className="sr-only">
             <DialogTitle>Info Turnamen</DialogTitle>
-            <DialogDescription>Hasil pencarian turnamen untuk {submittedName}</DialogDescription>
+            <DialogDescription>Hasil pencarian turnamen untuk {manualSubmittedName}</DialogDescription>
           </DialogHeader>
 
           {/* Modal Header */}
-          <div className={`relative h-16 bg-gradient-to-br ${division === 'male' ? 'from-idm-male via-idm-male/80 to-idm-male-light/60' : 'from-idm-female via-idm-female/80 to-idm-female-light/60'} overflow-hidden shrink-0`}>
+          <div className={`relative h-16 bg-gradient-to-br ${effectiveDivision === 'male' ? 'from-idm-male via-idm-male/80 to-idm-male-light/60' : 'from-idm-female via-idm-female/80 to-idm-female-light/60'} overflow-hidden shrink-0`}>
             <div className="absolute inset-0 bg-black/10" />
             <div className="relative z-10 flex items-center justify-between h-full px-4">
               <div className="flex items-center gap-2.5">
@@ -522,7 +818,7 @@ export function MyTournamentCard() {
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-white">Info Turnamen</h2>
-                  <p className="text-[10px] text-white/70">Hasil untuk &quot;{submittedName}&quot;</p>
+                  <p className="text-[10px] text-white/70">Hasil untuk &quot;{manualSubmittedName}&quot;</p>
                 </div>
               </div>
               <button

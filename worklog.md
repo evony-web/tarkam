@@ -567,3 +567,31 @@ Stage Summary:
 - Admin panel internals unchanged (still has all 6 categories with full subtabs)
 - Community navigation is available from the landing page's public navigation (desktop nav + mobile bottom nav)
 - TypeScript check passes with zero errors
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Make MyTournamentCard auto-show logged-in player's tournament status on landing page (like dashboard)
+
+Work Log:
+- Analyzed dashboard code: uses `playerAuth` from `useAppStore` to auto-fill gamertag and show inline results
+- Analyzed landing page's MyTournamentCard: only showed search bar, no auto-detection of logged-in player
+- Rewrote `/src/components/idm/my-tournament-card.tsx` with dual-query architecture:
+  - **Auto query**: Uses `playerAuth.account.player.gamertag` as derived key (no useState/useEffect for auth detection)
+  - **Manual search query**: Separate query key (`my-tournament-status-search`) to avoid cache collision with auto query
+  - When logged in: Auto-shows player status card inline (PTS, W, L, MVP, Streak stats + team info + match history)
+  - When not logged in: Shows search bar only (same as before)
+  - Search bar always visible below auto-status card for searching other players
+  - Modal still used for manual search results
+- Used `playerAuth.account.player.division` for correct division when logged in (overrides store `division` which is "semua")
+- Created `StatPill` helper component for consistent stat display
+- Avoided `setState in useEffect` lint error by using derived state pattern
+- Lint passes clean (remaining error in hero-section.tsx is pre-existing)
+- Dev server compiles successfully
+
+Stage Summary:
+- Landing page now auto-shows logged-in player's tournament status (like dashboard)
+- Player stats (PTS, W, L, MVP, Streak) visible immediately without manual search
+- Auto-query uses player's own division, not the global store division
+- Manual search still works for looking up other players
+- No lint errors introduced
