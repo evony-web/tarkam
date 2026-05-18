@@ -30,38 +30,6 @@ interface HeroSectionProps {
   isSeasonDataPlaceholder?: boolean;
 }
 
-/* ─── Floating Particle System — Reduced to 12 for performance ─── */
-interface Particle {
-  id: number;
-  x: number;
-  size: number;
-  duration: number;
-  delay: number;
-  opacity: number;
-}
-
-function useParticles(count: number): Particle[] {
-  // Use seeded pseudo-random to avoid hydration mismatch (SSR vs client Math.random())
-  // Round all values to 2 decimal places to prevent SSR/CSR float precision differences
-  const r2 = (n: number) => Math.round(n * 100) / 100;
-  const seededRandom = (seed: number) => {
-    const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
-    return r2(x - Math.floor(x));
-  };
-
-  return useMemo(() =>
-    Array.from({ length: count }, (_, i) => ({
-      id: i,
-      x: r2(seededRandom(i * 4 + 1) * 100),
-      size: r2(1.5 + seededRandom(i * 4 + 2) * 3),
-      duration: r2(6 + seededRandom(i * 4 + 3) * 8),
-      delay: r2(seededRandom(i * 4 + 4) * 6),
-      opacity: r2(0.15 + seededRandom(i * 4 + 5) * 0.35),
-    })),
-    [count]
-  );
-}
-
 /* ═══════════════════════════════════════════════════════════════
    MAIN HERO SECTION
    ═══════════════════════════════════════════════════════════════ */
@@ -113,9 +81,6 @@ export function HeroSection({
   const totalClubs = maleClubs + femaleClubs;
   const totalMatches = maleMatches + femaleMatches;
 
-  /* ─── Particles — reduced to 6 for performance ─── */
-  const particles = useParticles(typeof window !== 'undefined' && window.innerWidth >= 640 ? 6 : 0);
-
   /* ─── Season Champions (latest completed season) ─── */
   const maleChampionSeason = !isSeasonDataPlaceholder ? maleData?.allSeasons?.find(s => s.status === 'completed' && s.championPlayer) : undefined;
   const femaleChampionSeason = !isSeasonDataPlaceholder ? femaleData?.allSeasons?.find(s => s.status === 'completed' && s.championPlayer) : undefined;
@@ -141,9 +106,6 @@ export function HeroSection({
         className="relative min-h-[85vh] sm:min-h-screen flex flex-col items-center justify-center"
         aria-label="Tarkam IDM Hero"
       >
-        {/* ── Animated gold line border at top ── */}
-        <div className="hero-top-gold-line absolute top-0 left-0 right-0 h-[2px] z-30 pointer-events-none" aria-hidden="true" />
-
         {/* ── Background Layers ── */}
 
         {/* Base: Deep dark gradient */}
