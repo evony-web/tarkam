@@ -29,8 +29,8 @@ function PublicThemeToggle({ scrolled }: { scrolled: boolean }) {
 
   if (!mounted) {
     return (
-      <button className="inline-flex h-8 w-8 items-center justify-center rounded-full transition-opacity opacity-50" aria-label="Toggle theme">
-        <div className="h-4 w-4" />
+      <button className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-opacity opacity-50" aria-label="Toggle theme">
+        <div className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
     );
   }
@@ -40,16 +40,16 @@ function PublicThemeToggle({ scrolled }: { scrolled: boolean }) {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`btn-press inline-flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 cursor-pointer border active:scale-95 ${
+      className={`btn-press inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-all duration-300 cursor-pointer border active:scale-95 ${
         scrolled
           ? 'border-idm-gold-warm/20 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/15 text-idm-gold-warm'
-          : 'border-foreground/10 bg-foreground/5 hover:bg-foreground/10 text-foreground/70 hover:text-foreground dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/15 dark:text-white/70 dark:hover:text-white'
+          : 'border-transparent sm:border-foreground/10 bg-transparent sm:bg-foreground/5 hover:bg-foreground/10 text-foreground/70 hover:text-foreground dark:sm:border-white/15 dark:sm:bg-white/5 dark:hover:bg-white/15 dark:text-white/70 dark:hover:text-white'
       }`}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <div className="relative h-4 w-4 overflow-hidden">
-        <Sun className={`absolute inset-0 h-4 w-4 transition-all duration-300 ${isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
-        <Moon className={`absolute inset-0 h-4 w-4 transition-all duration-300 ${isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
+      <div className="relative h-3.5 w-3.5 sm:h-4 sm:w-4 overflow-hidden">
+        <Sun className={`absolute inset-0 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300 ${isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
+        <Moon className={`absolute inset-0 h-3.5 w-3.5 sm:h-4 sm:w-4 transition-all duration-300 ${isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
       </div>
     </button>
   );
@@ -86,23 +86,24 @@ function PublicAuthButton({
 
   if (!isLoggedIn) {
     return (
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
           onClick={() => onOpenLogin('peserta')}
           aria-label="Login akun"
-          className={`btn-press relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border active:scale-95 ${
+          className={`btn-press relative flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-semibold transition-all duration-200 cursor-pointer border active:scale-95 ${
             scrolled
               ? 'border-idm-gold-warm/25 text-idm-gold-warm hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/40'
-              : 'border-foreground/15 text-foreground/80 hover:bg-foreground/5 hover:border-foreground/25 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:hover:border-white/30'
+              : 'border-transparent sm:border-foreground/15 text-foreground/80 hover:bg-foreground/5 sm:hover:border-foreground/25 dark:sm:border-white/20 dark:text-white/80 dark:hover:bg-white/10 dark:sm:hover:border-white/30'
           }`}
         >
-          <LogIn className="w-3.5 h-3.5" />
+          <LogIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           <span>Login</span>
         </button>
+        {/* Admin login shortcut — hidden on mobile for compactness */}
         <button
           onClick={() => onOpenLogin('admin')}
           aria-label="Admin login"
-          className={`btn-press p-1 rounded-md transition-all duration-200 cursor-pointer opacity-50 hover:opacity-100 ${
+          className={`btn-press hidden sm:block p-1 rounded-md transition-all duration-200 cursor-pointer opacity-50 hover:opacity-100 ${
             scrolled ? 'text-idm-gold-warm/70 hover:text-idm-gold-warm' : 'text-foreground/50 hover:text-foreground/90 dark:text-white/50 dark:hover:text-white/90'
           }`}
           title="Login Admin"
@@ -118,26 +119,26 @@ function PublicAuthButton({
       <button
         onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
         aria-label="User menu"
-        className={`btn-press flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full transition-all duration-200 cursor-pointer border active:scale-95 ${
+        className={`btn-press flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-full transition-all duration-200 cursor-pointer border active:scale-95 ${
           scrolled
             ? 'border-idm-gold-warm/20 bg-idm-gold-warm/5 hover:bg-idm-gold-warm/10'
-            : 'border-foreground/10 bg-foreground/5 hover:bg-foreground/10 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10'
+            : 'border-transparent sm:border-foreground/10 bg-transparent sm:bg-foreground/5 hover:bg-foreground/10 dark:sm:border-white/15 dark:sm:bg-white/5 dark:hover:bg-white/10'
         }`}
       >
         {isPlayer && playerAuth.account?.player?.avatar ? (
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden ring-1 ring-idm-gold-warm/30">
+          <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full overflow-hidden ring-1 ring-idm-gold-warm/30">
             <Image src={playerAuth.account.player.avatar} alt={displayName || ''} width={24} height={24} className="w-full h-full object-cover" loading="lazy" />
           </div>
         ) : isAdmin ? (
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-idm-gold-warm/20 flex items-center justify-center ring-1 ring-idm-gold-warm/40 shadow-[0_0_6px_rgba(239,249,35,0.15)]">
-            <Shield className="w-3.5 h-3.5 text-idm-gold-warm drop-shadow-[0_0_3px_rgba(239,249,35,0.4)]" />
+          <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-idm-gold-warm/20 flex items-center justify-center ring-1 ring-idm-gold-warm/40">
+            <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm" />
           </div>
         ) : (
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-muted/30 flex items-center justify-center ring-1 ring-idm-gold-warm/30">
-            <UserCircle className="w-3 h-3 text-idm-gold-warm" />
+          <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-muted/30 flex items-center justify-center ring-1 ring-idm-gold-warm/30">
+            <UserCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-idm-gold-warm" />
           </div>
         )}
-        <span className={`text-[10px] sm:text-xs font-semibold max-w-[60px] sm:max-w-[80px] truncate ${scrolled ? 'text-idm-gold-warm' : 'text-foreground/80 dark:text-white/80'}`}>
+        <span className={`text-[9px] sm:text-xs font-semibold max-w-[48px] sm:max-w-[80px] truncate ${scrolled ? 'text-idm-gold-warm' : 'text-foreground/80 dark:text-white/80'}`}>
           {displayName}
         </span>
       </button>
@@ -290,7 +291,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <PublicThemeToggle scrolled={scrolled} />
             <PublicAuthButton
               onOpenLogin={(tab) => { setLoginDefaultTab(tab); setLoginModalOpen(true); }}
