@@ -89,7 +89,7 @@ function ParticipantsModal({
   });
 
   const participants = data?.participants || [];
-  const counts = data?.counts || { pending: 0, approved: 0, rejected: 0, total: 0 };
+  const counts = data?.counts || { pending: 0, approved: 0, total: 0 };
   const tournamentName = data?.tournamentName;
   const weekNumber = data?.weekNumber;
 
@@ -97,8 +97,8 @@ function ParticipantsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="sm:max-w-lg p-0 overflow-hidden border-border/50 bg-background max-h-[85vh] flex flex-col">
         <DialogHeader className="sr-only">
-          <DialogTitle>List Peserta</DialogTitle>
-          <DialogDescription>Daftar peserta turnamen {division.title}</DialogDescription>
+          <DialogTitle>Pendaftar Turnamen</DialogTitle>
+          <DialogDescription>Daftar pemain yang mendaftar/daftar ulang turnamen {division.title}</DialogDescription>
         </DialogHeader>
 
         {/* Modal Header */}
@@ -110,7 +110,7 @@ function ParticipantsModal({
                 <Users className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-white">List Peserta</h2>
+                <h2 className="text-sm font-bold text-white">Pendaftar Turnamen</h2>
                 <p className="text-[10px] text-white/70">{tournamentName ? `${tournamentName} • W${weekNumber}` : division.title}</p>
               </div>
             </div>
@@ -128,7 +128,6 @@ function ParticipantsModal({
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/30 bg-muted/20">
           <Badge className="bg-blue-500/15 text-blue-400 border-0 text-[9px] gap-1"><Clock className="w-2.5 h-2.5" />{counts.pending} Pending</Badge>
           <Badge className="bg-green-500/15 text-green-400 border-0 text-[9px] gap-1"><UserCheck className="w-2.5 h-2.5" />{counts.approved} Approved</Badge>
-          {counts.rejected > 0 && <Badge className="bg-red-500/15 text-red-400 border-0 text-[9px] gap-1"><X className="w-2.5 h-2.5" />{counts.rejected} Ditolak</Badge>}
           <Badge className="bg-muted/30 text-muted-foreground border-0 text-[9px] ml-auto">{counts.total} Total</Badge>
         </div>
 
@@ -144,28 +143,25 @@ function ParticipantsModal({
           ) : participants.length === 0 ? (
             <div className="py-10 text-center">
               <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-muted-foreground">Belum ada peserta</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">Pendaftaran belum dibuka atau belum ada yang mendaftar</p>
+              <p className="text-sm font-semibold text-muted-foreground">Belum ada pendaftar</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Belum ada pemain yang mendaftar atau daftar ulang</p>
             </div>
           ) : (
             <div className="space-y-1">
               {participants.map((p: { id: string; gamertag: string; name: string; city: string; status: string; tier: string; createdAt: string }, idx: number) => {
                 const isPending = p.status === 'pending';
-                const isApproved = p.status === 'approved' || p.status === 'registered';
-                const isRejected = p.status === 'rejected';
+                const isApproved = p.status === 'approved';
                 return (
                   <div key={p.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border ${
                     isPending ? 'border-blue-500/15 bg-blue-500/[0.03]' :
-                    isApproved ? `border-${division.key === 'male' ? 'idm-male' : 'idm-female'}/10 bg-${division.key === 'male' ? 'idm-male' : 'idm-female'}/[0.03]` :
-                    'border-red-500/10 bg-red-500/[0.02]'
+                    `border-green-500/10 bg-green-500/[0.03]`
                   }`}>
                     {/* Number */}
                     <span className="text-[10px] font-bold text-muted-foreground/50 w-5 text-right tabular-nums">{idx + 1}</span>
                     {/* Avatar placeholder */}
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
                       isPending ? 'bg-blue-500/10 text-blue-400' :
-                      isApproved ? `${division.key === 'male' ? 'bg-idm-male/10 text-idm-male' : 'bg-idm-female/10 text-idm-female'}` :
-                      'bg-red-500/10 text-red-400'
+                      'bg-green-500/10 text-green-400'
                     }`}>
                       {p.gamertag.charAt(0).toUpperCase()}
                     </div>
@@ -177,10 +173,9 @@ function ParticipantsModal({
                     {/* Status badge */}
                     <Badge className={`${
                       isPending ? 'bg-blue-500/15 text-blue-400' :
-                      isApproved ? 'bg-green-500/15 text-green-400' :
-                      'bg-red-500/15 text-red-400'
+                      'bg-green-500/15 text-green-400'
                     } border-0 text-[8px] shrink-0`}>
-                      {isPending ? 'Pending' : isApproved ? 'Approved' : 'Ditolak'}
+                      {isPending ? 'Pending' : 'Approved'}
                     </Badge>
                   </div>
                 );

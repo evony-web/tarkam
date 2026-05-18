@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         tournamentName: null,
         weekNumber: null,
         participants: [],
-        counts: { pending: 0, approved: 0, rejected: 0, total: 0 },
+        counts: { pending: 0, approved: 0, total: 0 },
       }, { headers });
     }
 
@@ -59,19 +59,19 @@ export async function GET(request: NextRequest) {
         tournamentName: null,
         weekNumber: null,
         participants: [],
-        counts: { pending: 0, approved: 0, rejected: 0, total: 0 },
+        counts: { pending: 0, approved: 0, total: 0 },
       }, { headers });
     }
 
-    // Fetch all registrations for this tournament and division
+    // Fetch only registrations (pending + approved) — NOT registered (already in team)
     const registrations = await db.waRegistration.findMany({
       where: {
         tournamentId: tournament.id,
         division: divCode,
-        status: { in: ['pending', 'approved', 'registered', 'rejected'] },
+        status: { in: ['pending', 'approved'] },
       },
       orderBy: [
-        { status: 'asc' }, // pending first, then approved, then rejected
+        { status: 'asc' }, // pending first, then approved
         { createdAt: 'asc' },
       ],
       select: {
@@ -89,8 +89,7 @@ export async function GET(request: NextRequest) {
     // Count by status
     const counts = {
       pending: registrations.filter(r => r.status === 'pending').length,
-      approved: registrations.filter(r => r.status === 'approved' || r.status === 'registered').length,
-      rejected: registrations.filter(r => r.status === 'rejected').length,
+      approved: registrations.filter(r => r.status === 'approved').length,
       total: registrations.length,
     };
 
