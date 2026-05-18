@@ -357,3 +357,25 @@ Stage Summary:
 - No "Belum Ada Turnamen" text shown when no search is active
 - Search results display in a modal popup with division-themed header
 - Lint passes clean, TypeScript compiles without errors
+---
+Task ID: 1
+Agent: Main Agent
+Task: Create Hasil (Results) section on landing page showing only SF & GF with CTA
+
+Work Log:
+- Explored codebase structure: landing page sections, match data APIs, navigation, Prisma schema
+- Modified `/api/matches/recent` route to include `bracket` and `division` fields in response, plus `bracket` query param filtering and increased limit cap to 20
+- Created `/src/components/idm/landing/hasil-section.tsx` — new section component
+  - Fetches GF matches via `bracket=grand_final` and SF candidates via `bracket=upper` 
+  - Displays match cards with team names, scores, MVP, division badge, bracket label
+  - GF cards have gold accent, SF cards have division-colored accent
+  - Shows up to 4 matches (max 2 GF + 2 SF)
+  - CTA "Lihat Semua Hasil" navigates to community view → scrolls to #section-matches
+- Added lazy-loaded HasilSection import to landing-page.tsx
+- Placed HasilSection between Kompetisi and Peringkat sections (with SectionDividers)
+- Lint passed clean, dev server running, API endpoints returning 200s
+
+Stage Summary:
+- New Hasil section live on landing page below Kompetisi
+- API enhanced with bracket filter + division field
+- Shows SF & GF results only, with CTA to full results page

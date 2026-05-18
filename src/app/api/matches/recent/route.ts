@@ -6,13 +6,15 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const rawDivision = searchParams.get('division') || 'male';
     const divisionFilter = rawDivision === 'semua' ? { in: ['male', 'female'] } : rawDivision;
-    const limit = Math.min(parseInt(searchParams.get('limit') || '5'), 10);
+    const bracketFilter = searchParams.get('bracket') || undefined;
+    const limit = Math.min(parseInt(searchParams.get('limit') || '5'), 20);
 
     // Get recent completed matches with team/player info
     const matches = await db.match.findMany({
       where: {
         status: 'completed',
         tournament: { division: divisionFilter },
+        ...(bracketFilter ? { bracket: bracketFilter } : {}),
       },
       orderBy: { completedAt: 'desc' },
       take: limit,
@@ -44,7 +46,7 @@ export async function GET(request: Request) {
           select: { id: true, gamertag: true, avatar: true, tier: true },
         },
         tournament: {
-          select: { name: true, weekNumber: true },
+          select: { name: true, weekNumber: true, division: true },
         },
       },
     });
@@ -85,6 +87,8 @@ export async function GET(request: Request) {
       } : null,
       completedAt: match.completedAt?.toISOString() || null,
       format: match.format,
+      bracket: match.bracket,
+      division: match.tournament.division,
     }));
 
     const response = NextResponse.json({ matches: recentMatches });

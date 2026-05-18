@@ -18,6 +18,7 @@ import { LandingSkeleton } from './landing/landing-skeleton';
 // ★ Below-fold sections: lazy loaded to reduce initial JS bundle by ~250KB
 import dynamic from 'next/dynamic';
 const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="h-[420px]" /> });
+const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="h-[360px]" /> });
 const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
 
 const ExperiencesSection = dynamic(() => import('./landing/experiences-section').then(m => ({ default: m.ExperiencesSection })), { ssr: false, loading: () => <div className="h-[380px]" /> });
@@ -732,6 +733,13 @@ export function LandingPage() {
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
       />
+      </div>
+
+      <SectionDivider />
+
+      {/* Hasil — Semi Final & Grand Final Results */}
+      <div className="section-reveal">
+      <HasilSection />
       </div>
 
       <SectionDivider />
