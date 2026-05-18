@@ -109,7 +109,7 @@ export function HeroSection({
       {/* ═══════════════ HERO SECTION ═══════════════ */}
       <section
         id="hero"
-        className="relative min-h-[89vh] sm:min-h-screen flex flex-col items-center justify-center"
+        className="relative min-h-[90vh] sm:min-h-screen flex flex-col items-center justify-center"
         aria-label="Tarkam IDM Hero"
       >
         {/* ── Background Layers ── */}
