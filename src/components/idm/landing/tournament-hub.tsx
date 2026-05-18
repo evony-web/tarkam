@@ -1,7 +1,12 @@
 'use client';
 
-import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
 import { AnimatedSection, SectionHeader } from './shared';
 import { formatCurrency, parseWitaDate, formatWIBWeekdayShort, formatWIBTime } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
@@ -62,6 +67,133 @@ const DIVISION = {
 } as const;
 
 /* ────────────────────────── Tournament Card ────────────────────────── */
+/* ─── Participants Modal ─── */
+function ParticipantsModal({
+  open,
+  onOpenChange,
+  division,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  division: typeof DIVISION.male | typeof DIVISION.female;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['tournament-participants', division.key],
+    queryFn: async () => {
+      const res = await fetch(`/api/tournaments/participants?division=${division.key}`);
+      if (!res.ok) throw new Error('Gagal memuat data');
+      return res.json();
+    },
+    enabled: open,
+    staleTime: 30000,
+  });
+
+  const participants = data?.participants || [];
+  const counts = data?.counts || { pending: 0, approved: 0, rejected: 0, total: 0 };
+  const tournamentName = data?.tournamentName;
+  const weekNumber = data?.weekNumber;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false} className="sm:max-w-lg p-0 overflow-hidden border-border/50 bg-background max-h-[85vh] flex flex-col">
+        <DialogHeader className="sr-only">
+          <DialogTitle>List Peserta</DialogTitle>
+          <DialogDescription>Daftar peserta turnamen {division.title}</DialogDescription>
+        </DialogHeader>
+
+        {/* Modal Header */}
+        <div className={`relative h-16 bg-gradient-to-br ${division.key === 'male' ? 'from-idm-male via-idm-male/80 to-idm-male-light/60' : 'from-idm-female via-idm-female/80 to-idm-female-light/60'} overflow-hidden shrink-0`}>
+          <div className="absolute inset-0 bg-black/10" />
+          <div className="relative z-10 flex items-center justify-between h-full px-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-white">List Peserta</h2>
+                <p className="text-[10px] text-white/70">{tournamentName ? `${tournamentName} • W${weekNumber}` : division.title}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onOpenChange(false)}
+              aria-label="Tutup"
+              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Count pills */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/30 bg-muted/20">
+          <Badge className="bg-blue-500/15 text-blue-400 border-0 text-[9px] gap-1"><Clock className="w-2.5 h-2.5" />{counts.pending} Pending</Badge>
+          <Badge className="bg-green-500/15 text-green-400 border-0 text-[9px] gap-1"><UserCheck className="w-2.5 h-2.5" />{counts.approved} Approved</Badge>
+          {counts.rejected > 0 && <Badge className="bg-red-500/15 text-red-400 border-0 text-[9px] gap-1"><X className="w-2.5 h-2.5" />{counts.rejected} Ditolak</Badge>}
+          <Badge className="bg-muted/30 text-muted-foreground border-0 text-[9px] ml-auto">{counts.total} Total</Badge>
+        </div>
+
+        {/* Modal Body — scrollable */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
+          {isLoading ? (
+            <div className="py-10 text-center">
+              <div className="animate-spin-slow inline-block mb-3">
+                <Users className={`w-8 h-8 ${division.key === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
+              </div>
+              <p className="text-sm text-muted-foreground">Memuat data peserta...</p>
+            </div>
+          ) : participants.length === 0 ? (
+            <div className="py-10 text-center">
+              <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-muted-foreground">Belum ada peserta</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Pendaftaran belum dibuka atau belum ada yang mendaftar</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {participants.map((p: { id: string; gamertag: string; name: string; city: string; status: string; tier: string; createdAt: string }, idx: number) => {
+                const isPending = p.status === 'pending';
+                const isApproved = p.status === 'approved' || p.status === 'registered';
+                const isRejected = p.status === 'rejected';
+                return (
+                  <div key={p.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border ${
+                    isPending ? 'border-blue-500/15 bg-blue-500/[0.03]' :
+                    isApproved ? `border-${division.key === 'male' ? 'idm-male' : 'idm-female'}/10 bg-${division.key === 'male' ? 'idm-male' : 'idm-female'}/[0.03]` :
+                    'border-red-500/10 bg-red-500/[0.02]'
+                  }`}>
+                    {/* Number */}
+                    <span className="text-[10px] font-bold text-muted-foreground/50 w-5 text-right tabular-nums">{idx + 1}</span>
+                    {/* Avatar placeholder */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      isPending ? 'bg-blue-500/10 text-blue-400' :
+                      isApproved ? `${division.key === 'male' ? 'bg-idm-male/10 text-idm-male' : 'bg-idm-female/10 text-idm-female'}` :
+                      'bg-red-500/10 text-red-400'
+                    }`}>
+                      {p.gamertag.charAt(0).toUpperCase()}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold truncate">{p.gamertag}</p>
+                      <p className="text-[9px] text-muted-foreground truncate">{p.name}{p.city ? ` • ${p.city}` : ''}</p>
+                    </div>
+                    {/* Status badge */}
+                    <Badge className={`${
+                      isPending ? 'bg-blue-500/15 text-blue-400' :
+                      isApproved ? 'bg-green-500/15 text-green-400' :
+                      'bg-red-500/15 text-red-400'
+                    } border-0 text-[8px] shrink-0`}>
+                      {isPending ? 'Pending' : isApproved ? 'Approved' : 'Ditolak'}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ────────────────────────── Tournament Card ────────────────────────── */
 function TournamentCard({
   division,
   data,
@@ -90,6 +222,20 @@ function TournamentCard({
   const totalPlayers = data?.totalPlayers || 0;
   const totalClubs = data?.clubs?.length || 0;
   const totalMatches = data?.recentMatches?.length || 0;
+
+  /* ─── Participants modal state + count query ─── */
+  const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
+  const { data: participantsData } = useQuery({
+    queryKey: ['tournament-participants-count', division.key],
+    queryFn: async () => {
+      const res = await fetch(`/api/tournaments/participants?division=${division.key}`);
+      if (!res.ok) throw new Error('Gagal memuat data');
+      return res.json();
+    },
+    staleTime: 60000,
+    select: (d: any) => d.counts?.total ?? 0,
+  });
+  const participantCount = participantsData ?? 0;
   // PrizePool: use per-tournament prize pool (resets each week), fallback to season aggregate
   // Uses ?? (not ||) so that activeTournamentPrizePool=0 (week completed, no new week yet)
   // is respected as a valid value and does NOT fall through to the season aggregate.
@@ -241,6 +387,18 @@ function TournamentCard({
             <h3 className="text-lg font-bold text-foreground dark:text-white truncate ios-heading">{cardTitle}</h3>
             <p className="text-[11px] text-muted-foreground dark:text-[#a09880]">{cardFormat}</p>
           </div>
+          {/* List Peserta CTA */}
+          {participantCount > 0 && (
+            <button
+              onClick={() => setParticipantsModalOpen(true)}
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/30 bg-muted/20 text-[10px] font-semibold text-muted-foreground hover:text-idm-gold-warm hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/5 transition-all cursor-pointer active:scale-95"
+              title="Lihat list peserta"
+            >
+              <Users className="w-3 h-3" />
+              <span className="tabular-nums">{participantCount}</span>
+              <span className="hidden sm:inline">Peserta</span>
+            </button>
+          )}
         </div>
 
         {/* Description — iOS lighter secondary text */}
@@ -327,6 +485,13 @@ function TournamentCard({
           <span>Pembayaran</span>
         </button>
       </div>
+
+      {/* Participants Modal */}
+      <ParticipantsModal
+        open={participantsModalOpen}
+        onOpenChange={setParticipantsModalOpen}
+        division={division}
+      />
     </div>
   );
 }
