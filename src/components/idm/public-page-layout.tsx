@@ -3,7 +3,7 @@
 import { useAppStore, type AppView } from '@/lib/store';
 import Image from 'next/image';
 import {
-  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home,
+  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home, Award,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore, useState, useEffect, useCallback, useRef } from 'react';
@@ -181,8 +181,9 @@ function PublicAuthButton({
 }
 
 /* ═══ Navigation items for public pages ═══ */
-const publicNavItems: { view: AppView; label: string; icon: typeof Swords }[] = [
+const publicNavItems: { view: AppView; label: string; icon: typeof Swords; scrollTo?: boolean }[] = [
   { view: 'community', label: 'Kompetisi', icon: Swords },
+  { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, scrollTo: true },
   { view: 'players', label: 'Pemain', icon: Music },
   { view: 'highlights', label: 'Juara', icon: Crown },
   { view: 'champions', label: 'Season', icon: Trophy },
@@ -271,7 +272,17 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
             {publicNavItems.map(item => (
               <button
                 key={item.view}
-                onClick={() => setCurrentView(item.view)}
+                onClick={() => {
+                  if (item.scrollTo) {
+                    setCurrentView('landing');
+                    setTimeout(() => {
+                      const el = document.getElementById('peringkat');
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                  } else {
+                    setCurrentView(item.view);
+                  }
+                }}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
                     ? 'text-idm-gold-warm font-semibold'
@@ -326,7 +337,17 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
               return (
                 <button
                   key={item.view}
-                  onClick={() => setCurrentView(item.view)}
+                  onClick={() => {
+                    if (item.scrollTo) {
+                      setCurrentView('landing');
+                      setTimeout(() => {
+                        const el = document.getElementById('peringkat');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 300);
+                    } else {
+                      setCurrentView(item.view);
+                    }
+                  }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     isSpecial
                       ? isActive ? 'text-idm-gold-warm' : 'text-idm-gold-warm/70'

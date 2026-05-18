@@ -5,7 +5,7 @@ import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -18,6 +18,7 @@ import { LandingSkeleton } from './landing/landing-skeleton';
 // ★ Below-fold sections: lazy loaded to reduce initial JS bundle by ~250KB
 import dynamic from 'next/dynamic';
 const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="h-[420px]" /> });
+const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
 const PlayersSection = dynamic(() => import('./landing/players-section').then(m => ({ default: m.PlayersSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
 const HighlightsSection = dynamic(() => import('./landing/highlights-section').then(m => ({ default: m.HighlightsSection })), { ssr: false, loading: () => <div className="h-[360px]" /> });
 const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
@@ -518,6 +519,16 @@ export function LandingPage() {
         queueMicrotask(() => setCurrentView('bracket'));
         break;
       case 'peringkat':
+        // Scroll to the Peringkat section on the landing page
+        queueMicrotask(() => {
+          setTimeout(() => {
+            const el = document.getElementById('peringkat');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 500);
+        });
+        break;
       case 'hasil':
       case 'champion':
         // Navigate to community dashboard, then scroll to the section
@@ -592,6 +603,7 @@ export function LandingPage() {
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
               { view: 'community' as AppView, label: 'Kompetisi' },
+              { view: 'peringkat' as AppView, label: 'Peringkat', scrollTo: true },
               { view: 'players' as AppView, label: 'Pemain' },
               { view: 'highlights' as AppView, label: 'Juara' },
               { view: 'champions' as AppView, label: 'Season' },
@@ -599,7 +611,16 @@ export function LandingPage() {
             ].map(item => (
               <button
                 key={item.view}
-                onClick={() => setCurrentView(item.view)}
+                onClick={() => {
+                  if ('scrollTo' in item && item.scrollTo) {
+                    const el = document.getElementById('peringkat');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  } else {
+                    setCurrentView(item.view);
+                  }
+                }}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
                     ? 'text-idm-gold-warm font-semibold'
@@ -643,16 +664,25 @@ export function LandingPage() {
           <div className="flex items-center justify-around h-16 px-1">
             {[
               { view: 'community' as AppView, label: 'Kompetisi', icon: Swords, special: false },
+              { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false, scrollTo: true },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
-              { view: 'champions' as AppView, label: 'Season', icon: Trophy, special: false },
               { view: 'clubs' as AppView, label: 'Club', icon: Shield, special: false },
             ].map(item => {
               const isActive = currentView === item.view;
               return (
                 <button
                   key={item.view}
-                  onClick={() => setCurrentView(item.view)}
+                  onClick={() => {
+                    if ('scrollTo' in item && item.scrollTo) {
+                      const el = document.getElementById('peringkat');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    } else {
+                      setCurrentView(item.view);
+                    }
+                  }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     item.special
                       ? isActive
@@ -720,7 +750,20 @@ export function LandingPage() {
 
       <SectionDivider />
 
-      {/* Players — right after Kompetisi */}
+      {/* Peringkat — Ranking & Standings table */}
+      <div className="section-reveal">
+      <PeringkatSection
+        maleData={maleData}
+        femaleData={femaleData}
+        isDataLoading={isDataLoading}
+        setSelectedPlayer={setSelectedPlayer}
+        setSelectedClub={setSelectedClub}
+      />
+      </div>
+
+      <SectionDivider />
+
+      {/* Players — right after Peringkat */}
       <div className="section-reveal">
       <PlayersSection
         maleData={maleData}

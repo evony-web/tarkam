@@ -224,3 +224,31 @@ Stage Summary:
 - No more dashboard sidebar when navigating from landing page
 - Admin/Dashboard/Arena Live/Marketplace still use the sidebar layout
 - All pages compile and render successfully (HTTP 200)
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Add Peringkat (ranking) section to landing page below Kompetisi section
+
+Work Log:
+- Created `/home/z/my-project/src/components/idm/landing/peringkat-section.tsx` — new landing page section wrapping CommunityLeaderboard + PeringkatHeader from community-dashboard
+- Modified `/home/z/my-project/src/components/idm/landing-page.tsx`:
+  - Added dynamic import for PeringkatSection
+  - Added Award icon import from lucide-react
+  - Inserted PeringkatSection between TournamentHub (Kompetisi) and PlayersSection
+  - Updated desktop nav: Added "Peringkat" between Kompetisi and Pemain with scroll-to behavior
+  - Updated mobile bottom nav: Replaced "Season" with "Peringkat" (Award icon, scroll-to behavior)
+  - Updated deep link handler: `?view=peringkat` now scrolls to `#peringkat` section instead of navigating to community dashboard
+- Modified `/home/z/my-project/src/components/idm/public-page-layout.tsx`:
+  - Added Award icon import
+  - Added "Peringkat" to publicNavItems (between Kompetisi and Pemain)
+  - Desktop nav: Peringkat click navigates to landing + scrolls to section
+  - Mobile nav: Peringkat click navigates to landing + scrolls to section
+- Reverted AppView type change (no separate 'peringkat' page needed — it's on the landing page)
+
+Stage Summary:
+- Peringkat section (player ranking table + club standings table) now appears on the landing page
+- Positioned below Kompetisi section and above Pemain section
+- Navigation item "Peringkat" scrolls to the section on the landing page
+- Uses existing CommunityLeaderboard component with full player/club toggle and division filter
+- Lint passes clean, dev server compiles without errors
