@@ -437,7 +437,7 @@ export function HeroSection({
           ) : null}
 
           {/* ═══════════════ CTA BUTTONS ═══════════════ */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-4 mx-auto mb-6 sm:mb-10 ${hasChampions ? '' : 'hero-enter-5'}`}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${hasChampions ? '' : 'hero-enter-5'}`}>
             {/* Daftar Tarkam — Primary CTA → Registration */}
             <button
               onClick={() => onRegister('male')}
