@@ -284,8 +284,7 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     const track = trackRef.current;
     if (!track) return;
 
-    // ★ Immediately set initial position to right edge BEFORE first paint
-    // This prevents the "content appears from middle" flash
+    // ★ Set initial position to right edge — content enters from right like ESPN ticker
     const container = track.parentElement;
     if (container) {
       offsetRef.current = container.offsetWidth;
@@ -318,15 +317,17 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
         const speed = isMobile ? MOBILE_SPEED : DESKTOP_SPEED;
 
         // Boost speed while content is still off-screen to the right (fills in quickly)
-        const effectiveSpeed = offsetRef.current > 0 ? speed * 6 : speed;
+        const effectiveSpeed = offsetRef.current > 0 ? speed * 4 : speed;
 
         const pixelsToMove = (effectiveSpeed * delta) / 1000;
 
         offsetRef.current -= pixelsToMove;
 
-        // Get half track width for seamless loop reset
+        // Seamless loop reset — only trigger for NEGATIVE offsets (normal left scroll)
+        // BUG FIX: Math.abs() also matched positive offsets (initial right-edge start),
+        // causing offset to grow endlessly and push content off-screen forever
         const halfWidth = track.scrollWidth / 2;
-        if (halfWidth > 0 && Math.abs(offsetRef.current) >= halfWidth) {
+        if (halfWidth > 0 && offsetRef.current <= -halfWidth) {
           offsetRef.current += halfWidth;
         }
 
