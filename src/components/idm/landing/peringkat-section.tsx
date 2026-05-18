@@ -56,8 +56,8 @@ export function PeringkatSection({
   return (
     <section id="peringkat" className="landing-section relative py-6 sm:py-12 px-4 overflow-hidden bg-deep border-y border-border/30 dark:border-0 shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:shadow-none" style={{ contain: 'layout style' }}>
       {/* Background — subtle pattern */}
-      <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'radial-gradient(circle, rgba(239,249,35,0.5) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(239,249,35,0.07) 0%, transparent 50%), radial-gradient(ellipse at 20% 60%, rgba(46,159,255,0.04) 0%, transparent 40%), radial-gradient(ellipse at 80% 60%, rgba(255,45,120,0.04) 0%, transparent 40%)' }} />
+      <div className="absolute inset-0 opacity-[0.018] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(239,249,35,0.5) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(239,249,35,0.07) 0%, transparent 50%), radial-gradient(ellipse at 20% 60%, rgba(46,159,255,0.04) 0%, transparent 40%), radial-gradient(ellipse at 80% 60%, rgba(255,45,120,0.04) 0%, transparent 40%)' }} />
       {/* Top edge glow */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />
       <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-idm-gold-warm/[2.5] to-transparent pointer-events-none" aria-hidden="true" />
