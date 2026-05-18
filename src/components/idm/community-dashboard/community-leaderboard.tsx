@@ -455,13 +455,13 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
   const clubCount = (maleData?.clubs?.length || 0) + (femaleData?.clubs?.length || 0);
 
   return (
-    <div className="space-y-2.5">
-      {/* Title row */}
-      <div className="flex items-center gap-2.5">
-        <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      {/* Left — Title + Share */}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center`}>
           <Trophy className={`w-3 h-3 ${ct.neonText}`} />
         </div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider shrink-0" style={{
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{
           background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -476,55 +476,49 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
         />
       </div>
 
-      {/* Filter controls — scrollable on mobile, inline on desktop */}
-      <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
-        <div className="flex items-center gap-2 min-w-max lg:min-w-0">
-          {/* Player/Club toggle */}
-          <div className={`flex items-center gap-1 p-1 rounded-lg ${ct.bgSubtle} ${ct.border}`}>
-            <button
-              onClick={() => onLeaderboardSortChange('players')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <Users className="w-3 h-3" /> Pemain
-              <span className={`text-[9px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
-                {playerCount}
-              </span>
-            </button>
-            <button
-              onClick={() => onLeaderboardSortChange('clubs')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <Shield className="w-3 h-3" /> Klub
-              <span className={`text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
-                {clubCount}
-              </span>
-            </button>
-          </div>
+      {/* Right — Filter controls inline */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Player/Club toggle */}
+        <div className={`flex items-center gap-1 p-1 rounded-lg ${ct.bgSubtle} ${ct.border}`}>
+          <button
+            onClick={() => onLeaderboardSortChange('players')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Users className="w-3 h-3" /> Pemain
+            <span className={`text-[9px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
+              {playerCount}
+            </span>
+          </button>
+          <button
+            onClick={() => onLeaderboardSortChange('clubs')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Shield className="w-3 h-3" /> Klub
+            <span className={`text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
+              {clubCount}
+            </span>
+          </button>
+        </div>
 
-          {/* Division filter pills — shown for both players and clubs */}
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-            {([
-              { key: 'all' as DivisionFilter, label: 'Semua' },
-              { key: 'male' as DivisionFilter, label: 'Cowo' },
-              { key: 'female' as DivisionFilter, label: 'Cewe' },
-            ]).map(f => (
-              <button
-                key={f.key}
-                onClick={() => onDivisionFilterChange(f.key)}
-                className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap ${
-                  divisionFilter === f.key
-                    ? f.key === 'male'
-                      ? 'bg-idm-male text-white shadow-sm'
-                      : f.key === 'female'
-                      ? 'bg-idm-female text-white shadow-sm'
-                      : 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
-                    : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+        {/* Division filter pills */}
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
+          {([
+            { key: 'all' as DivisionFilter, label: 'Semua' },
+            { key: 'male' as DivisionFilter, label: 'Cowo' },
+            { key: 'female' as DivisionFilter, label: 'Cewe' },
+          ]).map(f => (
+            <button
+              key={f.key}
+              onClick={() => onDivisionFilterChange(f.key)}
+              className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
+                divisionFilter === f.key
+                  ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
+                  : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>
