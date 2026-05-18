@@ -19,9 +19,7 @@ import { LandingSkeleton } from './landing/landing-skeleton';
 import dynamic from 'next/dynamic';
 const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="h-[420px]" /> });
 const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
-const PlayersSection = dynamic(() => import('./landing/players-section').then(m => ({ default: m.PlayersSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
-const HighlightsSection = dynamic(() => import('./landing/highlights-section').then(m => ({ default: m.HighlightsSection })), { ssr: false, loading: () => <div className="h-[360px]" /> });
-const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
+
 const ExperiencesSection = dynamic(() => import('./landing/experiences-section').then(m => ({ default: m.ExperiencesSection })), { ssr: false, loading: () => <div className="h-[380px]" /> });
 const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => ({ default: m.ClubsSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
 const SponsorsSection = dynamic(() => import('./landing/sponsors-section').then(m => ({ default: m.SponsorsSection })), { ssr: false, loading: () => null });
@@ -260,8 +258,6 @@ export function LandingPage() {
   const selectedPlayer = selectedPlayerRaw;
   const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string }) | null>(null);
   const [showAllClubs, setShowAllClubs] = useState(false);
-  const [showAllMalePlayers, setShowAllMalePlayers] = useState(false);
-  const [showAllFemalePlayers, setShowAllFemalePlayers] = useState(false);
 
   /* Season Selector State — null = active season */
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
@@ -316,7 +312,7 @@ export function LandingPage() {
   });
 
   /* Data Queries — 1min polling, CDN-cached */
-  const { data: maleData, isLoading: isMaleLoading, isFetching: isMaleFetching, isPlaceholderData: isMalePlaceholder } = useQuery<StatsData>({
+  const { data: maleData, isLoading: isMaleLoading, isPlaceholderData: isMalePlaceholder } = useQuery<StatsData>({
     queryKey: ['stats', 'male', selectedSeasonId],
     queryFn: async () => {
       const url = `/api/stats?division=male${selectedSeasonId ? `&seasonId=${selectedSeasonId}` : ''}`;
@@ -331,7 +327,7 @@ export function LandingPage() {
     placeholderData: (prev) => prev, // keep previous data during refetch/season switch — prevents FOUC
   });
 
-  const { data: femaleData, isLoading: isFemaleLoading, isFetching: isFemaleFetching, isPlaceholderData: isFemalePlaceholder } = useQuery<StatsData>({
+  const { data: femaleData, isLoading: isFemaleLoading, isPlaceholderData: isFemalePlaceholder } = useQuery<StatsData>({
     queryKey: ['stats', 'female', selectedSeasonId],
     queryFn: async () => {
       const url = `/api/stats?division=female${selectedSeasonId ? `&seasonId=${selectedSeasonId}` : ''}`;
@@ -347,10 +343,8 @@ export function LandingPage() {
   });
 
   const isDataLoading = isMaleLoading || isFemaleLoading;
-  // isSeasonSwitching: data exists (not initial load) but fetching new season data
-  const isSeasonSwitching = !isDataLoading && (isMaleFetching || isFemaleFetching);
   // isSeasonDataPlaceholder: true when showing OLD season data during a season switch
-  // Used by Hero & SeasonChampion sections to show skeleton instead of stale champion
+  // Used by Hero section to show skeleton instead of stale champion
   const isSeasonDataPlaceholder = isMalePlaceholder || isFemalePlaceholder;
 
   // Derived: registration open state — use fast tournament-status as fallback when full stats data is still loading
@@ -750,60 +744,6 @@ export function LandingPage() {
         isDataLoading={isDataLoading}
         setSelectedPlayer={setSelectedPlayer}
         setSelectedClub={setSelectedClub}
-      />
-      </div>
-
-      <SectionDivider />
-
-      {/* Players — right after Peringkat */}
-      <div className="section-reveal">
-      <PlayersSection
-        maleData={maleData}
-        femaleData={femaleData}
-        isDataLoading={isDataLoading}
-        isSeasonSwitching={isSeasonSwitching}
-        setSelectedPlayer={setSelectedPlayer}
-        showAllMalePlayers={showAllMalePlayers}
-        setShowAllMalePlayers={setShowAllMalePlayers}
-        showAllFemalePlayers={showAllFemalePlayers}
-        setShowAllFemalePlayers={setShowAllFemalePlayers}
-        selectedSeasonId={selectedSeasonId}
-        setSelectedSeasonId={setSelectedSeasonId}
-        isHistorical={maleData?.isHistorical || femaleData?.isHistorical || false}
-        maleSkinMap={maleData?.skinMap}
-        femaleSkinMap={femaleData?.skinMap}
-      />
-      </div>
-
-      <SectionDivider />
-
-      {/* Highlights — Momen Terbaik */}
-      <div className="section-reveal">
-      <HighlightsSection
-        maleData={maleData}
-        femaleData={femaleData}
-        leagueData={leagueData}
-        cmsSections={cmsSections}
-        cmsSettings={cms}
-        onVideoPlay={openVideoModal}
-        setSelectedPlayer={setSelectedPlayer}
-        setPreferredSkinType={setPreferredSkinType}
-      />
-      </div>
-
-      <SectionDivider />
-
-      {/* Season Champion — completed season champions only (NOT weekly) */}
-      <div className="section-reveal">
-      <SeasonChampionSection
-        maleData={maleData}
-        femaleData={femaleData}
-        isDataLoading={isDataLoading}
-        setSelectedPlayer={setSelectedPlayer}
-        setSelectedClub={setSelectedClub}
-        leagueData={leagueData}
-        skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
-        isSeasonDataPlaceholder={isSeasonDataPlaceholder}
       />
       </div>
 
