@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAppStore } from '@/lib/store';
-import { ArrowLeft, Crown } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import type { StatsData } from '@/types/stats';
 
 // Lazy load section components
@@ -13,7 +12,6 @@ const PlayerProfile = dynamic(() => import('./player-profile').then(m => ({ defa
 const VideoModal = dynamic(() => import('./video-modal').then(m => ({ default: m.VideoModal })), { ssr: false, loading: () => null });
 
 export function HighlightsPage() {
-  const { setCurrentView } = useAppStore();
 
   // State
   const [selectedPlayerRaw, setSelectedPlayerRaw] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
@@ -102,22 +100,14 @@ export function HighlightsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-idm-gold-warm/10 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
-            aria-label="Kembali"
-          >
-            <ArrowLeft className="w-5 h-5 text-idm-gold-warm" />
-          </button>
+      {/* Page Title Banner */}
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-foreground">Juara</h1>
-            <p className="text-xs text-muted-foreground">Puncak Prestasi Tarkam</p>
-          </div>
-          <div className="ml-auto">
-            <Crown className="w-5 h-5 text-idm-gold-warm/40" />
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground flex items-center gap-2">
+              <Crown className="w-7 h-7 text-idm-gold-warm" /> Juara
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Puncak Prestasi Tarkam</p>
           </div>
         </div>
       </div>
@@ -142,7 +132,7 @@ export function HighlightsPage() {
           player={selectedPlayerRaw}
           onClose={() => setSelectedPlayerRaw(null)}
           skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
-          preferredSkinType={preferredSkinType}
+          preferredSkinType={preferredSkinType ?? undefined}
         />
       )}
 

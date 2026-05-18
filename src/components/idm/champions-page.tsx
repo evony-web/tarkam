@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAppStore } from '@/lib/store';
-import { ArrowLeft, Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import type { StatsData } from '@/types/stats';
 
 // Lazy load section components
@@ -13,7 +12,6 @@ const PlayerProfile = dynamic(() => import('./player-profile').then(m => ({ defa
 const ClubProfile = dynamic(() => import('./club-profile').then(m => ({ default: m.ClubProfile })), { ssr: false, loading: () => null });
 
 export function ChampionsPage() {
-  const { setCurrentView } = useAppStore();
 
   // State
   const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
@@ -72,22 +70,14 @@ export function ChampionsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-idm-gold-warm/10 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
-            aria-label="Kembali"
-          >
-            <ArrowLeft className="w-5 h-5 text-idm-gold-warm" />
-          </button>
+      {/* Page Title Banner */}
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-foreground">Season Champion</h1>
-            <p className="text-xs text-muted-foreground">Juara Season Tarkam</p>
-          </div>
-          <div className="ml-auto">
-            <Trophy className="w-5 h-5 text-idm-gold-warm/40" />
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground flex items-center gap-2">
+              <Trophy className="w-7 h-7 text-idm-gold-warm" /> Season Champion
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Juara Season Tarkam</p>
           </div>
         </div>
       </div>

@@ -86,6 +86,7 @@ const ClubsPage = dynamic(() => import('./clubs-page').then(m => ({ default: m.C
    after every page refresh. Since LandingPage is the default/primary view, there's
    no benefit to lazy-loading it — it should be immediately available. */
 import { LandingPage } from './landing-page';
+import { PublicPageLayout } from './public-page-layout';
 const DonationPopup = dynamic(() => import('./donation-popup').then(m => ({ default: m.DonationPopup })), {
   loading: () => null,
 });
@@ -595,6 +596,10 @@ export function AppShell() {
     checkSessions();
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
+  /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
+  const publicViews: AppView[] = ['players', 'highlights', 'champions', 'clubs', 'community'];
+  const isPublicView = publicViews.includes(currentView);
+
   // Landing page is standalone - no sidebar/header
   if ((currentView as AppView) === 'landing') {
     return (
@@ -609,10 +614,31 @@ export function AppShell() {
     );
   }
 
+  // ★ Public views use the landing-page-style layout (NO sidebar/dashboard feel)
+  if (isPublicView) {
+    const renderPublicView = () => {
+      switch (currentView) {
+        case 'community': return <CommunityDashboard />;
+        case 'players': return <PlayersPage />;
+        case 'highlights': return <HighlightsPage />;
+        case 'champions': return <ChampionsPage />;
+        case 'clubs': return <ClubsPage />;
+        default: return <CommunityDashboard />;
+      }
+    };
+
+    return (
+      <PublicPageLayout currentView={currentView}>
+        <div className="max-w-7xl mx-auto px-0">
+          {renderPublicView()}
+        </div>
+      </PublicPageLayout>
+    );
+  }
+
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard':
-      case 'community': return <CommunityDashboard />;
+      case 'dashboard': return <CommunityDashboard />;
       case 'matchday': return <MatchDayCenter />;
       case 'league': return <LeagueView />;
       case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : (() => { setTimeout(() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('community'); }, 0); return null; })();
@@ -620,10 +646,6 @@ export function AppShell() {
 
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
       case 'bracket': return <BracketPage />;
-      case 'players': return <PlayersPage />;
-      case 'highlights': return <HighlightsPage />;
-      case 'champions': return <ChampionsPage />;
-      case 'clubs': return <ClubsPage />;
       default: return <CommunityDashboard />;
     }
   };

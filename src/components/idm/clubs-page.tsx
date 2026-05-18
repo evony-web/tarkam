@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAppStore } from '@/lib/store';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import type { StatsData } from '@/types/stats';
 
 // Lazy load section components
@@ -12,7 +11,6 @@ const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => (
 const ClubProfile = dynamic(() => import('./club-profile').then(m => ({ default: m.ClubProfile })), { ssr: false, loading: () => null });
 
 export function ClubsPage() {
-  const { setCurrentView } = useAppStore();
 
   // State
   const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string; members?: any[] }) | null>(null);
@@ -87,22 +85,14 @@ export function ClubsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-idm-gold-warm/10 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
-            aria-label="Kembali"
-          >
-            <ArrowLeft className="w-5 h-5 text-idm-gold-warm" />
-          </button>
+      {/* Page Title Banner */}
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-foreground">Club</h1>
-            <p className="text-xs text-muted-foreground">Club Peserta Tarkam</p>
-          </div>
-          <div className="ml-auto">
-            <Shield className="w-5 h-5 text-idm-gold-warm/40" />
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground flex items-center gap-2">
+              <Shield className="w-7 h-7 text-idm-gold-warm" /> Club
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Club Peserta Tarkam</p>
           </div>
         </div>
       </div>

@@ -194,3 +194,33 @@ Stage Summary:
 - Landing page remains as the home/summary page
 - Lint passes clean, dev server running without errors
 - All new pages have back buttons to return to landing
+---
+Task ID: 1
+Agent: Main Agent
+Task: Restructure Tarkam navigation from dashboard sidebar to public page layout
+
+Work Log:
+- Created `/home/z/my-project/src/components/idm/public-page-layout.tsx` — a landing-page-style layout with:
+  - Fixed top nav (logo, nav links: Kompetisi/Pemain/Juara/Season/Club, theme toggle, login button)
+  - Mobile bottom nav (Home + 4 nav items)
+  - LandingFooter (same as landing page footer)
+  - ScrollProgress and BackToTop
+  - UnifiedLoginModal support
+  - No sidebar, no dashboard feel
+- Modified `/home/z/my-project/src/components/idm/app-shell.tsx`:
+  - Added `isPublicView` check for views: players, highlights, champions, clubs, community
+  - Public views now render inside `<PublicPageLayout>` instead of the dashboard sidebar layout
+  - Dashboard/admin/matchday/marketplace/league/bracket/register still use the sidebar layout
+- Updated page components to remove their own sticky headers:
+  - `players-page.tsx`: Replaced sticky header with gradient title banner
+  - `highlights-page.tsx`: Replaced sticky header with gradient title banner
+  - `champions-page.tsx`: Replaced sticky header with gradient title banner
+  - `clubs-page.tsx`: Replaced sticky header with gradient title banner
+  - Removed unused ArrowLeft imports and setCurrentView calls from all 4 pages
+- Fixed TypeScript error: `preferredSkinType` null vs undefined in highlights-page.tsx
+
+Stage Summary:
+- Public views (Pemain, Juara, Season, Club, Kompetisi) now open in a landing-page-style layout
+- No more dashboard sidebar when navigating from landing page
+- Admin/Dashboard/Arena Live/Marketplace still use the sidebar layout
+- All pages compile and render successfully (HTTP 200)

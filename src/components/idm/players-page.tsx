@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useAppStore } from '@/lib/store';
-import { ArrowLeft } from 'lucide-react';
 import type { StatsData } from '@/types/stats';
 
 // Lazy load section component
@@ -13,7 +11,6 @@ const PlayerProfile = dynamic(() => import('./player-profile').then(m => ({ defa
 const RegistrationModal = dynamic(() => import('./registration-modal').then(m => ({ default: m.RegistrationModal })), { ssr: false, loading: () => null });
 
 export function PlayersPage() {
-  const { setCurrentView } = useAppStore();
 
   // State
   const [selectedPlayerRaw, setSelectedPlayerRaw] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
@@ -63,24 +60,16 @@ export function PlayersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-idm-gold-warm/10 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-3">
-          <button
-            onClick={() => setCurrentView('landing')}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
-            aria-label="Kembali"
-          >
-            <ArrowLeft className="w-5 h-5 text-idm-gold-warm" />
-          </button>
+      {/* Page Title Banner */}
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-foreground">Pemain</h1>
-            <p className="text-xs text-muted-foreground">Player Tarkam IDM</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground">Pemain</h1>
+            <p className="text-sm text-muted-foreground mt-1">Player Tarkam IDM</p>
           </div>
-          {/* Register button */}
           <button
             onClick={() => { setRegistrationDefaultDivision('male'); setRegistrationModalOpen(true); }}
-            className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-idm-gold-warm/25 text-idm-gold-warm hover:bg-idm-gold-warm/10 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border border-idm-gold-warm/25 text-idm-gold-warm hover:bg-idm-gold-warm/10 transition-colors cursor-pointer"
           >
             Daftar
           </button>
