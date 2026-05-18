@@ -86,13 +86,13 @@ export function ClubsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Page Title Banner */}
-      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-4 sm:py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground flex items-center gap-2">
-              <Shield className="w-7 h-7 text-idm-gold-warm" /> Club
+            <h1 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
+              <Shield className="w-5 h-5 text-idm-gold-warm" /> Club
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">Club Peserta Tarkam</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Club Peserta Tarkam</p>
           </div>
         </div>
       </div>

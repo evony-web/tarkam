@@ -61,11 +61,11 @@ export function PlayersPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Page Title Banner */}
-      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-6 sm:py-8">
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-4 sm:py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground">Pemain</h1>
-            <p className="text-sm text-muted-foreground mt-1">Player Tarkam IDM</p>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground">Pemain</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Player Tarkam IDM</p>
           </div>
           <button
             onClick={() => { setRegistrationDefaultDivision('male'); setRegistrationModalOpen(true); }}

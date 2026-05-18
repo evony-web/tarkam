@@ -1349,7 +1349,7 @@ export function SeasonChampionSection({
     : 'Belum ada juara musim ini — Bintang Minggu Ini: performa terbaik minggu berjalan';
 
   return (
-    <section id="season-champion" role="region" aria-label="Top Season" className="landing-section relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep">
+    <section id="season-champion" role="region" aria-label="Top Season" className="landing-section relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep">
       {/* Background */}
       <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: `linear-gradient(${cm('var(--idm-gold)', 30)} 1px, transparent 1px), linear-gradient(90deg, ${cm('var(--idm-gold)', 30)} 1px, transparent 1px)`, backgroundSize: '60px 60px' }} />
       <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 30% 20%, ${cm('var(--idm-male)', 6)} 0%, transparent 45%), radial-gradient(ellipse at 70% 20%, ${cm('var(--idm-female)', 6)} 0%, transparent 45%)` }} />

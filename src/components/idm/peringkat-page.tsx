@@ -2,23 +2,27 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trophy } from 'lucide-react';
+import { Award } from 'lucide-react';
 import type { StatsData } from '@/types/stats';
 
 // Lazy load section components
 import dynamic from 'next/dynamic';
-const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
+const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
 const PlayerProfile = dynamic(() => import('./player-profile').then(m => ({ default: m.PlayerProfile })), { ssr: false, loading: () => null });
 const ClubProfile = dynamic(() => import('./club-profile').then(m => ({ default: m.ClubProfile })), { ssr: false, loading: () => null });
 
-export function ChampionsPage() {
+export function PeringkatPage() {
 
   // State
-  const [selectedPlayer, setSelectedPlayer] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
-  const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string; members?: any[] }) | null>(null);
+  const [selectedPlayerRaw, setSelectedPlayerRaw] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
+  const [selectedClub, setSelectedClub] = useState<(StatsData['clubs'][0] & { division?: string }) | null>(null);
+
+  const setSelectedPlayer = useCallback((player: typeof selectedPlayerRaw) => {
+    setSelectedPlayerRaw(player);
+  }, []);
 
   // Data fetching — male stats
-  const { data: maleData, isLoading: isMaleLoading, isFetching: isMaleFetching, isPlaceholderData: isMalePlaceholder } = useQuery<StatsData>({
+  const { data: maleData, isLoading: isMaleLoading } = useQuery<StatsData>({
     queryKey: ['stats', 'male'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=male');
@@ -34,7 +38,7 @@ export function ChampionsPage() {
   });
 
   // Data fetching — female stats
-  const { data: femaleData, isLoading: isFemaleLoading, isFetching: isFemaleFetching, isPlaceholderData: isFemalePlaceholder } = useQuery<StatsData>({
+  const { data: femaleData, isLoading: isFemaleLoading } = useQuery<StatsData>({
     queryKey: ['stats', 'female'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=female');
@@ -49,58 +53,38 @@ export function ChampionsPage() {
     placeholderData: (prev) => prev,
   });
 
-  // Data fetching — league data
-  const { data: leagueData } = useQuery<{ hasData: boolean; clubs?: any[]; stats?: any; preSeason?: boolean; reason?: string; season?: any; tarkamChampion?: any }>({
-    queryKey: ['league-landing'],
-    queryFn: async () => {
-      const res = await fetch('/api/league');
-      if (!res.ok) throw new Error('League API failed');
-      return res.json();
-    },
-    staleTime: 300000,
-    gcTime: 300000,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    refetchInterval: 660000,
-    refetchIntervalInBackground: false,
-  });
-
   const isDataLoading = isMaleLoading || isFemaleLoading;
-  const isSeasonDataPlaceholder = isMalePlaceholder || isFemalePlaceholder;
 
   return (
     <div className="min-h-screen bg-background">
       {/* Page Title Banner */}
-      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-4 sm:py-5">
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-5 sm:py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-idm-gold-warm" /> Season Champion
+              <Award className="w-5 h-5 text-idm-gold-warm" /> Peringkat
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Juara Season Tarkam</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Klasemen pemain dan klub terbaik</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto">
-        <SeasonChampionSection
+        <PeringkatSection
           maleData={maleData}
           femaleData={femaleData}
           isDataLoading={isDataLoading}
           setSelectedPlayer={setSelectedPlayer}
           setSelectedClub={setSelectedClub}
-          leagueData={leagueData}
-          skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
-          isSeasonDataPlaceholder={isSeasonDataPlaceholder}
         />
       </div>
 
       {/* Modals */}
-      {selectedPlayer && (
+      {selectedPlayerRaw && (
         <PlayerProfile
-          player={selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
+          player={selectedPlayerRaw}
+          onClose={() => setSelectedPlayerRaw(null)}
           skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
         />
       )}

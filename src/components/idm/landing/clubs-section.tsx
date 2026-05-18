@@ -73,7 +73,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
 
   return (<>
       {/* ========== CLUB — Premium Card Layout ========== */}
-      <section id="clubs" className="landing-section clubs-section-deep relative py-16 sm:py-24 px-4 overflow-hidden bg-deep">
+      <section id="clubs" className="landing-section clubs-section-deep relative py-6 sm:py-12 px-4 overflow-hidden bg-deep">
         {/* ── Background layers (lightweight CSS-only) ── */}
         <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, color-mix(in srgb, var(--idm-gold-warm) 50%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
         {/* Soft ambient radial glows */}

@@ -519,15 +519,8 @@ export function LandingPage() {
         queueMicrotask(() => setCurrentView('bracket'));
         break;
       case 'peringkat':
-        // Scroll to the Peringkat section on the landing page
-        queueMicrotask(() => {
-          setTimeout(() => {
-            const el = document.getElementById('peringkat');
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 500);
-        });
+        // Navigate to the Peringkat page
+        queueMicrotask(() => setCurrentView('peringkat'));
         break;
       case 'hasil':
       case 'champion':
@@ -603,7 +596,7 @@ export function LandingPage() {
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
               { view: 'community' as AppView, label: 'Kompetisi' },
-              { view: 'peringkat' as AppView, label: 'Peringkat', scrollTo: true },
+              { view: 'peringkat' as AppView, label: 'Peringkat' },
               { view: 'players' as AppView, label: 'Pemain' },
               { view: 'highlights' as AppView, label: 'Juara' },
               { view: 'champions' as AppView, label: 'Season' },
@@ -612,14 +605,7 @@ export function LandingPage() {
               <button
                 key={item.view}
                 onClick={() => {
-                  if ('scrollTo' in item && item.scrollTo) {
-                    const el = document.getElementById('peringkat');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  } else {
-                    setCurrentView(item.view);
-                  }
+                  setCurrentView(item.view);
                 }}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
@@ -664,7 +650,7 @@ export function LandingPage() {
           <div className="flex items-center justify-around h-16 px-1">
             {[
               { view: 'community' as AppView, label: 'Kompetisi', icon: Swords, special: false },
-              { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false, scrollTo: true },
+              { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
               { view: 'clubs' as AppView, label: 'Club', icon: Shield, special: false },
@@ -674,14 +660,7 @@ export function LandingPage() {
                 <button
                   key={item.view}
                   onClick={() => {
-                    if ('scrollTo' in item && item.scrollTo) {
-                      const el = document.getElementById('peringkat');
-                      if (el) {
-                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    } else {
-                      setCurrentView(item.view);
-                    }
+                    setCurrentView(item.view);
                   }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     item.special

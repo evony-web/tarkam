@@ -1373,7 +1373,7 @@ export function ExperiencesSection({
       id="experiences"
       role="region"
       aria-label="Video Highlights"
-      className="landing-section relative py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep"
+      className="landing-section relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep"
     >
       {/* Top edge glow */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />

@@ -183,7 +183,7 @@ function PublicAuthButton({
 /* ═══ Navigation items for public pages ═══ */
 const publicNavItems: { view: AppView; label: string; icon: typeof Swords; scrollTo?: boolean }[] = [
   { view: 'community', label: 'Kompetisi', icon: Swords },
-  { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, scrollTo: true },
+  { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award },
   { view: 'players', label: 'Pemain', icon: Music },
   { view: 'highlights', label: 'Juara', icon: Crown },
   { view: 'champions', label: 'Season', icon: Trophy },
@@ -273,15 +273,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
               <button
                 key={item.view}
                 onClick={() => {
-                  if (item.scrollTo) {
-                    setCurrentView('landing');
-                    setTimeout(() => {
-                      const el = document.getElementById('peringkat');
-                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
-                  } else {
-                    setCurrentView(item.view);
-                  }
+                  setCurrentView(item.view);
                 }}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
@@ -338,15 +330,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
                 <button
                   key={item.view}
                   onClick={() => {
-                    if (item.scrollTo) {
-                      setCurrentView('landing');
-                      setTimeout(() => {
-                        const el = document.getElementById('peringkat');
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }, 300);
-                    } else {
-                      setCurrentView(item.view);
-                    }
+                    setCurrentView(item.view);
                   }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     isSpecial

@@ -1169,7 +1169,7 @@ export function HighlightsSection({
       id="highlights"
       role="region"
       aria-label="Highlights"
-      className="landing-section relative py-20 sm:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep"
+      className="landing-section relative py-8 sm:py-14 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep"
     >
       {/* Atmospheric glows — consistent with other sections */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">

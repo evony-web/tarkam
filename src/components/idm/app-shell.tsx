@@ -7,7 +7,7 @@ import {
   Home, LogOut, KeyRound, LogIn,
   PanelLeftClose, ChevronRight, Download, X, UserCircle,
   Calendar, ShoppingBag, Radio, BookOpen, UserPlus, ArrowLeft,
-  Sun, Moon, Crown, Trophy, Music
+  Sun, Moon, Crown, Trophy, Music, Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
@@ -77,6 +77,9 @@ const ChampionsPage = dynamic(() => import('./champions-page').then(m => ({ defa
   loading: () => viewLoading,
 });
 const ClubsPage = dynamic(() => import('./clubs-page').then(m => ({ default: m.ClubsPage })), {
+  loading: () => viewLoading,
+});
+const PeringkatPage = dynamic(() => import('./peringkat-page').then(m => ({ default: m.PeringkatPage })), {
   loading: () => viewLoading,
 });
 
@@ -153,6 +156,7 @@ type NavItemDef = {
 
 const communityNavItems: NavItemDef[] = [
   { id: 'community', label: 'Komunitas', icon: Users },
+  { id: 'peringkat', label: 'Peringkat', icon: Award },
   { id: 'players', label: 'Pemain', icon: Music },
   { id: 'highlights', label: 'Juara', icon: Crown },
   { id: 'champions', label: 'Season', icon: Trophy },
@@ -353,6 +357,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'champions') iconBg = 'bg-idm-gold-warm/15';
             else if (item.id === 'clubs') iconBg = 'bg-idm-gold-warm/15';
+            else if (item.id === 'peringkat') iconBg = 'bg-idm-gold-warm/15';
             else iconBg = dt.iconBg;
           }
 
@@ -597,7 +602,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'champions', 'clubs', 'community'];
+  const publicViews: AppView[] = ['players', 'highlights', 'champions', 'clubs', 'community', 'peringkat'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -623,6 +628,7 @@ export function AppShell() {
         case 'highlights': return <HighlightsPage />;
         case 'champions': return <ChampionsPage />;
         case 'clubs': return <ClubsPage />;
+        case 'peringkat': return <PeringkatPage />;
         default: return <CommunityDashboard />;
       }
     };
@@ -680,6 +686,7 @@ export function AppShell() {
                 highlights: 'Juara',
                 champions: 'Season',
                 clubs: 'Club',
+                peringkat: 'Peringkat',
               }[currentView as string] || ''}</span>
             )}
           </span>

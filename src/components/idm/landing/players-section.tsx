@@ -82,7 +82,7 @@ export function PlayersSection({
   const femalePlayers = [...(femaleData?.topPlayers || [])].sort((a, b) => isHistorical ? b.points - a.points : a.gamertag.localeCompare(b.gamertag));
 
   return (
-    <section id="players" className="landing-section relative py-10 sm:py-24 px-4 overflow-hidden bg-deep border-y border-border/30 dark:border-0 shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:shadow-none" style={{ contain: 'layout style' }}>
+    <section id="players" className="landing-section relative py-6 sm:py-12 px-4 overflow-hidden bg-deep border-y border-border/30 dark:border-0 shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:shadow-none" style={{ contain: 'layout style' }}>
       {/* Background — 2 layers only */}
       <div className="absolute inset-0 opacity-[0.018]" style={{ backgroundImage: 'radial-gradient(circle, rgba(239,249,35,0.5) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
       <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 20%, rgba(239,249,35,0.07) 0%, transparent 50%), radial-gradient(ellipse at 12% 50%, rgba(46,159,255,0.05) 0%, transparent 40%), radial-gradient(ellipse at 88% 50%, rgba(255,45,120,0.05) 0%, transparent 40%)' }} />

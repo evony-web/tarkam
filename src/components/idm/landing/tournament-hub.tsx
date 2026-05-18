@@ -354,7 +354,7 @@ export function TournamentHub({
       id="kompetisi"
       role="region"
       aria-label={sectionLabel}
-      className="landing-section relative py-10 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep border-t border-border/10 dark:border-t-0"
+      className="landing-section relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep border-t border-border/10 dark:border-t-0"
     >
       {/* ── Top edge glow — section boundary ── */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />

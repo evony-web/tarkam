@@ -272,12 +272,12 @@ export function AnimatedSection({ children, className = '', variant = 'fadeUp' }
   );
 }
 
-/* ========== Section Header Component (Enhanced Premium) ==========
-  Premium section header with:
-  - Animated gold shimmer gradient line above the title
-  - Pill/badge label with subtle glow
-  - Better vertical spacing between label → shimmer → title → subtitle
-  - Uses text-gradient-animated for the title if available
+/* ========== Section Header Component (Refined & Compact) ==========
+  Clean, professional section header with:
+  - Subtle accent line above the title
+  - Compact label pill
+  - Moderate title sizing — elegant, not overwhelming
+  - Tighter spacing for a polished, professional feel
 */
 export function SectionHeader({ icon: Icon, label, title, subtitle }: {
   icon: React.ComponentType<{ className?: string }>;
@@ -286,26 +286,23 @@ export function SectionHeader({ icon: Icon, label, title, subtitle }: {
   subtitle?: string;
 }) {
   return (
-    <div className="text-center mb-12 sm:mb-16">
-      {/* Label pill with glow */}
-      <div className="flex items-center justify-center gap-3 mb-5">
-        <div className="h-px w-12 sm:w-20 bg-gradient-to-r from-transparent to-idm-gold-warm/60" />
-        <div className="section-header-label flex items-center gap-2 px-4 py-1.5 rounded-full border border-idm-gold-warm/25 bg-idm-gold-warm/[0.07]">
-          <Icon className="w-4 h-4 text-idm-gold-warm" />
-          <span className="text-[11px] font-bold text-idm-gold-warm uppercase tracking-widest">{label}</span>
+    <div className="text-center mb-6 sm:mb-8">
+      {/* Label pill */}
+      <div className="flex items-center justify-center gap-2.5 mb-3">
+        <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-transparent to-idm-gold-warm/50" />
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/[0.05]">
+          <Icon className="w-3.5 h-3.5 text-idm-gold-warm" />
+          <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-widest">{label}</span>
         </div>
-        <div className="h-px w-12 sm:w-20 bg-gradient-to-l from-transparent to-idm-gold-warm/60" />
+        <div className="h-px w-8 sm:w-12 bg-gradient-to-l from-transparent to-idm-gold-warm/50" />
       </div>
 
-      {/* Animated gold shimmer line above title */}
-      <div className="section-header-shimmer-line mx-auto mb-6" aria-hidden="true" />
+      {/* Title — moderate, professional sizing */}
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gradient-animated">{title}</h2>
 
-      {/* Title with animated gradient */}
-      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gradient-animated">{title}</h2>
-
-      {/* Subtitle with improved spacing */}
+      {/* Subtitle */}
       {subtitle && (
-        <p className="text-sm sm:text-[15px] text-muted-foreground mt-5 max-w-lg mx-auto leading-relaxed">{subtitle}</p>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">{subtitle}</p>
       )}
     </div>
   );

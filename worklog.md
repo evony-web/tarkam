@@ -252,3 +252,57 @@ Stage Summary:
 - Navigation item "Peringkat" scrolls to the section on the landing page
 - Uses existing CommunityLeaderboard component with full player/club toggle and division filter
 - Lint passes clean, dev server compiles without errors
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Fix Peringkat navigation (show only peringkat content, not entire landing page) + Fix section heading sizes + Polish UX for elegant, professional look
+
+Work Log:
+- Updated AppView type in store.ts: Added "peringkat" as a valid view
+- Created `/home/z/my-project/src/components/idm/peringkat-page.tsx` — standalone page for Peringkat with own data fetching, compact header banner, PlayerProfile and ClubProfile modals
+- Updated `/home/z/my-project/src/components/idm/app-shell.tsx`:
+  - Added dynamic import for PeringkatPage
+  - Added "peringkat" to publicViews array (uses PublicPageLayout, not sidebar)
+  - Added renderPublicView case for 'peringkat'
+  - Added Award icon import
+  - Added Peringkat to communityNavItems in sidebar
+  - Added iconBg for peringkat in sidebar
+  - Added peringkat to mobile header view name mapping
+- Updated `/home/z/my-project/src/components/idm/landing-page.tsx`:
+  - Changed Peringkat nav from scrollTo to setCurrentView('peringkat')
+  - Updated both desktop and mobile navigation
+  - Updated deep link handler: ?view=peringkat now uses setCurrentView('peringkat') instead of scrolling
+- Updated `/home/z/my-project/src/components/idm/public-page-layout.tsx`:
+  - Removed scrollTo behavior from Peringkat nav item
+  - Changed to setCurrentView('peringkat') for both desktop and mobile nav
+- Updated `/home/z/my-project/src/components/idm/landing/shared.tsx`:
+  - Reduced SectionHeader title size: text-3xl sm:text-4xl lg:text-5xl font-black → text-xl sm:text-2xl lg:text-3xl font-bold
+  - Removed shimmer line animation (visual noise)
+  - Reduced label pill size (px-4 py-1.5 → px-3 py-1, icon w-4 h-4 → w-3.5 h-3.5, text 11px → 10px)
+  - Reduced spacing: mb-12 sm:mb-16 → mb-6 sm:mb-8
+  - Reduced subtitle size: text-sm sm:text-[15px] → text-xs sm:text-sm
+  - Reduced gradient line widths
+- Updated all page banner headers for consistency:
+  - players-page.tsx: text-2xl sm:text-3xl font-black py-6 sm:py-8 → text-lg sm:text-xl font-bold py-4 sm:py-5
+  - champions-page.tsx: same reduction
+  - highlights-page.tsx: same reduction
+  - clubs-page.tsx: same reduction
+  - peringkat-page.tsx: already created with compact banner
+- Updated section padding across landing page sections:
+  - tournament-hub.tsx: py-10 sm:py-24 → py-6 sm:py-12
+  - players-section.tsx: py-10 sm:py-24 → py-6 sm:py-12
+  - peringkat-section.tsx: py-10 sm:py-24 → py-6 sm:py-12
+  - highlights-section.tsx: py-20 sm:py-28 → py-8 sm:py-14
+  - experiences-section.tsx: py-16 sm:py-24 → py-6 sm:py-12
+  - clubs-section.tsx: py-16 sm:py-24 → py-6 sm:py-12
+  - season-champion-section.tsx: py-24 → py-6 sm:py-12
+
+Stage Summary:
+- Peringkat now opens as a standalone page (like Pemain, Juara, Season, Club) — no longer shows entire landing page
+- Section headings are now compact and elegant (xl-2xl-3xl instead of 3xl-4xl-5xl)
+- Page banners are consistent and professional (lg-xl font-bold instead of 2xl-3xl font-black)
+- Section padding is much tighter and professional
+- Removed excessive shimmer animation from SectionHeader
+- All navigation (desktop, mobile, sidebar) consistently uses setCurrentView for Peringkat
+- Lint passes clean, dev server compiles without errors
