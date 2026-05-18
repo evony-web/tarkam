@@ -450,7 +450,11 @@ function TournamentCard({
         <div className="flex flex-col sm:flex-row gap-2.5">
           <button
             onClick={() => onDonate(division.key)}
-            className="flex-1 py-3 min-h-[44px] rounded-2xl text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] active:scale-[0.98]"
+            className="flex-1 py-3 min-h-[44px] rounded-2xl text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 text-white hover:opacity-90 active:scale-[0.98]"
+            style={{
+              background: `linear-gradient(135deg, ${division.color} 0%, ${division.colorLight} 100%)`,
+              boxShadow: `0 4px 15px rgba(${division.colorRgb},0.25)`,
+            }}
           >
             <Heart className="w-4 h-4" />
             <span>Sawer</span>
