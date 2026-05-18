@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData, TopPlayer, SeasonChampionPlayer, SultanOfWeekly, SultanPlayer } from '@/types/stats';
@@ -854,6 +854,210 @@ function GhostSultanOfSeasonCard() {
 
 
 /* ═══════════════════════════════════════════
+   Sultan of the Week — Division Card (inline, no outer casino wrapper)
+   Renders compact horizontal card for one division's sultan
+   ═══════════════════════════════════════════ */
+function SultanOfWeekDivisionCard({
+  sultan,
+  division,
+  onPlayerClick,
+}: {
+  sultan: SultanOfWeekly;
+  division: 'male' | 'female';
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+}) {
+  const divisionAccent = division === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionLabel = division === 'male' ? 'COWO' : 'CEWE';
+  const DivisionIcon = division === 'male' ? Music : Shield;
+  const hasPlayer = !!sultan.player;
+
+  return (
+    <div className={`rounded-xl border p-3 sm:p-4 transition-all`}
+      style={{
+        borderColor: hexToRgba(divisionAccent, 0.15),
+        background: `linear-gradient(135deg, ${hexToRgba(divisionAccent, 0.04)}, ${hexToRgba(MAROON, 0.03)})`,
+      }}>
+      {/* Division label */}
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
+        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
+          {divisionLabel} ⚡
+        </span>
+        <Badge className="text-[7px] font-bold border ml-auto" style={{
+          color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1),
+          borderColor: hexToRgba(MAROON, 0.2) }}>
+          W{sultan.weekNumber}
+        </Badge>
+      </div>
+
+      {hasPlayer ? (
+        <button
+          onClick={() => onPlayerClick({
+            ...sultan.player!,
+            name: sultan.player!.gamertag,
+            club: sultan.player!.club ?? undefined,
+            division,
+          }, division)}
+          className="flex items-center gap-3 w-full text-left cursor-pointer group/sultan"
+        >
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2"
+              style={{ borderColor: hexToRgba(MAROON, 0.4), boxShadow: `0 0 10px ${hexToRgba(MAROON, 0.12)}` }}>
+              <AvatarMedia
+                src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
+                alt={sultan.player!.gamertag}
+                width={56} height={56}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+            {/* Heart badge */}
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})` }}>
+              <Heart className="w-2 h-2 text-white" />
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold truncate group-hover/sultan:text-idm-gold-warm transition-colors">
+              {sultan.player!.gamertag}
+            </p>
+            {(sultan.player!.city || sultan.player!.club) && (
+              <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5">
+                {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="shrink-0 flex flex-col items-end gap-0.5">
+            <span className="text-[10px] font-black tabular-nums" style={{ color: MAROON_LIGHT }}>
+              Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+            </span>
+            <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+          </div>
+        </button>
+      ) : (
+        /* No player — show donor name only */
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border-2"
+            style={{ borderColor: hexToRgba(MAROON, 0.15), background: hexToRgba(MAROON, 0.04) }}>
+            <Heart className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.3) }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold truncate">{sultan.donorName}</p>
+            <p className="text-[8px] text-muted-foreground/50 mt-0.5">Top Penyawer Week {sultan.weekNumber}</p>
+          </div>
+          <div className="shrink-0 flex flex-col items-end gap-0.5">
+            <span className="text-[10px] font-black tabular-nums" style={{ color: MAROON_LIGHT }}>
+              Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+            </span>
+            <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ─── Ghost Sultan of the Week — Division Card empty state ─── */
+function GhostSultanOfWeekDivisionCard({ division }: { division: 'male' | 'female' }) {
+  const divisionAccent = division === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionLabel = division === 'male' ? 'COWO' : 'CEWE';
+  const DivisionIcon = division === 'male' ? Music : Shield;
+
+  return (
+    <div className={`rounded-xl border p-3 sm:p-4 opacity-55`}
+      style={{ borderColor: hexToRgba(divisionAccent, 0.1), background: hexToRgba(divisionAccent, 0.02) }}>
+      <div className="flex items-center gap-1.5 mb-2.5">
+        <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
+        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
+          {divisionLabel}
+        </span>
+        <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[7px] font-bold">TBA</Badge>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border-2"
+          style={{ borderColor: hexToRgba(MAROON, 0.08), background: hexToRgba(MAROON, 0.02) }}>
+          <Heart className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.12) }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="h-4 w-20 rounded bg-muted/30 mb-1.5" />
+          <div className="h-3 w-28 rounded bg-muted/20" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════
+   Sultan of the Week Section — Unified card with both divisions
+   Shows Sultan Cowo and Sultan Cewe side by side on desktop
+   ═══════════════════════════════════════════ */
+const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
+  maleSultan,
+  femaleSultan,
+  selectedDivision,
+  onPlayerClick,
+}: {
+  maleSultan: SultanOfWeekly | null;
+  femaleSultan: SultanOfWeekly | null;
+  selectedDivision: DivisionFilter;
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+}) {
+  const ct = useCommunityTheme();
+  const showMale = selectedDivision === 'all' || selectedDivision === 'male';
+  const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
+  const showBoth = showMale && showFemale;
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}
+        style={{ borderColor: hexToRgba(MAROON, 0.2) }}>
+        {/* Maroon accent bar */}
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})` }} />
+
+        {/* Header */}
+        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+            style={{ backgroundColor: hexToRgba(MAROON, 0.15), border: `1px solid ${hexToRgba(MAROON, 0.25)}` }}>
+            <Heart className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: MAROON_LIGHT }}>
+            Sultan of the Week
+          </span>
+        </div>
+
+        {/* Body — both divisions */}
+        <div className="p-3 sm:p-5">
+          <div className={`grid gap-3 ${showBoth ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+            {showMale && (
+              maleSultan ? (
+                <SultanOfWeekDivisionCard sultan={maleSultan} division="male" onPlayerClick={onPlayerClick} />
+              ) : (
+                <GhostSultanOfWeekDivisionCard division="male" />
+              )
+            )}
+            {showFemale && (
+              femaleSultan ? (
+                <SultanOfWeekDivisionCard sultan={femaleSultan} division="female" onPlayerClick={onPlayerClick} />
+              ) : (
+                <GhostSultanOfWeekDivisionCard division="female" />
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+
+/* ═══════════════════════════════════════════
    Highlights (Juara) Page — Main Component
    Contains: Reigning Champion, Season 1 Club Champion, Sultan of Season, Weekly Champions, MVP Spotlight, Sultan of the Week, MVP Hall of Fame
    ═══════════════════════════════════════════ */
@@ -909,20 +1113,13 @@ export function HighlightsPage() {
     placeholderData: (prev) => prev,
   });
 
-  // ─── Sultan of the Week data ───
+  // ─── Sultan of the Week data (per division) ───
   const maleSultanList = maleData?.sultanOfWeekly || [];
   const femaleSultanList = femaleData?.sultanOfWeekly || [];
   const latestMaleSultan = maleSultanList.length > 0 ? maleSultanList[maleSultanList.length - 1] : null;
   const latestFemaleSultan = femaleSultanList.length > 0 ? femaleSultanList[femaleSultanList.length - 1] : null;
-  // Pick the Sultan with the highest totalAmount across both divisions
-  const topSultanOfWeek: SultanOfWeekly | null = latestMaleSultan && latestFemaleSultan
-    ? (latestMaleSultan.totalAmount >= latestFemaleSultan.totalAmount ? latestMaleSultan : latestFemaleSultan)
-    : latestMaleSultan || latestFemaleSultan;
-  // Filter by selected division
-  const showSultanOfWeek = topSultanOfWeek && (
-    selectedDivision === 'all' ||
-    topSultanOfWeek.tournamentDivision === selectedDivision
-  );
+  const showMaleSultan = selectedDivision === 'all' || selectedDivision === 'male';
+  const showFemaleSultan = selectedDivision === 'all' || selectedDivision === 'female';
 
   // ─── Sultan of Season data ───
   const seasonSultans = React.useMemo(() => {
@@ -994,14 +1191,12 @@ export function HighlightsPage() {
           </div>
 
           {/* Sultan of the Week — above MVP Hall of Fame */}
-          {showSultanOfWeek && topSultanOfWeek ? (
-            <SultanOfWeekCard
-              sultan={topSultanOfWeek}
-              onPlayerClick={handlePlayerClick}
-            />
-          ) : (
-            <GhostSultanOfWeekCard />
-          )}
+          <SultanOfWeekSection
+            maleSultan={latestMaleSultan}
+            femaleSultan={latestFemaleSultan}
+            selectedDivision={selectedDivision}
+            onPlayerClick={handlePlayerClick}
+          />
 
           {/* MVP Hall of Fame */}
           <div className="animate-fade-enter-sm">
