@@ -26,10 +26,8 @@ import React, { useState, useRef, useMemo, useEffect, useCallback, startTransiti
 import { useCommunityTheme, getCommunityTheme } from '@/hooks/use-community-theme';
 import { useDivisionTheme, getDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { formatCurrencyShort, clubToString } from '@/lib/utils';
-
-import { PlayerProfile } from '../player-profile';
-import { ClubProfile } from '../club-profile';
+import { formatCurrencyShort, clubToString, getAvatarUrl } from '@/lib/utils';
+import { AvatarMedia } from '@/components/ui/avatar-media';
 
 // Import modular components — original
 import { CommunityHero } from './community-hero';
@@ -39,13 +37,26 @@ import { CommunityLeaderboard } from './community-leaderboard';
 
 import { CommunityMatches } from './community-matches';
 import { UpcomingMatches } from './upcoming-matches';
-import { DonationModal } from '../donation-modal';
-import { RegistrationModal } from '../registration-modal';
-import { PaymentModal } from '../payment-modal';
+import { CommunityWeeklyChampions } from './weekly-champions';
+import { WeeklyChampionCard } from './weekly-champion-card';
+import { PlayerCard } from '../player-card';
+import { WeekNavigator } from '../week-navigator';
+
+// ★ Dynamic imports for modals — removes ~225KB (including framer-motion) from initial bundle
+import dynamic from 'next/dynamic';
+const DonationModal = dynamic(() => import('../donation-modal').then(m => ({ default: m.DonationModal })), { ssr: false, loading: () => null });
+const RegistrationModal = dynamic(() => import('../registration-modal').then(m => ({ default: m.RegistrationModal })), { ssr: false, loading: () => null });
+const PaymentModal = dynamic(() => import('../payment-modal').then(m => ({ default: m.PaymentModal })), { ssr: false, loading: () => null });
+const PlayerProfile = dynamic(() => import('../player-profile').then(m => ({ default: m.PlayerProfile })), { ssr: false, loading: () => null });
+const ClubProfile = dynamic(() => import('../club-profile').then(m => ({ default: m.ClubProfile })), { ssr: false, loading: () => null });
+
+// ★ Dynamic imports for below-fold heavy sections
+const TopDonorsWidget = dynamic(() => import('../dashboard/top-donors-widget').then(m => ({ default: m.TopDonorsWidget })), { ssr: false, loading: () => <div className="min-h-[400px]" /> });
+const MvpHallOfFame = dynamic(() => import('./mvp-hall-of-fame').then(m => ({ default: m.MvpHallOfFame })), { ssr: false, loading: () => <div className="min-h-[300px]" /> });
+const HistoricalSeasonView = dynamic(() => import('./historical-season-view').then(m => ({ default: m.HistoricalSeasonView })), { ssr: false, loading: () => <div className="min-h-[400px]" /> });
 
 // Import division dashboard components — REUSE, do NOT duplicate
 import { QuickStatsBar } from '../dashboard/quick-stats-bar';
-import { TopDonorsWidget } from '../dashboard/top-donors-widget';
 
 import { MatchesTab } from '../dashboard/matches-tab';
 
@@ -57,7 +68,6 @@ import { SponsorBanner } from '../ui/sponsor-banner';
 
 // Import season selector components
 import { SeasonSelector, type SelectedSeason } from './season-selector';
-import { HistoricalSeasonView } from './historical-season-view';
 
 // Import marquee ticker
 import { MarqueeTicker } from '../marquee-ticker';
@@ -652,6 +662,69 @@ function LayoutRow({ children, cols = '2', className = '' }: { children: React.R
 /* ═══════════════════════════════════════════
    Section wrapper with staggered reveal
    ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   LazySection — Skip JS execution + DOM creation for below-fold sections
+   Unlike content-visibility: auto (which only skips layout/paint),
+   this completely defers React component rendering until near viewport.
+   ★ KEY for INP: reduces initial hydration work and DOM element count ★
+   ═══════════════════════════════════════════════════════ */
+const LazySection = React.memo(function LazySection({
+  children,
+  placeholderHeight = 500,
+  placeholderHeightMobile,
+  rootMargin = '300px',
+}: {
+  children: React.ReactNode;
+  placeholderHeight?: number;
+  placeholderHeightMobile?: number;
+  rootMargin?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // Already visible (e.g. server-rendered above fold)
+    if (isVisible) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isVisible, rootMargin]);
+
+  if (isVisible) return <>{children}</>;
+
+  // Use smaller placeholder on mobile to reduce CLS
+  const mobileHeight = placeholderHeightMobile ?? Math.round(placeholderHeight * 0.65);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        height: mobileHeight,
+        contain: 'layout style',
+        minHeight: mobileHeight,
+        // Desktop override via CSS custom property approach
+        '--desktop-height': `${placeholderHeight}px`,
+      } as React.CSSProperties}
+      aria-hidden="true"
+      className="sm:h-[var(--desktop-height)]"
+    />
+  );
+});
+
+
 const Section = React.memo(function Section({
   children,
   className = '',
@@ -659,7 +732,7 @@ const Section = React.memo(function Section({
   icon: Icon,
   iconColor = 'text-idm-gold-warm',
   sectionId,
-  skipContentVisibility = false,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -667,13 +740,13 @@ const Section = React.memo(function Section({
   icon?: typeof Trophy;
   iconColor?: string;
   sectionId?: string;
-  skipContentVisibility?: boolean;
+  style?: React.CSSProperties;
 }) {
   return (
     <section
       className={className}
       id={sectionId ? `section-${sectionId}` : undefined}
-      style={skipContentVisibility ? undefined : { contentVisibility: 'auto', containIntrinsicSize: '0 800px' }}
+      style={style}
     >
       {title && Icon && (
         <div className="flex items-center gap-2 mb-3">
@@ -755,18 +828,35 @@ export function CommunityDashboard() {
   const [paymentDivision, setPaymentDivision] = useState<'male' | 'female'>('male');
   // Division filter — new state for division-specific content
   const [selectedDivision, setSelectedDivision] = useState<DivisionFilter>('all');
-  // Peringkat section removed — now has its own dedicated navigation page
+  // Peringkat leaderboard filter state — lifted from CommunityLeaderboard for sticky header
+  const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
+  const [leaderboardDivisionFilter, setLeaderboardDivisionFilter] = useState<'all' | 'male' | 'female'>('all');
+
+
+  // Track if rankings section is visible — hide sticky champion header when it is
+  const [isRankingsVisible, setIsRankingsVisible] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById('section-rankings');
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsRankingsVisible(entry.isIntersecting),
+      { threshold: 0, rootMargin: '-60px 0px 0px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  // Peringkat is no longer sticky — no need for intersection observer
   // Season selector — null means viewing the active season
   const [selectedSeason, setSelectedSeason] = useState<SelectedSeason | null>(null);
 
   // Derive effective division for division-specific queries
   const effectiveDivision: 'male' | 'female' = selectedDivision === 'female' ? 'female' : 'male';
 
+
   // Whether we're viewing a completed/past season
   const isViewingPastSeason = selectedSeason !== null && selectedSeason.status === 'completed';
 
   // When division changes while viewing a past season, reset to active season
-  // ★ INP optimization: wrap in startTransition so tab switch doesn't block paint
   const handleDivisionChange = useCallback((d: DivisionFilter) => {
     startTransition(() => {
       setSelectedDivision(d);
@@ -778,10 +868,12 @@ export function CommunityDashboard() {
 
   // Handle season change
   const handleSeasonChange = useCallback((season: SelectedSeason | null) => {
-    setSelectedSeason(season);
-    if (season && season.division !== effectiveDivision) {
-      setSelectedDivision(season.division);
-    }
+    startTransition(() => {
+      setSelectedSeason(season);
+      if (season && season.division !== effectiveDivision) {
+        setSelectedDivision(season.division);
+      }
+    });
   }, [effectiveDivision]);
 
 
@@ -804,9 +896,11 @@ export function CommunityDashboard() {
       const res = await fetch('/api/stats?division=male');
       return res.json();
     },
-    staleTime: 30 * 1000,
-    refetchInterval: 120 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 300 * 1000,
+    refetchIntervalInBackground: false,
     placeholderData: (prev) => prev,
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   // Fetch female stats
@@ -816,9 +910,11 @@ export function CommunityDashboard() {
       const res = await fetch('/api/stats?division=female');
       return res.json();
     },
-    staleTime: 30 * 1000,
-    refetchInterval: 120 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 300 * 1000,
+    refetchIntervalInBackground: false,
     placeholderData: (prev) => prev,
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   // Fetch league data
@@ -854,9 +950,11 @@ export function CommunityDashboard() {
       const res = await fetch('/api/league');
       return res.json();
     },
-    staleTime: 30 * 1000,
-    refetchInterval: 120 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 300 * 1000,
+    refetchIntervalInBackground: false,
     placeholderData: (prev) => prev,
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   // Player click handler
@@ -926,12 +1024,12 @@ export function CommunityDashboard() {
       </div>
 
       {/* ═══ 1. Hero — top of unified surface ═══ */}
-      <Section sectionId="hero" skipContentVisibility>
+      <Section sectionId="hero">
         <CommunityHero maleData={maleData} femaleData={femaleData} leagueData={leagueData} onSawer={handleDonate} onRegister={handleRegister} onPayment={handlePayment} />
       </Section>
 
       {/* ═══ Marquee Ticker — Live activity feed (full-bleed within surface) ═══ */}
-      <div className="relative z-40 -mx-2 sm:-mx-4 lg:-mx-5 py-2.5 bg-background/90 border-y border-idm-gold-warm/10" style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 48px' }}>
+      <div className="relative z-40 -mx-2 sm:-mx-4 lg:-mx-5 py-2.5 bg-background/90 border-y border-idm-gold-warm/10" style={{ contain: 'layout style' }}>
         <MarqueeTicker maleData={maleData} femaleData={femaleData} leagueData={leagueData} />
       </div>
 
@@ -940,14 +1038,18 @@ export function CommunityDashboard() {
 
       {/* ═══ 3. Hasil Pertandingan — Bracket-style match results ═══ */}
       <Section sectionId="matches">
-        <AnimatedSection variant="fadeUp">
-          <BracketHasilSection maleData={maleData} femaleData={femaleData} />
-        </AnimatedSection>
+        <LazySection placeholderHeight={500}>
+          <AnimatedSection variant="fadeUp">
+            <BracketHasilSection maleData={maleData} femaleData={femaleData} />
+          </AnimatedSection>
+        </LazySection>
       </Section>
 
       {/* ═══ 4. Top Saweran ═══ */}
       <Section sectionId="saweran">
-        <TopDonorsWidget onDonate={handleDonate} statsData={selectedDivision === 'female' ? femaleData : maleData} statsData2={selectedDivision === 'female' ? maleData : femaleData} />
+        <LazySection placeholderHeight={400}>
+          <TopDonorsWidget onDonate={handleDonate} statsData={selectedDivision === 'female' ? femaleData : maleData} statsData2={selectedDivision === 'female' ? maleData : femaleData} />
+        </LazySection>
       </Section>
 
       {/* ═══ 4. Season Selector ═══ */}
@@ -972,7 +1074,58 @@ export function CommunityDashboard() {
       ) : (
       <>
 
-      {/* ═══ Champions & MVP sections moved to Champions navigation page ═══ */}
+      {/* ═══ 4. ⭐ Champions & MVP + Peringkat ═══ */}
+      <div className="space-y-4 sm:space-y-6">
+        {/* Sticky Champion Header — hidden when rankings section is in view */}
+        <div className={`sticky top-0 z-30 -mx-1.5 sm:-mx-4 lg:-mx-5 px-1.5 sm:px-4 lg:px-5 py-2.5 bg-background/95 sm:backdrop-blur-md border-b border-idm-gold-warm/10 transition-all duration-300 ${isRankingsVisible ? 'opacity-0 pointer-events-none -translate-y-full' : 'opacity-100 translate-y-0'}`}>
+          <ChampionsMvpHeader
+            selectedDivision={selectedDivision}
+            onDivisionChange={handleDivisionChange}
+          />
+        </div>
+
+        <Section sectionId="champions">
+          <LazySection placeholderHeight={600}>
+            <AnimatedSection>
+              <ChampionsMvpContent
+                maleData={maleData}
+                femaleData={femaleData}
+                selectedDivision={selectedDivision}
+                onPlayerClick={handlePlayerClick}
+              />
+            </AnimatedSection>
+          </LazySection>
+        </Section>
+
+        {/* ═══ 6. Peringkat/Standings — People check ranking changes after match ═══ */}
+        <Section sectionId="rankings">
+          <LazySection placeholderHeight={500}>
+          <AnimatedSection variant="fadeUp">
+            <div className="space-y-4">
+              <PeringkatHeader
+                leaderboardSort={leaderboardSort}
+                onLeaderboardSortChange={(sort) => startTransition(() => setLeaderboardSort(sort))}
+                divisionFilter={leaderboardDivisionFilter}
+                onDivisionFilterChange={(filter) => startTransition(() => setLeaderboardDivisionFilter(filter))}
+                maleData={maleData}
+                femaleData={femaleData}
+              />
+              <DivisionStandingsSection
+                maleData={maleData}
+                femaleData={femaleData}
+                selectedDivision={selectedDivision}
+                onPlayerClick={handlePlayerClick}
+                onClubClick={handleClubClick}
+                leaderboardSort={leaderboardSort}
+                onLeaderboardSortChange={(sort) => startTransition(() => setLeaderboardSort(sort))}
+                divisionFilter={leaderboardDivisionFilter}
+                onDivisionFilterChange={(filter) => startTransition(() => setLeaderboardDivisionFilter(filter))}
+              />
+            </div>
+          </AnimatedSection>
+          </LazySection>
+        </Section>
+      </div>
 
       {/* ═══ 7. Quick Stats Bar — Division-specific (when division selected) ═══ */}
       {selectedDivision !== 'all' && (

@@ -28,7 +28,7 @@ interface QuickStatsBarProps {
 }
 
 /* ─── QuickStatsBar Component ─── */
-export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
+export const QuickStatsBar = React.memo(function QuickStatsBar({ data, division }: QuickStatsBarProps) {
   const dt = useDivisionTheme();
 
   const stats: StatCardConfig[] = [
@@ -72,8 +72,7 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
         return (
           <div
             key={stat.label}
-            className="stagger-item-subtle group"
-            style={{ animationDelay: `${idx * 60}ms` }}
+            className="group"
             role="listitem"
           >
             <div
@@ -134,4 +133,4 @@ export function QuickStatsBar({ data, division }: QuickStatsBarProps) {
       })}
     </div>
   );
-}
+});

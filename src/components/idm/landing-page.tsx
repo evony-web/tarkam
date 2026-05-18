@@ -17,11 +17,16 @@ import { LandingSkeleton } from './landing/landing-skeleton';
 
 // ★ Below-fold sections: lazy loaded to reduce initial JS bundle by ~250KB
 import dynamic from 'next/dynamic';
-const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="h-[420px]" /> });
-const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="h-[360px]" /> });
-const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="h-[480px]" /> });
-
-const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => ({ default: m.ClubsSection })), { ssr: false, loading: () => <div className="h-[400px]" /> });
+/* Mobile-optimized loading placeholders — responsive heights prevent CLS:
+   Mobile: shorter placeholders match stacked mobile layouts (single column)
+   Desktop: taller placeholders match wider multi-column layouts
+   Using min-h ensures placeholder never clips content; actual height fills naturally */
+const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="min-h-[320px] sm:min-h-[420px]" /> });
+const PlayersSection = dynamic(() => import('./landing/players-section').then(m => ({ default: m.PlayersSection })), { ssr: false, loading: () => <div className="min-h-[360px] sm:min-h-[480px]" /> });
+const HighlightsSection = dynamic(() => import('./landing/highlights-section').then(m => ({ default: m.HighlightsSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
+const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
+const ExperiencesSection = dynamic(() => import('./landing/experiences-section').then(m => ({ default: m.ExperiencesSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[380px]" /> });
+const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => ({ default: m.ClubsSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
 const SponsorsSection = dynamic(() => import('./landing/sponsors-section').then(m => ({ default: m.SponsorsSection })), { ssr: false, loading: () => null });
 const LandingFooter = dynamic(() => import('./landing/landing-footer').then(m => ({ default: m.LandingFooter })), { ssr: false, loading: () => null });
 const MarqueeTicker = dynamic(() => import('./marquee-ticker').then(m => ({ default: m.MarqueeTicker })), { ssr: false, loading: () => <div className="h-12" /> });
@@ -279,9 +284,13 @@ export function LandingPage() {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentModalDivision, setPaymentModalDivision] = useState<'male' | 'female'>('male');
 
-  /* Donation Modal State */
-  const [donationModalOpen, setDonationModalOpen] = useState(false);
-  const [donationModalDivision, setDonationModalDivision] = useState<'male' | 'female'>('male');
+  /* Mobile performance: defer non-critical queries on small screens */
+  const [deferredQueriesReady, setDeferredQueriesReady] = useState(false);
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const timer = setTimeout(() => setDeferredQueriesReady(true), isMobile ? 2000 : 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const openVideoModal = useCallback((url: string, title: string) => {
     setVideoModalUrl(url);
@@ -304,11 +313,14 @@ export function LandingPage() {
       if (!res.ok) return { male: { tournamentId: null, status: null, name: null, weekNumber: null, isRegistrationOpen: false }, female: { tournamentId: null, status: null, name: null, weekNumber: null, isRegistrationOpen: false } };
       return res.json();
     },
+    enabled: deferredQueriesReady,
     staleTime: 30000, // 30s — fast refresh since this is a lightweight query
     refetchInterval: 120000, // 2min polling — reduced from 60s to lower INP impact
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     gcTime: 60000,
+    placeholderData: (prev) => prev, // keep previous data during refetch — prevents CLS
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   /* Data Queries — 1min polling, CDN-cached */
@@ -333,6 +345,7 @@ export function LandingPage() {
       const url = `/api/stats?division=female${selectedSeasonId ? `&seasonId=${selectedSeasonId}` : ''}`;
       const res = await fetch(url); return res.json();
     },
+    enabled: deferredQueriesReady,
     staleTime: 120000, // 2min — reduced polling frequency to lower INP impact
     refetchInterval: 330000, // 5.5min polling — staggered 30s from male to avoid simultaneous INP spikes
     refetchIntervalInBackground: false,
@@ -342,7 +355,9 @@ export function LandingPage() {
     placeholderData: (prev) => prev, // keep previous data during refetch/season switch — prevents FOUC
   });
 
-  const isDataLoading = isMaleLoading || isFemaleLoading;
+  const isDataLoading = isMaleLoading || (deferredQueriesReady && isFemaleLoading);
+  // isSeasonSwitching: data exists (not initial load) but fetching new season data
+  const isSeasonSwitching = !isDataLoading && (isMaleFetching || isFemaleFetching);
   // isSeasonDataPlaceholder: true when showing OLD season data during a season switch
   // Used by Hero section to show skeleton instead of stale champion
   const isSeasonDataPlaceholder = isMalePlaceholder || isFemalePlaceholder;
@@ -359,11 +374,14 @@ export function LandingPage() {
       if (!res.ok) return { settings: {}, sections: {} };
       return res.json();
     },
+    enabled: deferredQueriesReady,
     staleTime: 300000, // CMS changes rarely — 5min stale is fine
     refetchInterval: 600000, // 10min polling — CMS data barely changes
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     gcTime: 300000,
+    placeholderData: (prev) => prev, // keep previous data during refetch — prevents CLS
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   const { data: leagueData } = useQuery<{ hasData: boolean; preSeason?: boolean; reason?: string; season?: { id: string; name: string; number: number }; tarkamChampion?: { id: string; name: string; logo: string | null; seasonNumber: number; malePoints: number; femalePoints: number; totalPoints: number; members: { id: string; gamertag: string; division: string; tier: string; points: number; role: string; avatar?: string | null }[] } | null; stats?: { totalClubs: number; totalMatches: number; completedMatches: number } }>({
@@ -373,6 +391,7 @@ export function LandingPage() {
       if (!res.ok) throw new Error('League API failed');
       return res.json();
     },
+    enabled: deferredQueriesReady,
     // ── 2min Polling Strategy ──
     // Most requests hit Vercel CDN (s-maxage=10), not the database.
     // 2min is optimized for mid-range devices while still feeling responsive:
@@ -385,6 +404,8 @@ export function LandingPage() {
     refetchOnReconnect: true, // Refetch when network reconnects
     refetchInterval: 660000, // 11min polling — staggered 1min from cms to avoid simultaneous INP spikes
     refetchIntervalInBackground: false,
+    placeholderData: (prev) => prev, // keep previous data during refetch — prevents CLS
+    notifyOnChangeProps: ['data', 'error'],
   });
 
   // CMS helpers
@@ -559,13 +580,17 @@ export function LandingPage() {
   useScrollReveal();
 
   /* Parallax — lightweight rAF-based depth layers on scroll */
-  useParallax([
-    { selector: '.parallax-hero-bg', speed: 0.12 },      // base gradient — slowest
-    { selector: '.parallax-hero-mid', speed: 0.08 },      // gold haze — very slow
-    { selector: '.parallax-hero-slow', speed: 0.05 },     // cyan/purple glow — slowest
-    { selector: '.parallax-section-bg', speed: 0.06 },    // section backgrounds — subtle
-    { selector: '.parallax-particles', speed: 0.18 },     // floating particles — fastest
-  ]);
+  useParallax(
+    typeof window !== 'undefined' && window.innerWidth >= 640
+      ? [
+          { selector: '.parallax-hero-bg', speed: 0.12 },
+          { selector: '.parallax-hero-mid', speed: 0.08 },
+          { selector: '.parallax-hero-slow', speed: 0.05 },
+          { selector: '.parallax-section-bg', speed: 0.06 },
+          { selector: '.parallax-particles', speed: 0.18 },
+        ]
+      : []
+  );
 
   // ★ Show full-page skeleton while initial data is loading
   // OPTIMIZATION: Only wait for maleData (primary division) for faster LCP
@@ -587,7 +612,7 @@ export function LandingPage() {
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <div className={`w-7 h-7 rounded-lg overflow-hidden shrink-0 transition-all duration-500 ${scrolled ? 'nav-logo-glow glow-pulse' : 'glow-pulse'}`}>
-              <Image src={cmsLogo} alt="IDM" width={28} height={28} className="w-full h-full object-cover" loading="lazy" />
+              <Image src={cmsLogo} alt="IDM" width={28} height={28} className="w-full h-full object-cover" priority />
             </div>
             <span className={`text-gradient-fury text-sm font-bold tracking-tight transition-all duration-500 ${scrolled ? 'nav-logo-text-glow' : ''}`}>{cmsSiteTitle}</span>
           </div>
@@ -651,8 +676,8 @@ export function LandingPage() {
         {/* Gradient border at top — premium separator */}
         <div className="h-px bg-gradient-to-r from-transparent via-idm-gold-warm/30 to-transparent" aria-hidden="true" />
         {/* Frosted glass background */}
-        <div className="bg-background/95 backdrop-blur-lg">
-          <div className="flex items-center justify-around h-16 px-1 relative">
+        <div className="bg-background sm:bg-background/95 sm:backdrop-blur-lg">
+          <div className="flex items-center justify-around h-16 px-1">
             {[
               { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
               { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },

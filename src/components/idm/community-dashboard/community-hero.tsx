@@ -30,6 +30,7 @@ import type { StatsData } from '@/types/stats';
 const AnimatedNumber = React.memo(function AnimatedNumber({ target, duration = 1500, prefix = '', suffix = '' }: { target: number; duration?: number; prefix?: string; suffix?: string }) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const currentValueRef = useRef(0);
+  const rafRef = useRef(0);
 
   useEffect(() => {
     const start = currentValueRef.current;
@@ -37,7 +38,6 @@ const AnimatedNumber = React.memo(function AnimatedNumber({ target, duration = 1
     if (diff === 0) return;
 
     const startTime = performance.now();
-    let rafId: number;
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
@@ -51,12 +51,13 @@ const AnimatedNumber = React.memo(function AnimatedNumber({ target, duration = 1
       }
 
       if (progress < 1) {
-        rafId = requestAnimationFrame(animate);
+        rafRef.current = requestAnimationFrame(animate);
       }
     };
 
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
+    rafRef.current = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(rafRef.current);
   }, [target, duration, prefix, suffix]);
 
   return <span ref={spanRef}>{prefix}0{suffix}</span>;
@@ -201,7 +202,7 @@ function DetailItem({
    Division Card — tournament info card for Male/Female
    Shows: status, name, detail info, players, + CTA buttons
    ═══════════════════════════════════════════════════════ */
-function DivisionCard({
+const DivisionCard = React.memo(function DivisionCard({
   division,
   data,
   status,
@@ -455,7 +456,7 @@ function DivisionCard({
       </div>
     </div>
   );
-}
+});
 
 /* ═══════════════════════════════════════════════════════
    COMMUNITY HERO — Redesigned tournament-centric banner
@@ -600,8 +601,8 @@ export const CommunityHero = React.memo(function CommunityHero({ maleData, femal
         }}
       />
 
-      {/* ═══ Floating gold particles ═══ */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* ═══ Floating gold particles — hidden on mobile to reduce paint/GPU cost ═══ */}
+      <div className="hidden sm:block absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -662,7 +663,7 @@ export const CommunityHero = React.memo(function CommunityHero({ maleData, femal
         </div>
 
         {/* ── Row 2: Division Cards (with tournament details + CTA buttons) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" style={{ contain: 'layout style' }}>
           <DivisionCard
             division="male"
             data={maleData}
@@ -742,7 +743,7 @@ export const CommunityHero = React.memo(function CommunityHero({ maleData, femal
         </div>
 
         {/* ── Row 3: Quick Stats + Progress (inline, compact) ── */}
-        <div className="flex items-center gap-4 sm:gap-6 p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/5 border border-idm-gold-warm/10 transition-all duration-300 hover:border-idm-gold-warm/20 hover:shadow-[0_0_5px_rgba(239,249,35,0.15)]">
+        <div className="flex items-center gap-4 sm:gap-6 p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/5 border border-idm-gold-warm/10" style={{ contain: 'layout style' }}>
           {/* Stats */}
           <div className="flex items-center gap-3 sm:gap-5 shrink-0">
             {quickStats.map(stat => (
