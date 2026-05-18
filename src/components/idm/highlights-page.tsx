@@ -13,7 +13,6 @@ import { getAvatarUrl, clubToString } from '@/lib/utils';
 // Import champion section components
 import { WeeklyChampionCard } from './community-dashboard/weekly-champion-card';
 import { MvpSpotlight } from './community-dashboard/mvp-spotlight';
-import { SultanOfWeekSection } from './community-dashboard/community-champions';
 import { MvpHallOfFame } from './community-dashboard/mvp-hall-of-fame';
 import { SharePopup } from './social-share-button';
 
@@ -397,28 +396,6 @@ export function HighlightsPage() {
           {/* MVP Spotlight */}
           <div className="animate-fade-enter-sm">
             <MvpSpotlight maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} onPlayerClick={handlePlayerClick} />
-          </div>
-
-          {/* Sultan of the Week */}
-          <div className="animate-fade-enter-sm">
-            <div className={`grid gap-4 ${selectedDivision === 'all' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-              {(selectedDivision === 'all' || selectedDivision === 'male') && (
-                <SultanOfWeekSection
-                  division="male"
-                  sultanData={maleData?.sultanOfWeekly}
-                  skinMap={maleData?.skinMap || {}}
-                  onPlayerClick={handlePlayerClick}
-                />
-              )}
-              {(selectedDivision === 'all' || selectedDivision === 'female') && (
-                <SultanOfWeekSection
-                  division="female"
-                  sultanData={femaleData?.sultanOfWeekly}
-                  skinMap={femaleData?.skinMap || {}}
-                  onPlayerClick={handlePlayerClick}
-                />
-              )}
-            </div>
           </div>
 
           {/* MVP Hall of Fame */}
