@@ -49,9 +49,10 @@ interface ClubsSectionProps {
   selectedSeasonId: string | null;
   setSelectedSeasonId: (id: string | null) => void;
   isHistorical: boolean;
+  hideHeader?: boolean;
 }
 
-export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections, leagueData, setSelectedClub, showAllClubs, setShowAllClubs, selectedSeasonId, setSelectedSeasonId, isHistorical }: ClubsSectionProps) {
+export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections, leagueData, setSelectedClub, showAllClubs, setShowAllClubs, selectedSeasonId, setSelectedSeasonId, isHistorical, hideHeader = false }: ClubsSectionProps) {
   // Get Tarkam season champions from allSeasons data (not from Liga)
   const seasonChampions = [
     ...(maleData?.allSeasons || []),
@@ -84,8 +85,11 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/12 to-transparent" aria-hidden="true" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="stagger-item">
-            <SectionHeader icon={Swords} label={cmsSections.clubs?.subtitle || "Club Peserta"} title={cmsSections.clubs?.title || "Club"} subtitle={cmsSections.clubs?.description || "Club-club terbaik yang bertarung di arena Tarkam IDM"} />
+          {!hideHeader && (
+            <div className="stagger-item">
+              <SectionHeader icon={Swords} label={cmsSections.clubs?.subtitle || "Club Peserta"} title={cmsSections.clubs?.title || "Club"} subtitle={cmsSections.clubs?.description || "Club-club terbaik yang bertarung di arena Tarkam IDM"} />
+            </div>
+          )}
 
             {/* ═══ Season Selector ═══ */}
             {seasonsForSelector.length > 1 && (
@@ -368,7 +372,6 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                 </>
               );
             })()}
-          </div>
         </div>
       </section>
   </>);

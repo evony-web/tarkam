@@ -93,6 +93,7 @@ export function ChampionsPage() {
           leagueData={leagueData}
           skinMap={{ ...maleData?.skinMap, ...femaleData?.skinMap }}
           isSeasonDataPlaceholder={isSeasonDataPlaceholder}
+          hideHeader
         />
       </div>
 

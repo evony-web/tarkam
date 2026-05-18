@@ -93,6 +93,7 @@ export function PlayersPage() {
           isHistorical={maleData?.isHistorical || femaleData?.isHistorical || false}
           maleSkinMap={maleData?.skinMap}
           femaleSkinMap={femaleData?.skinMap}
+          hideHeader
         />
       </div>
 

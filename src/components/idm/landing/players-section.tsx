@@ -32,6 +32,7 @@ interface PlayersSectionProps {
   maleSkinMap?: Record<string, PlayerSkinInfo[]>;
   /** Per-player skin data map for female division. Falls back to femaleData.skinMap if not provided. */
   femaleSkinMap?: Record<string, PlayerSkinInfo[]>;
+  hideHeader?: boolean;
 }
 
 /** Resolve skin info for a single player from the skin map */
@@ -63,6 +64,7 @@ export function PlayersSection({
   isHistorical,
   maleSkinMap: _maleSkinMap,
   femaleSkinMap: _femaleSkinMap,
+  hideHeader = false,
 }: PlayersSectionProps) {
   // Prefer the explicit prop, fall back to data-embedded skinMap
   const maleSkinMap = _maleSkinMap ?? maleData?.skinMap;
@@ -93,66 +95,68 @@ export function PlayersSection({
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/15 to-transparent" aria-hidden="true" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="stagger-item">
-          <SectionHeader icon={Music} label="Pemain" title="Player Tarkam" subtitle="Player terbaik yang bertarung di arena Tarkam IDM" />
+        {!hideHeader && (
+          <div className="stagger-item">
+            <SectionHeader icon={Music} label="Pemain" title="Player Tarkam" subtitle="Player terbaik yang bertarung di arena Tarkam IDM" />
+          </div>
+        )}
 
-          {/* ═══ Season Selector ═══ */}
-          {seasonsForSelector.length > 1 && (
-            <div className="stagger-item-fast mb-6 flex flex-col items-center gap-3" style={{ animationDelay: '30ms' }}>
-              {/* Season Pills */}
-              <div className="flex items-center gap-2">
-                {seasonsForSelector.map(season => {
-                  const isActive = season.status === 'active';
-                  const isCompleted = season.status === 'completed';
-                  const isSelected = selectedSeasonId === null
-                    ? isActive
-                    : selectedSeasonId === season.id;
+        {/* ═══ Season Selector ═══ */}
+        {seasonsForSelector.length > 1 && (
+          <div className="stagger-item-fast mb-6 flex flex-col items-center gap-3" style={{ animationDelay: '30ms' }}>
+            {/* Season Pills */}
+            <div className="flex items-center gap-2">
+              {seasonsForSelector.map(season => {
+                const isActive = season.status === 'active';
+                const isCompleted = season.status === 'completed';
+                const isSelected = selectedSeasonId === null
+                  ? isActive
+                  : selectedSeasonId === season.id;
 
-                  return (
-                    <button
-                      key={season.id}
-                      onClick={() => {
-                        if (isSelected && isActive) return;
-                        setSelectedSeasonId(isActive ? null : season.id);
-                      }}
-                      className={`
-                        inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold
-                        transition-all duration-200 cursor-pointer border
-                        ${isSelected
-                          ? 'bg-idm-gold-warm/15 border-idm-gold-warm/40 text-idm-gold-warm shadow-[0_0_12px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
-                          : 'bg-transparent border-idm-gold-warm/10 text-muted-foreground/70 hover:border-idm-gold-warm/25 hover:text-idm-gold-warm/60'
-                        }
-                      `}
-                      aria-label={`Select ${season.name}`}
-                      aria-pressed={isSelected}
-                    >
-                      <span className="font-black">S{season.number}</span>
-                      {isActive && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                        </span>
-                      )}
-                      {isCompleted && (
-                        <CheckCircle2 className="w-3 h-3 text-idm-gold-warm/60" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Historical Data Badge */}
-              {isHistorical && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5">
-                  <History className="w-3 h-3 text-idm-gold-warm/70" />
-                  <span className="text-[10px] font-bold text-idm-gold-warm/70 uppercase tracking-wider">
-                    Data Historis — Season {seasonsForSelector.find(s => s.id === selectedSeasonId)?.number || '?'}
-                  </span>
-                </div>
-              )}
+                return (
+                  <button
+                    key={season.id}
+                    onClick={() => {
+                      if (isSelected && isActive) return;
+                      setSelectedSeasonId(isActive ? null : season.id);
+                    }}
+                    className={`
+                      inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold
+                      transition-all duration-200 cursor-pointer border
+                      ${isSelected
+                        ? 'bg-idm-gold-warm/15 border-idm-gold-warm/40 text-idm-gold-warm shadow-[0_0_12px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
+                        : 'bg-transparent border-idm-gold-warm/10 text-muted-foreground/70 hover:border-idm-gold-warm/25 hover:text-idm-gold-warm/60'
+                      }
+                    `}
+                    aria-label={`Select ${season.name}`}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="font-black">S{season.number}</span>
+                    {isActive && (
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                      </span>
+                    )}
+                    {isCompleted && (
+                      <CheckCircle2 className="w-3 h-3 text-idm-gold-warm/60" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </div>
+
+            {/* Historical Data Badge */}
+            {isHistorical && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5">
+                <History className="w-3 h-3 text-idm-gold-warm/70" />
+                <span className="text-[10px] font-bold text-idm-gold-warm/70 uppercase tracking-wider">
+                  Data Historis — Season {seasonsForSelector.find(s => s.id === selectedSeasonId)?.number || '?'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Season switch loading indicator — subtle shimmer bar */}
         {isSeasonSwitching && (

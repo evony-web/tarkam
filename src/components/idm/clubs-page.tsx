@@ -111,6 +111,7 @@ export function ClubsPage() {
           selectedSeasonId={selectedSeasonId}
           setSelectedSeasonId={setSelectedSeasonId}
           isHistorical={maleData?.isHistorical || femaleData?.isHistorical || false}
+          hideHeader
         />
       </div>
 

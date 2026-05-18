@@ -306,3 +306,30 @@ Stage Summary:
 - Removed excessive shimmer animation from SectionHeader
 - All navigation (desktop, mobile, sidebar) consistently uses setCurrentView for Peringkat
 - Lint passes clean, dev server compiles without errors
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Remove redundant SectionHeader headings from navigation menu pages (Peringkat, Pemain, Juara, Season, Club)
+
+Work Log:
+- Added `hideHeader` optional boolean prop to 5 landing section components:
+  - `peringkat-section.tsx` — hides SectionHeader (label pill + title + subtitle) when hideHeader=true
+  - `players-section.tsx` — hides SectionHeader when hideHeader=true, moved Season Selector out of stagger-item wrapper
+  - `highlights-section.tsx` — hides SectionHeader (AnimatedSection + SectionHeader) when hideHeader=true
+  - `season-champion-section.tsx` — hides SectionHeader when hideHeader=true
+  - `clubs-section.tsx` — hides SectionHeader when hideHeader=true, removed stale stagger-item wrapper div
+- Passed `hideHeader` from each page component:
+  - `peringkat-page.tsx` → `<PeringkatSection hideHeader />`
+  - `players-page.tsx` → `<PlayersSection hideHeader />`
+  - `highlights-page.tsx` → `<HighlightsSection hideHeader />`
+  - `champions-page.tsx` → `<SeasonChampionSection hideHeader />`
+  - `clubs-page.tsx` → `<ClubsSection hideHeader />`
+- Verified CommunityDashboard (Kompetisi) page doesn't use SectionHeader — no changes needed
+- Fixed JSX closing tag issue in clubs-section.tsx (extra closing div from removed stagger-item wrapper)
+- Lint passes clean, dev server compiles successfully
+
+Stage Summary:
+- Each navigation menu page now only shows the Page Title Banner (compact h1 + subtitle), not the duplicate SectionHeader below
+- On the landing page, SectionHeader still renders normally (hideHeader defaults to false)
+- This eliminates the redundant double-heading issue the user reported

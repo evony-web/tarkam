@@ -77,6 +77,7 @@ export function PeringkatPage() {
           isDataLoading={isDataLoading}
           setSelectedPlayer={setSelectedPlayer}
           setSelectedClub={setSelectedClub}
+          hideHeader
         />
       </div>
 

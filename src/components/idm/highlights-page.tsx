@@ -123,6 +123,7 @@ export function HighlightsPage() {
           onVideoPlay={openVideoModal}
           setSelectedPlayer={setSelectedPlayer}
           setPreferredSkinType={setPreferredSkinType}
+          hideHeader
         />
       </div>
 

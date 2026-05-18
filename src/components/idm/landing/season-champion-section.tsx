@@ -35,6 +35,7 @@ interface SeasonChampionSectionProps {
   /** True when showing stale data from a previous season during a season switch.
    *  Used to show skeleton instead of old champion data. */
   isSeasonDataPlaceholder?: boolean;
+  hideHeader?: boolean;
 }
 
 /* ─── Season Champion Data ─── */
@@ -1304,6 +1305,7 @@ export function SeasonChampionSection({
   leagueData,
   skinMap,
   isSeasonDataPlaceholder = false,
+  hideHeader = false,
 }: SeasonChampionSectionProps) {
   const { male: maleChampions, female: femaleChampions, sultans } = buildSeasonChampions(maleData, femaleData);
 
@@ -1359,14 +1361,16 @@ export function SeasonChampionSection({
 
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Section Header — dynamic subtitle */}
-        <AnimatedSection>
-          <SectionHeader
-            icon={hasChampion ? Crown : Flame}
-            label={hasChampion ? 'TOP SEASON' : 'BINTANG MINGGU INI'}
-            title={hasChampion ? 'Top Season' : 'Bintang Minggu Ini'}
-            subtitle={subtitle}
-          />
-        </AnimatedSection>
+        {!hideHeader && (
+          <AnimatedSection>
+            <SectionHeader
+              icon={hasChampion ? Crown : Flame}
+              label={hasChampion ? 'TOP SEASON' : 'BINTANG MINGGU INI'}
+              title={hasChampion ? 'Top Season' : 'Bintang Minggu Ini'}
+              subtitle={subtitle}
+            />
+          </AnimatedSection>
+        )}
 
         {/* Player Champion Card */}
         <div className="mt-10 sm:mt-14">

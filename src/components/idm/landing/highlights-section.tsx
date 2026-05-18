@@ -36,6 +36,7 @@ interface HighlightsSectionProps {
   setSelectedPlayer: (player: any) => void;
   /** Set a preferred skin type when opening profile from specific context (e.g. 'mvp') */
   setPreferredSkinType?: (type: string | null) => void;
+  hideHeader?: boolean;
 }
 
 /* ─── Duo Player Data ─── */
@@ -1145,6 +1146,7 @@ export function HighlightsSection({
   onVideoPlay,
   setSelectedPlayer,
   setPreferredSkinType,
+  hideHeader = false,
 }: HighlightsSectionProps) {
   const isLight = useIsLightMode();
 
@@ -1187,14 +1189,16 @@ export function HighlightsSection({
       {/* ═══ Content ═══ */}
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
-        <AnimatedSection>
-          <SectionHeader
-            icon={Trophy}
-            label={highlightsLabel}
-            title={highlightsTitle}
-            subtitle={highlightsSubtitle}
-          />
-        </AnimatedSection>
+        {!hideHeader && (
+          <AnimatedSection>
+            <SectionHeader
+              icon={Trophy}
+              label={highlightsLabel}
+              title={highlightsTitle}
+              subtitle={highlightsSubtitle}
+            />
+          </AnimatedSection>
+        )}
 
         {/* ═══ Stacked Sections ═══ */}
         <div className="flex flex-col gap-10 sm:gap-14">

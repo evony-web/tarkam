@@ -14,6 +14,7 @@ interface PeringkatSectionProps {
   isDataLoading: boolean;
   setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
   setSelectedClub: (club: StatsData['clubs'][0] & { division?: string } | null) => void;
+  hideHeader?: boolean;
 }
 
 export function PeringkatSection({
@@ -22,6 +23,7 @@ export function PeringkatSection({
   isDataLoading,
   setSelectedPlayer,
   setSelectedClub,
+  hideHeader = false,
 }: PeringkatSectionProps) {
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
@@ -38,7 +40,7 @@ export function PeringkatSection({
     return (
       <section id="peringkat" className="landing-section relative py-6 sm:py-12 px-4 overflow-hidden bg-deep border-y border-border/30 dark:border-0">
         <div className="relative z-10 max-w-7xl mx-auto">
-          <SectionHeader icon={Award} label="Peringkat" title="Peringkat Tarkam" subtitle="Klasemen pemain dan klub terbaik" />
+          {!hideHeader && <SectionHeader icon={Award} label="Peringkat" title="Peringkat Tarkam" subtitle="Klasemen pemain dan klub terbaik" />}
           <div className="grid grid-cols-1 gap-4">
             {['Player', 'Club'].map(i => (
               <div key={i} className="h-64 rounded-2xl border border-border/30 bg-card/40 animate-pulse" />
@@ -61,9 +63,11 @@ export function PeringkatSection({
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/15 to-transparent" aria-hidden="true" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <div className="stagger-item">
-          <SectionHeader icon={Award} label="Peringkat" title="Peringkat Tarkam" subtitle="Klasemen pemain dan klub terbaik di arena Tarkam IDM" />
-        </div>
+        {!hideHeader && (
+          <div className="stagger-item">
+            <SectionHeader icon={Award} label="Peringkat" title="Peringkat Tarkam" subtitle="Klasemen pemain dan klub terbaik di arena Tarkam IDM" />
+          </div>
+        )}
 
         {/* Filter Header — Peringkat toggle + Division filter */}
         <div className="stagger-item-fast mb-6" style={{ animationDelay: '30ms' }}>
