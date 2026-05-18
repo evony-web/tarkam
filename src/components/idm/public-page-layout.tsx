@@ -182,11 +182,10 @@ function PublicAuthButton({
 
 /* ═══ Navigation items for public pages ═══ */
 const publicNavItems: { view: AppView; label: string; icon: typeof Swords; scrollTo?: boolean }[] = [
-  { view: 'community', label: 'Kompetisi', icon: Swords },
+  { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy },
+  { view: 'highlights' as AppView, label: 'Juara', icon: Crown },
   { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award },
   { view: 'players', label: 'Pemain', icon: Music },
-  { view: 'highlights', label: 'Juara', icon: Crown },
-  { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy },
 ];
 
 /* ═══ Public Page Layout ═══
