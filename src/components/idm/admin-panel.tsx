@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/lib/store';
 import Image from 'next/image';
 import {
-  Shield, Users, Music, Gift, Plus,
-  Loader2, MapPin, Phone,
-  LayoutDashboard, Sliders, Calendar,
-  Clock, UserCheck
+  Shield, Users, Music, Trophy, Gift, Plus,
+  Loader2, MapPin, Phone, Globe,
+  LayoutDashboard, Sliders, Flame, Calendar,
+  Award, Sparkles, Clock, UserCheck
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { AdminPlayersTab } from './admin/tabs/admin-players-tab';
 import { AdminKeuanganTab } from './admin/tabs/admin-keuangan-tab';
+import { CmsPanel } from './cms-panel';
+import { ErrorBoundary } from './error-boundary';
 import { TournamentManager } from './tournament-manager';
 import { ClubManagement } from './club-management';
 import { CloudinaryPicker } from './cloudinary-picker';
 import { AdminOverview } from './admin-overview';
+import { AdminSponsorPanel } from './admin-sponsor-panel';
+import { AdminAchievementPanel } from './admin-achievement-panel';
+import { AdminSkinPanel } from './admin-skin-panel';
 import { AdminSettingsPanel } from './admin-settings-panel';
+import { AdminDivisionContentTab } from './admin/tabs/admin-division-content-tab';
 import { AdminPendingTab } from './admin/tabs/admin-pending-tab';
 import { AdminManagement } from './admin-management';
 import { AdminSeasonPanel } from './admin-season-panel';
@@ -407,6 +413,8 @@ export function AdminPanel() {
     dashboard: ['dashboard'],
     peserta: ['pending', 'pemain', 'club', 'turnamen', 'keuangan'],
     season: ['season'],
+    konten: ['konten', 'sponsor'],
+    penghargaan: ['achievement', 'skin'],
     sistem: ['pengaturan'],
   };
 
@@ -570,13 +578,15 @@ export function AdminPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" aria-label="Admin panel navigation">
-        {/* Mobile: Grouped category navigation — 4 categories */}
+        {/* Mobile: Grouped category navigation — 6 categories */}
         <div className="sm:hidden space-y-2">
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-3 gap-1">
             {([
               { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { key: 'peserta', icon: Users, label: 'Tarkam' },
               { key: 'season', icon: Calendar, label: 'Season' },
+              { key: 'konten', icon: Globe, label: 'Konten' },
+              { key: 'penghargaan', icon: Award, label: 'Achiev' },
               { key: 'sistem', icon: Sliders, label: 'Sistem' },
             ] as const).map(cat => (
               <button
@@ -610,6 +620,10 @@ export function AdminPanel() {
                 turnamen: { icon: Music, label: 'Turnamen' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 season: { icon: Calendar, label: 'Season' },
+                konten: { icon: Globe, label: 'Halaman' },
+                sponsor: { icon: Flame, label: 'Sponsor' },
+                achievement: { icon: Trophy, label: 'Achievement' },
+                skin: { icon: Sparkles, label: 'Skin' },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
@@ -639,13 +653,15 @@ export function AdminPanel() {
           </div>
         </div>
 
-        {/* Desktop: Compact 4-category navigation */}
+        {/* Desktop: Compact 6-category navigation */}
         <div className="hidden sm:block space-y-2">
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5">
             {([
               { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
               { key: 'peserta', icon: Users, label: 'Tarkam' },
               { key: 'season', icon: Calendar, label: 'Season' },
+              { key: 'konten', icon: Globe, label: 'Konten' },
+              { key: 'penghargaan', icon: Award, label: 'Achiev' },
               { key: 'sistem', icon: Sliders, label: 'Sistem' },
             ] as const).map(cat => (
               <button
@@ -679,6 +695,10 @@ export function AdminPanel() {
                 turnamen: { icon: Music, label: 'Turnamen' },
                 keuangan: { icon: Gift, label: 'Keuangan', count: donationCount || undefined },
                 season: { icon: Calendar, label: 'Season' },
+                konten: { icon: Globe, label: 'Halaman' },
+                sponsor: { icon: Flame, label: 'Sponsor' },
+                achievement: { icon: Trophy, label: 'Achievement' },
+                skin: { icon: Sparkles, label: 'Skin' },
                 pengaturan: { icon: Sliders, label: 'Pengaturan' },
               };
               const cfg = tabConfig[tabValue];
@@ -777,10 +797,41 @@ export function AdminPanel() {
           />
         </TabsContent>
 
+        {/* ====== KONTEN / HALAMAN TAB ====== */}
+        <TabsContent value="konten" className="admin-tab-enter">
+          <div className="space-y-4">
+            <ErrorBoundary>
+              <CmsPanel />
+            </ErrorBoundary>
+            <AdminDivisionContentTab />
+          </div>
+        </TabsContent>
+
+        {/* ====== SPONSOR TAB ====== */}
+        <TabsContent value="sponsor" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminSponsorPanel />
+          </div>
+        </TabsContent>
+
         {/* ====== SEASON TAB ====== */}
         <TabsContent value="season" className="admin-tab-enter">
           <div className="space-y-4">
             <AdminSeasonPanel division={storeDivision} dt={dt} setConfirmDialog={setConfirmDialog} mode="tarkam" />
+          </div>
+        </TabsContent>
+
+        {/* ====== ACHIEVEMENT TAB (Penghargaan category) ====== */}
+        <TabsContent value="achievement" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminAchievementPanel />
+          </div>
+        </TabsContent>
+
+        {/* ====== SKIN TAB (Penghargaan category) ====== */}
+        <TabsContent value="skin" className="admin-tab-enter">
+          <div className="space-y-4">
+            <AdminSkinPanel />
           </div>
         </TabsContent>
 

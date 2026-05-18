@@ -540,3 +540,30 @@ Stage Summary:
 - Admin panel simplified from 6 categories (12 subtabs) to 4 categories (8 subtabs)
 - TypeScript check passes with zero errors
 - Dev server running without errors
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Simplify dashboard sidebar - remove community nav items, keep only Home + Admin
+
+Work Log:
+- Reverted all admin-panel.tsx changes from previous task (restored 6 categories, 12 subtabs, all TabsContent, all imports)
+- Reverted AdminOverview quick actions (restored Konten entry)
+- Simplified DesktopSidebar in app-shell.tsx:
+  - Removed "Arena" section label + all 8 communityNavItems (Komunitas, Peringkat, Pemain, Juara, Bracket, Arena Live, Marketplace, Peraturan)
+  - Removed "Lainnya" section label
+  - Kept only: Home + Admin navigation buttons
+  - Removed communityNavItems array and NavItemDef type definition
+  - Cleaned up unused icon imports (Users, Award, Radio, BookOpen, ShoppingBag, Crown, Trophy, Music)
+- Simplified Mobile Bottom Nav in dashboard layout:
+  - Changed from 4 items (Home, Pemain, Live FAB, Juara) → 2 items (Home, Admin)
+  - Removed Arena Live FAB button
+  - Admin button opens admin view or login modal
+- Fixed onOpenAdminModal reference error in mobile nav (replaced with inline setAccountModalOpen)
+
+Stage Summary:
+- Dashboard sidebar now shows only Home + Admin (clean, minimal)
+- Mobile bottom nav in dashboard shows only Home + Admin
+- Admin panel internals unchanged (still has all 6 categories with full subtabs)
+- Community navigation is available from the landing page's public navigation (desktop nav + mobile bottom nav)
+- TypeScript check passes with zero errors

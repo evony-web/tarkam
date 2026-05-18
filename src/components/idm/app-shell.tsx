@@ -3,11 +3,10 @@
 import { useAppStore, type AppView } from '@/lib/store';
 import Image from 'next/image';
 import {
-  Users, Shield,
   Home, LogOut, KeyRound, LogIn,
   PanelLeftClose, ChevronRight, Download, X, UserCircle,
-  Calendar, ShoppingBag, Radio, BookOpen, UserPlus, ArrowLeft,
-  Sun, Moon, Crown, Trophy, Music, Award
+  Calendar, UserPlus, ArrowLeft,
+  Sun, Moon, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CasinoHeroSkeleton, StatsRowSkeleton } from './ui/skeleton';
@@ -138,26 +137,6 @@ function ThemeToggleButton({ size = 'sm', className = '' }: { size?: 'sm' | 'md'
     </button>
   );
 }
-
-/* ─── Navigation Items — Unified Community Dashboard ─── */
-type NavItemDef = {
-  id: AppView;
-  label: string;
-  icon: typeof Home;
-  division?: 'male' | 'female';
-  isSubItem?: boolean;
-};
-
-const communityNavItems: NavItemDef[] = [
-  { id: 'community', label: 'Komunitas', icon: Users },
-  { id: 'peringkat', label: 'Peringkat', icon: Award },
-  { id: 'players', label: 'Pemain', icon: Music },
-  { id: 'highlights', label: 'Juara', icon: Crown },
-  { id: 'bracket', label: 'Bracket', icon: Trophy },
-  { id: 'matchday', label: 'Arena Live', icon: Radio },
-  { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
-  { id: 'league', label: 'Peraturan', icon: BookOpen },
-];
 
 /* ─── Collapsible Desktop Sidebar ─── */
 function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccountModal: () => void; onOpenAdminModal: () => void }) {
@@ -312,7 +291,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
 
       <div className="section-divider !my-0" />
 
-      {/* Navigation */}
+      {/* Navigation — Admin-only: Home + Admin */}
       <nav className={`flex-1 ${collapsed ? 'px-1.5' : 'px-3'} py-3 space-y-0.5 overflow-y-auto custom-scrollbar`}>
         {/* Home */}
         <NavButton
@@ -325,61 +304,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
           onClick={() => setCurrentView('landing')}
         />
 
-        {!collapsed && (
-          <div className="px-3 py-1.5">
-            <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Arena</p>
-          </div>
-        )}
-
         {collapsed && <div className="my-1 mx-auto w-6 h-px bg-border/40" />}
-
-        {/* Community + Division Nav Items */}
-        {communityNavItems.map((item) => {
-          const isActive = item.division
-            ? currentView === item.id && division === item.division
-            : currentView === item.id;
-
-          let iconBg = '';
-          if (isActive) {
-            if (item.division === 'male') iconBg = 'bg-idm-male/15';
-            else if (item.division === 'female') iconBg = 'bg-idm-female/15';
-            else if (item.id === 'marketplace') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'league') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'matchday') iconBg = 'bg-red-500/15';
-            else if (item.id === 'players') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'highlights') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'bracket') iconBg = 'bg-idm-gold-warm/15';
-            else if (item.id === 'peringkat') iconBg = 'bg-idm-gold-warm/15';
-            else iconBg = dt.iconBg;
-          }
-
-          return (
-            <NavButton
-              key={`nav-${item.label}`}
-              icon={item.icon}
-              label={item.label}
-              collapsed={collapsed}
-              isActive={isActive}
-              iconBg={iconBg}
-              activeGlow={isActive}
-              division={item.division || division}
-              navActive={dt.navActive}
-              isCommunity={!item.division}
-              onClick={() => {
-                if (item.division) setDivision(item.division);
-                setCurrentView(item.id);
-              }}
-            />
-          );
-        })}
-
-        {collapsed && <div className="my-1 mx-auto w-6 h-px bg-border/40" />}
-
-        {!collapsed && (
-          <div className="px-3 py-1.5">
-            <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Lainnya</p>
-          </div>
-        )}
 
         {/* Admin */}
         <NavButton
@@ -750,7 +675,7 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Bottom Nav — 5 items with center FAB (Live) + gold dot indicators */}
+      {/* Mobile Bottom Nav — Admin-only: Home + Admin */}
       <nav className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 ${dt.glassStrong} border-t border-border`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="flex justify-around items-end py-1 px-1 relative">
           {/* Home */}
@@ -767,55 +692,19 @@ export function AppShell() {
             )}
           </button>
 
-          {/* Pemain */}
+          {/* Admin */}
           <button
-            onClick={() => { hapticTap(); setCurrentView('players'); }}
+            onClick={() => { hapticTap(); if (adminAuth.isAuthenticated) setCurrentView('admin'); else { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); } }}
             className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
+              currentView === 'admin' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
             }`}
           >
-            <Music className={`w-5 h-5 transition-transform duration-200 ${currentView === 'players' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Pemain</span>
-            {currentView === 'players' && (
+            <Shield className={`w-5 h-5 transition-transform duration-200 ${currentView === 'admin' ? 'scale-110' : ''}`} />
+            <span className="text-[10px] font-semibold leading-tight">Admin</span>
+            {currentView === 'admin' && (
               <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
             )}
           </button>
-
-          {/* ★ Center FAB — Arena Live (golden, elevated, larger) ★ */}
-          <div className="flex flex-col items-center -mt-5 relative z-50">
-            <button
-              onClick={() => { hapticTap(); setCurrentView('matchday'); }}
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200 active:scale-90 ${
-                currentView === 'matchday'
-                  ? 'bg-gradient-to-br from-idm-gold-warm to-[#e8b94a] shadow-[0_0_16px_rgba(239,249,35,0.5)] scale-105'
-                  : 'bg-gradient-to-br from-idm-gold-warm to-[#d4a03c] shadow-[0_0_10px_rgba(239,249,35,0.25)] hover:scale-105'
-              }`}
-              title="Arena Live"
-            >
-              <Radio className="w-5 h-5 text-black" />
-            </button>
-            <span className={`text-[9px] font-bold mt-0.5 leading-tight ${
-              currentView === 'matchday' ? 'text-idm-gold-warm' : 'text-idm-gold-warm/70'
-            }`}>
-              Live
-            </span>
-          </div>
-
-          {/* Juara */}
-          <button
-            onClick={() => { hapticTap(); setCurrentView('highlights'); }}
-            className={`flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 min-h-[44px] rounded-lg transition-all duration-200 relative ${
-              currentView === 'highlights' ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
-            }`}
-          >
-            <Crown className={`w-5 h-5 transition-transform duration-200 ${currentView === 'highlights' ? 'scale-110' : ''}`} />
-            <span className="text-[10px] font-semibold leading-tight">Juara</span>
-            {currentView === 'highlights' && (
-              <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-idm-gold-warm shadow-[0_0_6px_rgba(239,249,35,0.5)]" />
-            )}
-          </button>
-
-
         </div>
       </nav>
 
