@@ -855,7 +855,7 @@ function GhostSultanOfSeasonCard() {
 
 /* ═══════════════════════════════════════════
    Highlights (Juara) Page — Main Component
-   Contains: Reigning Champion, Season 1 Club Champion, Weekly Champions, MVP Spotlight, MVP Hall of Fame
+   Contains: Reigning Champion, Season 1 Club Champion, Sultan of Season, Weekly Champions, MVP Spotlight, Sultan of the Week, MVP Hall of Fame
    ═══════════════════════════════════════════ */
 export function HighlightsPage() {
 
@@ -973,22 +973,7 @@ export function HighlightsPage() {
             selectedDivision={selectedDivision}
           />
 
-          {/* Weekly Champions */}
-          <div className="animate-fade-enter-sm">
-            <WeeklyChampionCard maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} onPlayerClick={handlePlayerClick} />
-          </div>
-
-          {/* Sultan of the Week */}
-          {showSultanOfWeek && topSultanOfWeek ? (
-            <SultanOfWeekCard
-              sultan={topSultanOfWeek}
-              onPlayerClick={handlePlayerClick}
-            />
-          ) : (
-            <GhostSultanOfWeekCard />
-          )}
-
-          {/* Sultan of Season */}
+          {/* Sultan of Season — below Season Club Champion */}
           {seasonSultans.length > 0 ? (
             <SultanOfSeasonCardPage
               sultans={seasonSultans}
@@ -998,10 +983,25 @@ export function HighlightsPage() {
             <GhostSultanOfSeasonCard />
           )}
 
+          {/* Weekly Champions */}
+          <div className="animate-fade-enter-sm">
+            <WeeklyChampionCard maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} onPlayerClick={handlePlayerClick} />
+          </div>
+
           {/* MVP Spotlight */}
           <div className="animate-fade-enter-sm">
             <MvpSpotlight maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} onPlayerClick={handlePlayerClick} />
           </div>
+
+          {/* Sultan of the Week — above MVP Hall of Fame */}
+          {showSultanOfWeek && topSultanOfWeek ? (
+            <SultanOfWeekCard
+              sultan={topSultanOfWeek}
+              onPlayerClick={handlePlayerClick}
+            />
+          ) : (
+            <GhostSultanOfWeekCard />
+          )}
 
           {/* MVP Hall of Fame */}
           <div className="animate-fade-enter-sm">
