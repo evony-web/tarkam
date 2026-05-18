@@ -324,14 +324,12 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
   if (maleSeason1?.championClub) clubEntries.push({ club: maleSeason1.championClub, division: 'male' });
   if (femaleSeason1?.championClub) clubEntries.push({ club: femaleSeason1.championClub, division: 'female' });
 
-  // If no season 1 club champion, don't render
-  if (clubEntries.length === 0) return null;
+  const hasData = clubEntries.length > 0;
 
   // Check division filter
   const showMale = selectedDivision === 'all' || selectedDivision === 'male';
   const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
-  const filteredEntries = clubEntries.filter(e => (e.division === 'male' ? showMale : showFemale));
-  if (filteredEntries.length === 0) return null;
+  const filteredEntries = hasData ? clubEntries.filter(e => (e.division === 'male' ? showMale : showFemale)) : [];
 
   // Merge members from all filtered entries (deduplicate by id, sum points)
   const memberMap = new Map<string, ClubChampionMember>();
@@ -349,9 +347,8 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
   }
   const allMembers = Array.from(memberMap.values()).sort((a, b) => b.points - a.points);
   const clubData = filteredEntries[0]?.club;
-  if (!clubData) return null;
 
-  const totalPoints = clubData.totalPoints || allMembers.reduce((s, m) => s + m.points, 0);
+  const totalPoints = clubData?.totalPoints || allMembers.reduce((s, m) => s + m.points, 0);
   const memberCount = allMembers.length;
   const maleMembers = allMembers.filter(m => m.division === 'male');
   const femaleMembers = allMembers.filter(m => m.division === 'female');
@@ -359,7 +356,7 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
 
   return (
     <div className="animate-fade-enter-sm">
-      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}>
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden ${!hasData ? 'opacity-55' : ''}`}>
         <div className={ct.casinoBar} />
 
         {/* Header */}
@@ -368,104 +365,156 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
             <Trophy className={`w-3 h-3 ${ct.neonText}`} />
           </div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Season 1 Club Champion</span>
-          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
-            <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
-          </Badge>
+          {hasData ? (
+            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
+              <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
+            </Badge>
+          ) : (
+            <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 ml-auto text-[9px] font-bold">
+              TBA
+            </Badge>
+          )}
         </div>
 
-        {/* Club Champion Content */}
-        <div className="p-3 sm:p-5">
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
-            {/* Club Logo + Crown */}
-            <div className="relative shrink-0">
-              <div
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-idm-gold-warm/15 bg-white/[0.02]"
-                style={{ boxShadow: '0 0 24px rgba(239,249,35,0.06)' }}
-              >
-                <ClubLogoImage clubName={clubData.name} dbLogo={clubData.logo} alt={clubData.name} width={96} height={96} className="w-full h-full object-cover" />
+        {hasData && clubData ? (
+          /* ═══ Data State — Full club champion display ═══ */
+          <div className="p-3 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+              {/* Club Logo + Crown */}
+              <div className="relative shrink-0">
+                <div
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-idm-gold-warm/15 bg-white/[0.02]"
+                  style={{ boxShadow: '0 0 24px rgba(239,249,35,0.06)' }}
+                >
+                  <ClubLogoImage clubName={clubData.name} dbLogo={clubData.logo} alt={clubData.name} width={96} height={96} className="w-full h-full object-cover" />
+                </div>
+                {/* Crown badge */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-idm-gold-warm/80 flex items-center justify-center" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.3)' }}>
+                  <Crown className="w-3 h-3 text-[#080a14]" />
+                </div>
               </div>
-              {/* Crown badge */}
-              <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-idm-gold-warm/80 flex items-center justify-center" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.3)' }}>
-                <Crown className="w-3 h-3 text-[#080a14]" />
+
+              {/* Club Info */}
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <h4 className="text-lg sm:text-xl font-black uppercase tracking-wide text-foreground">
+                  {clubData.name}
+                </h4>
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+                  Club terbaik Tarkam IDM Season 1
+                </p>
+
+                {/* Stats row */}
+                <div className="flex items-center gap-2 mt-2.5 justify-center sm:justify-start flex-wrap">
+                  <span className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border border-idm-gold-warm/15 px-2 py-0.5 rounded-md font-bold tabular-nums">
+                    {totalPoints}pts
+                  </span>
+                  {maleMembers.length > 0 && (
+                    <span className="bg-idm-male/8 text-idm-male-light text-[10px] border border-idm-male/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                      <Users className="w-3 h-3" />{maleMembers.length} Cowo
+                    </span>
+                  )}
+                  {femaleMembers.length > 0 && (
+                    <span className="bg-idm-female/8 text-idm-female-light text-[10px] border border-idm-female/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                      <Users className="w-3 h-3" />{femaleMembers.length} Cewe
+                    </span>
+                  )}
+                  <span className="bg-muted/5 text-muted-foreground text-[10px] border border-border/15 px-2 py-0.5 rounded-md font-bold">
+                    {memberCount} Total
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Club Info */}
-            <div className="flex-1 min-w-0 text-center sm:text-left">
-              <h4 className="text-lg sm:text-xl font-black uppercase tracking-wide text-foreground">
-                {clubData.name}
-              </h4>
-              <p className="text-[11px] text-muted-foreground/60 mt-0.5">
-                Club terbaik Tarkam IDM Season 1
-              </p>
+            {/* Top Performers — member avatars */}
+            {allMembers.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-idm-gold-warm/8">
+                <p className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mb-2.5">Top Performers</p>
+                <div className="flex flex-wrap gap-2">
+                  {allMembers.slice(0, 5).map((member) => (
+                    <div key={member.id} className="group/member relative flex flex-col items-center">
+                      <div
+                        className={`w-11 h-11 rounded-xl overflow-hidden border transition-all duration-200 ${
+                          member.division === 'male'
+                            ? 'border-idm-male/15'
+                            : 'border-idm-female/15'
+                        } ${captainMember?.id === member.id ? 'ring-1 ring-idm-gold-warm/30 border-idm-gold-warm/20' : ''}`}
+                      >
+                        <AvatarMedia
+                          src={getAvatarUrl(member.gamertag, member.division, member.avatar)}
+                          alt={member.gamertag}
+                          width={44}
+                          height={44}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        {/* Captain badge */}
+                        {captainMember?.id === member.id && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-idm-gold-warm/70 flex items-center justify-center z-10">
+                            <Crown className="w-2 h-2 text-[#080a14]" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[8px] font-bold mt-0.5 truncate max-w-[44px] text-center text-foreground/60">{member.gamertag}</p>
+                      <p className="text-[7px] font-black tabular-nums" style={{ color: member.division === 'male' ? 'var(--idm-male-light)' : 'var(--idm-female-light)' }}>{member.points}pts</p>
+                    </div>
+                  ))}
+                  {allMembers.length > 5 && (
+                    <div className="flex flex-col items-center">
+                      <div className="w-11 h-11 rounded-xl flex flex-col items-center justify-center border border-dashed border-border/30 bg-muted/5">
+                        <span className="text-[10px] font-black text-muted-foreground/50">+{allMembers.length - 5}</span>
+                      </div>
+                      <p className="text-[8px] font-bold mt-0.5 text-muted-foreground/40">lainnya</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ═══ Ghost Empty State — Matching layout with skeleton placeholders ═══ */
+          <div className="p-3 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+              {/* Ghost Club Logo */}
+              <div className="relative shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-idm-gold-warm/8 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(239,249,35,0.06), rgba(239,249,35,0.02))' }}>
+                  <Trophy className="w-8 h-8 text-idm-gold-warm/20" />
+                </div>
+                {/* Ghost crown */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-muted/30 flex items-center justify-center">
+                  <Crown className="w-3 h-3 text-muted-foreground/30" />
+                </div>
+              </div>
 
-              {/* Stats row */}
-              <div className="flex items-center gap-2 mt-2.5 justify-center sm:justify-start flex-wrap">
-                <span className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border border-idm-gold-warm/15 px-2 py-0.5 rounded-md font-bold tabular-nums">
-                  {totalPoints}pts
-                </span>
-                {maleMembers.length > 0 && (
-                  <span className="bg-idm-male/8 text-idm-male-light text-[10px] border border-idm-male/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
-                    <Users className="w-3 h-3" />{maleMembers.length} Cowo
-                  </span>
-                )}
-                {femaleMembers.length > 0 && (
-                  <span className="bg-idm-female/8 text-idm-female-light text-[10px] border border-idm-female/12 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
-                    <Users className="w-3 h-3" />{femaleMembers.length} Cewe
-                  </span>
-                )}
-                <span className="bg-muted/5 text-muted-foreground text-[10px] border border-border/15 px-2 py-0.5 rounded-md font-bold">
-                  {memberCount} Total
-                </span>
+              {/* Ghost Club Info */}
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <div className="h-6 w-36 rounded bg-muted/30 mx-auto sm:mx-0 mb-2" />
+                <div className="h-3 w-48 rounded bg-muted/20 mx-auto sm:mx-0" />
+
+                {/* Ghost Stats row */}
+                <div className="flex items-center gap-2 mt-3 justify-center sm:justify-start">
+                  <div className="h-5 w-14 rounded-md bg-muted/20" />
+                  <div className="h-5 w-16 rounded-md bg-muted/15" />
+                  <div className="h-5 w-16 rounded-md bg-muted/15" />
+                  <div className="h-5 w-14 rounded-md bg-muted/10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Ghost Top Performers */}
+            <div className="mt-4 pt-3 border-t border-idm-gold-warm/5">
+              <p className="text-[9px] text-muted-foreground/25 uppercase tracking-wider font-semibold mb-2.5">Top Performers</p>
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`ghost-member-${i}`} className="flex flex-col items-center">
+                    <div className="w-11 h-11 rounded-xl bg-muted/15 border border-muted/10" />
+                    <div className="h-2 w-8 rounded bg-muted/15 mt-1" />
+                    <div className="h-2 w-6 rounded bg-muted/10 mt-0.5" />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-
-          {/* Top Performers — member avatars */}
-          {allMembers.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-idm-gold-warm/8">
-              <p className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mb-2.5">Top Performers</p>
-              <div className="flex flex-wrap gap-2">
-                {allMembers.slice(0, 5).map((member) => (
-                  <div key={member.id} className="group/member relative flex flex-col items-center">
-                    <div
-                      className={`w-11 h-11 rounded-xl overflow-hidden border transition-all duration-200 ${
-                        member.division === 'male'
-                          ? 'border-idm-male/15'
-                          : 'border-idm-female/15'
-                      } ${captainMember?.id === member.id ? 'ring-1 ring-idm-gold-warm/30 border-idm-gold-warm/20' : ''}`}
-                    >
-                      <AvatarMedia
-                        src={getAvatarUrl(member.gamertag, member.division, member.avatar)}
-                        alt={member.gamertag}
-                        width={44}
-                        height={44}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      {/* Captain badge */}
-                      {captainMember?.id === member.id && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-idm-gold-warm/70 flex items-center justify-center z-10">
-                          <Crown className="w-2 h-2 text-[#080a14]" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-[8px] font-bold mt-0.5 truncate max-w-[44px] text-center text-foreground/60">{member.gamertag}</p>
-                    <p className="text-[7px] font-black tabular-nums" style={{ color: member.division === 'male' ? 'var(--idm-male-light)' : 'var(--idm-female-light)' }}>{member.points}pts</p>
-                  </div>
-                ))}
-                {allMembers.length > 5 && (
-                  <div className="flex flex-col items-center">
-                    <div className="w-11 h-11 rounded-xl flex flex-col items-center justify-center border border-dashed border-border/30 bg-muted/5">
-                      <span className="text-[10px] font-black text-muted-foreground/50">+{allMembers.length - 5}</span>
-                    </div>
-                    <p className="text-[8px] font-bold mt-0.5 text-muted-foreground/40">lainnya</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
