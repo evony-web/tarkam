@@ -580,6 +580,8 @@ function SultanOfWeekCard({
                 ...sultan.player!,
                 name: sultan.player!.gamertag,
                 club: sultan.player!.club ?? undefined,
+                maxStreak: 0,
+                matches: 0,
                 division: sultanDivision,
               }, sultanDivision)}
               className="flex items-center gap-3 sm:gap-4 w-full text-left cursor-pointer group/sultan"
@@ -896,6 +898,8 @@ function SultanOfWeekDivisionCard({
             ...sultan.player!,
             name: sultan.player!.gamertag,
             club: sultan.player!.club ?? undefined,
+            maxStreak: 0,
+            matches: 0,
             division,
           }, division)}
           className="flex items-center gap-3 w-full text-left cursor-pointer group/sultan"

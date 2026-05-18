@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     try {
       const matchedPlayer = await db.player.findFirst({
         where: {
-          gamertag: { equals: donorName.trim(), mode: 'insensitive' },
+          gamertag: { equals: donorName.trim(), mode: 'insensitive' } as any,
           isActive: true,
         },
         select: { id: true },
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       // Auto-award donor skin (Maroon Heart) to Sultan of the Week
       try {
         const donorPlayerId = donation.playerId || (await db.player.findFirst({
-          where: { gamertag: { equals: donation.donorName, mode: 'insensitive' } },
+          where: { gamertag: { equals: donation.donorName, mode: 'insensitive' } as any },
           select: { id: true },
         }))?.id;
 
@@ -300,7 +300,7 @@ export async function PATCH(request: Request) {
       // Use playerId if available, otherwise fall back to gamertag matching.
       try {
         const donorPlayerId = donation.playerId || (await db.player.findFirst({
-          where: { gamertag: { equals: donation.donorName, mode: 'insensitive' } },
+          where: { gamertag: { equals: donation.donorName, mode: 'insensitive' } as any },
           select: { id: true },
         }))?.id;
 

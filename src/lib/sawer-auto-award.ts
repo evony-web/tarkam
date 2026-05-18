@@ -9,7 +9,7 @@ import { getSawerTier } from './skin-utils';
 export async function autoAwardSawerSkin(donorName: string): Promise<void> {
   // 1. Find the player account by gamertag matching donorName
   const player = await db.player.findFirst({
-    where: { gamertag: { equals: donorName, mode: 'insensitive' } },
+    where: { gamertag: { equals: donorName, mode: 'insensitive' } as any },
     include: { account: true },
   }) as any;
 
@@ -25,7 +25,7 @@ export async function autoAwardSawerSkin(donorName: string): Promise<void> {
 
   const weeklyDonations = await db.donation.findMany({
     where: {
-      donorName: { equals: donorName, mode: 'insensitive' },
+      donorName: { equals: donorName, mode: 'insensitive' } as any,
       type: 'weekly',
       status: 'approved',
       createdAt: { gte: startOfWeek },

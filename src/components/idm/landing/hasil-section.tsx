@@ -91,8 +91,10 @@ const DIVISION_STYLE = {
   },
 } as const;
 
+type DivisionStyle = typeof DIVISION_STYLE[keyof typeof DIVISION_STYLE];
+
 /* ─── Match Row — compact, bracket-style ─── */
-function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: typeof DIVISION_STYLE.male }) {
+function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: DivisionStyle }) {
   const winner1 = m.score1 != null && m.score2 != null && m.score1 > m.score2;
   const winner2 = m.score1 != null && m.score2 != null && m.score2 > m.score1;
 
@@ -129,7 +131,7 @@ function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: typ
 }
 
 /* ─── Grand Final Match — special champion rendering ─── */
-function GrandFinalMatch({ m, divStyle }: { m: UnifiedMatchResult; divStyle: typeof DIVISION_STYLE.male }) {
+function GrandFinalMatch({ m, divStyle }: { m: UnifiedMatchResult; divStyle: DivisionStyle }) {
   if (m.score1 == null || m.score2 == null) {
     return <MatchRowLanding m={m} divStyle={divStyle} />;
   }
