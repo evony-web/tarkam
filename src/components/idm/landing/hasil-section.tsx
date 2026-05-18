@@ -371,8 +371,9 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
           />
         </AnimatedSection>
 
-        {/* Section Title Row + Division Filter — left title, right tabs */}
-        <div className="stagger-item-fast flex items-center justify-between gap-3 mb-6">
+        {/* Section Title Row + Division Filter — stacked, consistent with PeringkatSection */}
+        <div className="stagger-item-fast space-y-2.5 mb-6">
+          {/* Title row */}
           <div className="flex items-center gap-2.5">
             <div className="w-5 h-5 rounded bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
               <Trophy className="w-3 h-3 text-idm-gold-warm" />
@@ -384,25 +385,31 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
             }}>Hasil Pertandingan</h3>
           </div>
 
-          {/* Division pills — right-aligned */}
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-            {([
-              { key: 'all' as DivisionFilter, label: 'Semua' },
-              { key: 'male' as DivisionFilter, label: 'Cowo' },
-              { key: 'female' as DivisionFilter, label: 'Cewe' },
-            ]).map(div => (
-              <button
-                key={div.key}
-                onClick={() => setHasilDivision(div.key)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  hasilDivision === div.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
-                    : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
-                }`}
-              >
-                {div.label}
-              </button>
-            ))}
+          {/* Division pills — below title, consistent with PeringkatHeader */}
+          <div className="overflow-x-auto scrollbar-none -mx-1 px-1">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 min-w-max lg:min-w-0">
+              {([
+                { key: 'all' as DivisionFilter, label: 'Semua' },
+                { key: 'male' as DivisionFilter, label: 'Cowo' },
+                { key: 'female' as DivisionFilter, label: 'Cewe' },
+              ]).map(div => (
+                <button
+                  key={div.key}
+                  onClick={() => setHasilDivision(div.key)}
+                  className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
+                    hasilDivision === div.key
+                      ? div.key === 'male'
+                        ? 'bg-idm-male text-white shadow-sm'
+                        : div.key === 'female'
+                        ? 'bg-idm-female text-white shadow-sm'
+                        : 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
+                      : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
+                  }`}
+                >
+                  {div.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
