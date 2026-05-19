@@ -101,10 +101,12 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
   const [selectedChampion, setSelectedChampion] = useState<string>('');
   const [selectedChampionPlayer, setSelectedChampionPlayer] = useState<string>('');
   const [championPlayerSearch, setChampionPlayerSearch] = useState<string>('');
+  const [championSearchMode, setChampionSearchMode] = useState<'season' | 'all'>('season');
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
   const [editingSultan, setEditingSultan] = useState<string | null>(null);
   const [selectedSultan, setSelectedSultan] = useState<string>('');
   const [sultanSearch, setSultanSearch] = useState<string>('');
+  const [sultanSearchMode, setSultanSearchMode] = useState<'season' | 'all'>('season');
   const [editingSquad, setEditingSquad] = useState(false);
   const [squadSelection, setSquadSelection] = useState<Array<{id: string; gamertag: string; division: string; role: string}>>([]);
   const [confirmLocal, setConfirmLocal] = useState<{
@@ -209,11 +211,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
       setEditingChampion(null);
       setSelectedChampionPlayer('');
       setChampionPlayerSearch('');
+      setChampionSearchMode('season');
       setEditingStatus(null);
       setEditingSquad(false);
       setEditingSultan(null);
       setSelectedSultan('');
       setSultanSearch('');
+      setSultanSearchMode('season');
     },
     onError: (e: Error) => { toast.error(e.message); },
   });
@@ -254,6 +258,26 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
       toast.success(data.message || 'Season berhasil ditutup!');
     },
     onError: (e: Error) => { toast.error(e.message); },
+  });
+
+  // Search all players (for Sultan/Champion selection when season has no participants)
+  const { data: searchedPlayers } = useQuery<Array<{
+    id: string; gamertag: string; division: string; avatar: string | null;
+    tier: string; points: number; totalWins: number; totalMvp: number;
+    club: { id: string; name: string; logo: string | null } | null; rank: number;
+  }>>({
+    queryKey: ['player-search', sultanSearch || championPlayerSearch, division],
+    queryFn: async () => {
+      const q = sultanSearch || championPlayerSearch;
+      if (!q?.trim()) return [];
+      const res = await fetch(`/api/players/search?q=${encodeURIComponent(q)}&division=${division}`, { credentials: 'include' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.players || [];
+    },
+    enabled: (editingSultan !== null && sultanSearchMode === 'all' && sultanSearch.trim().length > 0)
+           || (editingChampion !== null && isTarkam && championSearchMode === 'all' && championPlayerSearch.trim().length > 0),
+    staleTime: 30000,
   });
 
   // Helper to get club display name
@@ -812,62 +836,181 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       <Input
                                         placeholder="Cari gamertag..."
                                         value={championPlayerSearch}
-                                        onChange={(e) => setChampionPlayerSearch(e.target.value)}
+                                        onChange={(e) => {
+                                          setChampionPlayerSearch(e.target.value);
+                                          // Auto-switch to 'all' mode when typing if season has no players
+                                          if (e.target.value.trim() && (!seasonDetail?.players || seasonDetail.players.length === 0)) {
+                                            setChampionSearchMode('all');
+                                          }
+                                        }}
                                         className="text-xs h-8"
                                       />
                                       <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                                        {seasonDetail?.players
-                                          ?.filter(p => !championPlayerSearch.trim() || p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase()))
-                                          .map((player) => (
-                                          <div
-                                            key={player.id}
-                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                                              selectedChampionPlayer === player.id
-                                                ? 'border-yellow-500/30 bg-yellow-500/5'
-                                                : 'border-border/20 bg-card/30 hover:bg-muted/20'
-                                            }`}
-                                            onClick={() => setSelectedChampionPlayer(player.id)}
-                                          >
-                                            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                                              <Image
-                                                src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
-                                                alt={player.gamertag}
-                                                width={32}
-                                                height={32}
-                                                loading="lazy"
-                                                className="w-full h-full object-cover"
-                                              />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <p className="text-xs font-medium truncate">{player.gamertag}</p>
-                                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
-                                                  {player.division}
-                                                </Badge>
-                                                <span>•</span>
-                                                <span>{player.points}pts</span>
-                                                <span>•</span>
-                                                <span>{player.tournamentCount} tourney</span>
+                                        {/* Mode: Season players */}
+                                        {championSearchMode === 'season' && seasonDetail?.players && seasonDetail.players.length > 0 && (
+                                          <>
+                                            {seasonDetail.players
+                                              .filter(p => !championPlayerSearch.trim() || p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase()))
+                                              .map((player) => (
+                                              <div
+                                                key={player.id}
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                  selectedChampionPlayer === player.id
+                                                    ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                    : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                                }`}
+                                                onClick={() => setSelectedChampionPlayer(player.id)}
+                                              >
+                                                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                  <Image
+                                                    src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                                    alt={player.gamertag}
+                                                    width={32}
+                                                    height={32}
+                                                    loading="lazy"
+                                                    className="w-full h-full object-cover"
+                                                  />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                    <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                      {player.division}
+                                                    </Badge>
+                                                    <span>•</span>
+                                                    <span>{player.points}pts</span>
+                                                    <span>•</span>
+                                                    <span>{player.tournamentCount} tourney</span>
+                                                  </div>
+                                                </div>
+                                                {selectedChampionPlayer === player.id && (
+                                                  <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                    <Check className="w-3 h-3 text-black" />
+                                                  </div>
+                                                )}
                                               </div>
-                                            </div>
-                                            {selectedChampionPlayer === player.id && (
-                                              <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
-                                                <Check className="w-3 h-3 text-black" />
+                                            ))}
+                                            {championPlayerSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase())).length === 0 && (
+                                              <div className="text-center py-3">
+                                                <p className="text-sm text-muted-foreground">Pemain tidak ditemukan di season ini</p>
+                                                <Button
+                                                  size="sm" variant="link"
+                                                  className="text-yellow-500 text-xs h-auto p-0 mt-1"
+                                                  onClick={() => setChampionSearchMode('all')}
+                                                >
+                                                  Cari dari semua pemain →
+                                                </Button>
                                               </div>
                                             )}
-                                          </div>
-                                        ))}
-                                        {(!seasonDetail?.players || seasonDetail.players.length === 0) && (
-                                          <p className="text-sm text-muted-foreground text-center py-4">
-                                            Belum ada pemain yang berpartisipasi di season ini
-                                          </p>
+                                          </>
                                         )}
-                                        {seasonDetail?.players && seasonDetail.players.length > 0 && championPlayerSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase())).length === 0 && (
-                                          <p className="text-sm text-muted-foreground text-center py-2">
-                                            Pemain tidak ditemukan
-                                          </p>
+
+                                        {/* Mode: Search all players */}
+                                        {championSearchMode === 'all' && (
+                                          <>
+                                            {searchedPlayers && searchedPlayers.length > 0 ? (
+                                              searchedPlayers.map((player) => (
+                                                <div
+                                                  key={player.id}
+                                                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                    selectedChampionPlayer === player.id
+                                                      ? 'border-yellow-500/30 bg-yellow-500/5'
+                                                      : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                                  }`}
+                                                  onClick={() => setSelectedChampionPlayer(player.id)}
+                                                >
+                                                  <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                    <Image
+                                                      src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                                      alt={player.gamertag}
+                                                      width={32}
+                                                      height={32}
+                                                      loading="lazy"
+                                                      className="w-full h-full object-cover"
+                                                    />
+                                                  </div>
+                                                  <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                      <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                        {player.division}
+                                                      </Badge>
+                                                      <span>•</span>
+                                                      <span>{player.points}pts</span>
+                                                      <span>•</span>
+                                                      <span>#{player.rank}</span>
+                                                      {player.club && (
+                                                        <>
+                                                          <span>•</span>
+                                                          <span className="truncate max-w-[80px]">{player.club.name}</span>
+                                                        </>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                  {selectedChampionPlayer === player.id && (
+                                                    <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center shrink-0">
+                                                      <Check className="w-3 h-3 text-black" />
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ))
+                                            ) : (
+                                              <div className="text-center py-4">
+                                                {championPlayerSearch.trim() ? (
+                                                  <>
+                                                    <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                                    <p className="text-sm text-muted-foreground">Pemain tidak ditemukan</p>
+                                                    <p className="text-xs text-muted-foreground/60 mt-0.5">Coba nama lain atau periksa divisi</p>
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                                    <p className="text-sm text-muted-foreground">Ketik gamertag untuk mencari pemain</p>
+                                                    <p className="text-xs text-muted-foreground/60 mt-0.5">Mencari dari semua pemain divisi {division === 'male' ? 'Cowo' : 'Cewe'}</p>
+                                                  </>
+                                                )}
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+
+                                        {/* No season players and not yet in search-all mode */}
+                                        {championSearchMode === 'season' && (!seasonDetail?.players || seasonDetail.players.length === 0) && (
+                                          <div className="text-center py-4">
+                                            <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                            <p className="text-sm text-muted-foreground">Belum ada pemain yang berpartisipasi di season ini</p>
+                                            <Button
+                                              size="sm" variant="link"
+                                              className="text-yellow-500 text-xs h-auto p-0 mt-1"
+                                              onClick={() => setChampionSearchMode('all')}
+                                            >
+                                              Cari dari semua pemain →
+                                            </Button>
+                                          </div>
                                         )}
                                       </div>
+
+                                      {/* Mode toggle */}
+                                      <div className="flex items-center gap-2">
+                                        {championSearchMode === 'all' && seasonDetail?.players && seasonDetail.players.length > 0 && (
+                                          <Button
+                                            size="sm" variant="ghost"
+                                            className="text-xs h-7 text-muted-foreground"
+                                            onClick={() => {
+                                              setChampionSearchMode('season');
+                                              setSelectedChampionPlayer('');
+                                            }}
+                                          >
+                                            ← Kembali ke pemain season
+                                          </Button>
+                                        )}
+                                        {championSearchMode === 'all' && (
+                                          <Badge className="text-[9px] border-0 bg-yellow-500/10 text-yellow-500">
+                                            <User className="w-2.5 h-2.5 mr-0.5" /> Semua Pemain {division === 'male' ? 'Cowo' : 'Cewe'}
+                                          </Badge>
+                                        )}
+                                      </div>
+
                                       <div className="flex items-center gap-2">
                                         <Button
                                           size="sm"
@@ -881,7 +1024,10 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                         <Button
                                           size="sm" variant="ghost"
                                           className="text-sm"
-                                          onClick={() => setEditingChampion(null)}
+                                          onClick={() => {
+                                            setEditingChampion(null);
+                                            setChampionSearchMode('season');
+                                          }}
                                         >
                                           Batal
                                         </Button>
@@ -977,62 +1123,181 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                     <Input
                                       placeholder="Cari gamertag..."
                                       value={sultanSearch}
-                                      onChange={(e) => setSultanSearch(e.target.value)}
+                                      onChange={(e) => {
+                                        setSultanSearch(e.target.value);
+                                        // Auto-switch to 'all' mode when typing if season has no players
+                                        if (e.target.value.trim() && (!seasonDetail?.players || seasonDetail.players.length === 0)) {
+                                          setSultanSearchMode('all');
+                                        }
+                                      }}
                                       className="text-xs h-8"
                                     />
                                     <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
-                                      {seasonDetail?.players
-                                        ?.filter(p => !sultanSearch.trim() || p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase()))
-                                        .map((player) => (
-                                        <div
-                                          key={player.id}
-                                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                                            selectedSultan === player.id
-                                              ? 'border-rose-500/30 bg-rose-500/5'
-                                              : 'border-border/20 bg-card/30 hover:bg-muted/20'
-                                          }`}
-                                          onClick={() => setSelectedSultan(player.id)}
-                                        >
-                                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                                            <Image
-                                              src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
-                                              alt={player.gamertag}
-                                              width={32}
-                                              height={32}
-                                              loading="lazy"
-                                              className="w-full h-full object-cover"
-                                            />
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-medium truncate">{player.gamertag}</p>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                              <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
-                                                {player.division}
-                                              </Badge>
-                                              <span>•</span>
-                                              <span>{player.points}pts</span>
-                                              <span>•</span>
-                                              <span>{player.tournamentCount} tourney</span>
+                                      {/* Mode: Season players (default when season has participants) */}
+                                      {sultanSearchMode === 'season' && seasonDetail?.players && seasonDetail.players.length > 0 && (
+                                        <>
+                                          {seasonDetail.players
+                                            .filter(p => !sultanSearch.trim() || p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase()))
+                                            .map((player) => (
+                                            <div
+                                              key={player.id}
+                                              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                selectedSultan === player.id
+                                                  ? 'border-rose-500/30 bg-rose-500/5'
+                                                  : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                              }`}
+                                              onClick={() => setSelectedSultan(player.id)}
+                                            >
+                                              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                <Image
+                                                  src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                                  alt={player.gamertag}
+                                                  width={32}
+                                                  height={32}
+                                                  loading="lazy"
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                  <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                    {player.division}
+                                                  </Badge>
+                                                  <span>•</span>
+                                                  <span>{player.points}pts</span>
+                                                  <span>•</span>
+                                                  <span>{player.tournamentCount} tourney</span>
+                                                </div>
+                                              </div>
+                                              {selectedSultan === player.id && (
+                                                <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center shrink-0">
+                                                  <Check className="w-3 h-3 text-white" />
+                                                </div>
+                                              )}
                                             </div>
-                                          </div>
-                                          {selectedSultan === player.id && (
-                                            <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center shrink-0">
-                                              <Check className="w-3 h-3 text-white" />
+                                          ))}
+                                          {sultanSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase())).length === 0 && (
+                                            <div className="text-center py-3">
+                                              <p className="text-sm text-muted-foreground">Pemain tidak ditemukan di season ini</p>
+                                              <Button
+                                                size="sm" variant="link"
+                                                className="text-rose-500 text-xs h-auto p-0 mt-1"
+                                                onClick={() => setSultanSearchMode('all')}
+                                              >
+                                                Cari dari semua pemain →
+                                              </Button>
                                             </div>
                                           )}
-                                        </div>
-                                      ))}
-                                      {(!seasonDetail?.players || seasonDetail.players.length === 0) && (
-                                        <p className="text-sm text-muted-foreground text-center py-4">
-                                          Belum ada pemain yang berpartisipasi di season ini
-                                        </p>
+                                        </>
                                       )}
-                                      {seasonDetail?.players && seasonDetail.players.length > 0 && sultanSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase())).length === 0 && (
-                                        <p className="text-sm text-muted-foreground text-center py-2">
-                                          Pemain tidak ditemukan
-                                        </p>
+
+                                      {/* Mode: Search all players (when season has no participants or user switched) */}
+                                      {sultanSearchMode === 'all' && (
+                                        <>
+                                          {searchedPlayers && searchedPlayers.length > 0 ? (
+                                            searchedPlayers.map((player) => (
+                                              <div
+                                                key={player.id}
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                                  selectedSultan === player.id
+                                                    ? 'border-rose-500/30 bg-rose-500/5'
+                                                    : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                                }`}
+                                                onClick={() => setSelectedSultan(player.id)}
+                                              >
+                                                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                                  <Image
+                                                    src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                                    alt={player.gamertag}
+                                                    width={32}
+                                                    height={32}
+                                                    loading="lazy"
+                                                    className="w-full h-full object-cover"
+                                                  />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                    <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                      {player.division}
+                                                    </Badge>
+                                                    <span>•</span>
+                                                    <span>{player.points}pts</span>
+                                                    <span>•</span>
+                                                    <span>#{player.rank}</span>
+                                                    {player.club && (
+                                                      <>
+                                                        <span>•</span>
+                                                        <span className="truncate max-w-[80px]">{player.club.name}</span>
+                                                      </>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                {selectedSultan === player.id && (
+                                                  <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center shrink-0">
+                                                    <Check className="w-3 h-3 text-white" />
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))
+                                          ) : (
+                                            <div className="text-center py-4">
+                                              {sultanSearch.trim() ? (
+                                                <>
+                                                  <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                                  <p className="text-sm text-muted-foreground">Pemain tidak ditemukan</p>
+                                                  <p className="text-xs text-muted-foreground/60 mt-0.5">Coba nama lain atau periksa divisi</p>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                                  <p className="text-sm text-muted-foreground">Ketik gamertag untuk mencari pemain</p>
+                                                  <p className="text-xs text-muted-foreground/60 mt-0.5">Mencari dari semua pemain divisi {division === 'male' ? 'Cowo' : 'Cewe'}</p>
+                                                </>
+                                              )}
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+
+                                      {/* No season players and not yet in search-all mode */}
+                                      {sultanSearchMode === 'season' && (!seasonDetail?.players || seasonDetail.players.length === 0) && (
+                                        <div className="text-center py-4">
+                                          <User className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                          <p className="text-sm text-muted-foreground">Belum ada pemain yang berpartisipasi di season ini</p>
+                                          <Button
+                                            size="sm" variant="link"
+                                            className="text-rose-500 text-xs h-auto p-0 mt-1"
+                                            onClick={() => setSultanSearchMode('all')}
+                                          >
+                                            Cari dari semua pemain →
+                                          </Button>
+                                        </div>
                                       )}
                                     </div>
+
+                                    {/* Mode toggle */}
+                                    <div className="flex items-center gap-2">
+                                      {sultanSearchMode === 'all' && seasonDetail?.players && seasonDetail.players.length > 0 && (
+                                        <Button
+                                          size="sm" variant="ghost"
+                                          className="text-xs h-7 text-muted-foreground"
+                                          onClick={() => {
+                                            setSultanSearchMode('season');
+                                            setSelectedSultan('');
+                                          }}
+                                        >
+                                          ← Kembali ke pemain season
+                                        </Button>
+                                      )}
+                                      {sultanSearchMode === 'all' && (
+                                        <Badge className="text-[9px] border-0 bg-rose-500/10 text-rose-500">
+                                          <User className="w-2.5 h-2.5 mr-0.5" /> Semua Pemain {division === 'male' ? 'Cowo' : 'Cewe'}
+                                        </Badge>
+                                      )}
+                                    </div>
+
                                     <div className="flex items-center gap-2">
                                       <Button
                                         size="sm"
@@ -1062,6 +1327,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                           setEditingSultan(null);
                                           setSelectedSultan('');
                                           setSultanSearch('');
+                                          setSultanSearchMode('season');
                                         }}
                                       >
                                         Batal

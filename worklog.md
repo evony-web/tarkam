@@ -2141,3 +2141,28 @@ Stage Summary:
 - MVP-style horizontal layout replaces the old DIAMOND shape
 - Consistent with the design language of Sultan of the Week section
 - No lint errors, dev server compiles successfully
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix admin panel Sultan of Season & Champion player selection - "no players in season" issue
+
+Work Log:
+- Root cause: The Sultan of Season and Champion editing modes in admin-season-panel.tsx only showed players from `seasonDetail.players`, which comes from season participations. If a season has no participants (newly created, completed without PlayerSeasonStats, etc.), the list shows "Belum ada pemain yang berpartisipasi di season ini" with no way to select a player.
+- Added dual-mode search system for both Sultan and Champion editing:
+  - **Season mode** (default): Shows players who participated in the season (existing behavior)
+  - **All players mode**: Searches across ALL registered players in the division using `/api/players/search` endpoint
+- Auto-switch: When season has no players and admin starts typing, automatically switches to "all" mode
+- Manual switch: "Cari dari semua pemain →" link when no season players found, and "← Kembali ke pemain season" button to go back
+- Added `sultanSearchMode` and `championSearchMode` state variables ('season' | 'all')
+- Added `searchedPlayers` React Query that fetches from `/api/players/search?q=...&division=...` when in "all" mode
+- Search results show: gamertag, division, points, rank #, club name
+- Applied same fix to BOTH Sultan of Season editing and Champion (Tarkam) editing modes
+- All state resets properly on save/cancel
+
+Stage Summary:
+- Admin can now set Sultan of Season and Champion even when the season has no participants
+- Search across all registered players in the division
+- Auto-switches to global search when season has no players
+- Manual toggle between season players and all players available
+- No lint errors introduced, dev server compiles successfully
