@@ -9,7 +9,7 @@ export function BracketPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Title Banner — scrolls away */}
+      {/* Page Title Banner — matching Peringkat page */}
       <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-5 sm:py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -21,12 +21,8 @@ export function BracketPage() {
               <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">Bracket & hasil tarkam</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Division pills — sticky below fixed nav (h-14 = 56px) */}
-      <div className="sticky top-14 z-30 border-b border-idm-gold-warm/10 bg-background/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-end">
+          {/* Division pills — right-aligned */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 shrink-0">
             {([
               { key: 'semua' as const, label: 'Semua' },
