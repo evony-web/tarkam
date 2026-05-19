@@ -403,7 +403,7 @@ Work Log:
 - Tested switch-provider script: sqlite switch → generate → restore to postgresql ✅
 - Local dev still works (all API calls returning 200) ✅
 - Committed: `e65f917 feat: dual-environment Prisma setup (SQLite local / PostgreSQL Vercel)`
-- GitHub push FAILED: GitHub token is expired/invalid
+- GitHub push FAILED: GitHub token expired/invalid
 - User needs to provide new token to complete push
 
 Stage Summary:
