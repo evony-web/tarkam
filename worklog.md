@@ -1,3 +1,58 @@
+Task ID: 1
+Agent: Main Agent
+Task: Fix single elimination bracket connecting lines AND rewrite UpperSemiView with unified Challonge-style layout
+
+Work Log:
+
+### Problem 1: Single Elimination BYE Placeholder Fix
+- Added `isByePlaceholder(m)` helper function to detect synthetic BYE matches (status='bye', id starts with 'bye-')
+- Added `fillByePlaceholders(rounds, bracketPrefix)` helper function that fills missing R1 positions with BYE placeholder matches:
+  - Calculates maxR1Positions = 2^(totalRounds-1)
+  - Finds which positions already exist via groupLabel parsing
+  - Creates compact BYE placeholder matches for missing positions with proper groupLabel format
+  - Sorts all matches by position to ensure correct ordering
+- Updated `BracketMatchCard` to render BYE placeholder as a compact, semi-transparent card:
+  - Dashed border, 40% opacity, muted colors
+  - "BYE" label + "WALKOVER" badge in header
+  - Two rows matching regular card height (for spacing consistency)
+  - Returns early before any other match logic
+- Applied `fillByePlaceholders(sortedRounds)` in `roundsData` useMemo for `single_elimination` bracket type
+- Added BYE skip in `calculateConnectors`: `if (isByePlaceholder(sourceMatch)) continue;`
+  - BYE placeholders provide visual spacing but don't generate connector lines
+  - Single-source L-shaped connector logic handles the remaining real feeder
+
+### Problem 2: UpperSemiView Unified Challonge-Style Layout
+- Completely rewrote `UpperSemiView` from separate BracketColumnView sections to ONE unified layout:
+  - Single `ZoomableContainer` wrapping everything
+  - UB columns on top, LB columns on bottom (flex-col with gap-6)
+  - GF column on the right side (flex row with ml-12, justify-center for vertical centering)
+  - Drop indicator (red arrow SVG) between UB and LB sections
+- Added unified SVG connector calculation:
+  - `calculateBracketConnectors(rounds, prefix, strokeColor)` for within-bracket connectors
+  - UB uses `dt.color` (division accent), LB uses `#f97316` (orange)
+  - Cross-bracket connectors:
+    - UB Final → GF: L-shaped gold connector from UB Final right edge to GF left edge
+    - LB Final → GF: L-shaped gold connector from LB Final right edge to GF left edge
+  - All connectors use proper card ref keys: `ub-round-{r}-match-{id}`, `lb-round-{r}-match-{id}`, `gf-match-{id}`
+- Added unified card alignment:
+  - `alignBracket(rounds, prefix)` for within-bracket card positioning
+  - Uses `data-round="{prefix}-{r}"` attributes for querying round columns
+  - Same midpoint alignment algorithm as main BracketView
+- Applied `fillByePlaceholders(rounds, 'U')` and `fillByePlaceholders(rounds, 'L')` for both UB and LB rounds
+- Unified section header: "Double Elimination" with match count
+- Empty state check moved before return (after all hooks) to avoid conditional hook issues
+- Kept `BracketColumnView` component for potential reuse, but UpperSemiView no longer uses it
+
+### Files Changed
+- `/home/z/my-project/src/components/idm/bracket-view.tsx` — All changes in this file only
+
+### Verification
+- `bun run lint` — No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx)
+- `npx tsc --noEmit` — No TypeScript errors in bracket-view.tsx
+- Dev server compiles successfully (✓ Compiled in 980ms)
+
+---
+
 # Worklog — Task 2-b: Optimize API Caching & SSR Revalidation for Vercel Speed Insights
 
 ## Date: 2026-03-04
@@ -1617,3 +1672,30 @@ Stage Summary:
 - Connecting lines correctly connect R1 matches to R2 matches using SOURCE→TARGET algorithm
 - Matches sorted by bracket position for proper visual ordering
 - Upper Semi view also benefits from correct position-based sorting
+
+---
+Task ID: 1
+Agent: Main Agent (via subagent)
+Task: Fix single elimination bracket connecting lines + Rewrite UpperSemiView with unified Challonge-style layout
+
+Work Log:
+- Analyzed root cause: When teams get BYEs (e.g., 6 teams in 8-slot bracket), no R1 match is created for BYE positions. This causes: (1) missing visual gaps in R1 column, (2) misaligned cards, (3) wrong connector lines
+- Added `isByePlaceholder(m)` helper — detects synthetic BYE matches (status='bye', id starts with 'bye-')
+- Added `fillByePlaceholders(rounds, bracketPrefix)` helper — fills missing R1 positions with compact BYE placeholder matches so bracket renders with correct vertical spacing
+- Updated `BracketMatchCard` — renders BYE placeholders as compact dashed-border semi-transparent cards with "BYE" + "WALKOVER" labels
+- Applied `fillByePlaceholders` in `roundsData` for single_elimination bracket type
+- Added BYE skip in `calculateConnectors` — BYE placeholders provide visual spacing but don't generate connector lines
+- Completely rewrote `UpperSemiView` from 3 separate `BracketColumnView` sections to ONE unified layout:
+  - Single `ZoomableContainer` wrapping everything
+  - UB columns on top, LB columns on bottom (flex-col with gap-6)
+  - GF column on the right (flex row, vertically centered)
+  - Drop indicator (red arrow SVG) between UB and LB
+  - Unified SVG connector calculation: within UB (division accent), within LB (orange), UB Final → GF (gold L-shaped), LB Final → GF (gold L-shaped)
+  - Unified card alignment with prefixed data-round attributes
+  - BYE placeholder filling applied to both UB and LB rounds
+
+Stage Summary:
+- Single elimination: BYE placeholder cards fill gaps for proper bracket spacing; connector lines now correctly connect real matches
+- Upper Semi: Unified Challonge-style layout with UB+LB+GF in one scrollable/zoomable container; cross-bracket SVG connectors (UB→GF, LB→GF)
+- `BracketColumnView` kept for reuse but UpperSemiView no longer uses it
+- Lint passes (no new errors), dev server compiles successfully
