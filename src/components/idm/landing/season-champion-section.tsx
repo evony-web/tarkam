@@ -419,7 +419,7 @@ function BintangMingguIniDuo({
 
 /* ═══════════════════════════════════════════════════════════════
    SULTAN OF SEASON CARD
-   Compact horizontal card for top penyawer (donor) per season
+   💎 DIAMOND shape — large rhombus with full-body avatar
    Emerald theme (#43A047) — distinct from champion gold
    ═══════════════════════════════════════════════════════════════ */
 function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
@@ -436,10 +436,10 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
   const { sultan, seasonNumber } = latestSultan;
 
   return (
-    <div className="rounded-2xl overflow-hidden border bg-card p-4 sm:p-5"
+    <div className="rounded-2xl overflow-hidden border bg-card"
       style={{ borderColor: hexToRgba(SULTAN_EMERALD, 0.2) }}>
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 px-4 pt-4 sm:px-5 sm:pt-5 pb-2">
         <div className="w-6 h-6 rounded-full flex items-center justify-center"
           style={{ backgroundColor: hexToRgba(SULTAN_EMERALD, 0.15), border: `1.5px solid ${hexToRgba(SULTAN_EMERALD, 0.3)}` }}>
           <Gem className="w-3 h-3" style={{ color: SULTAN_EMERALD_LIGHT }} />
@@ -453,8 +453,8 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
         </span>
       </div>
 
-      {/* Card body - diamond layout */}
-      <div className="flex flex-col items-center cursor-pointer py-4" onClick={() => {
+      {/* Card body - large diamond layout with full-body avatar */}
+      <div className="flex flex-col items-center cursor-pointer py-4 px-4" onClick={() => {
         setSelectedPlayer({
           id: sultan.id,
           name: sultan.gamertag,
@@ -472,35 +472,41 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
           club: sultan.club?.name ?? undefined,
         });
       }}>
-        {/* Diamond avatar */}
+        {/* Large diamond avatar */}
         <div className="relative">
           {/* Outer glow / facet reflection */}
-          <div className="absolute inset-0 scale-110"
+          <div className="absolute inset-0 scale-125"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               background: `conic-gradient(from 45deg, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD}, transparent, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
-              opacity: 0.3,
-              filter: 'blur(6px)',
+              opacity: 0.25,
+              filter: 'blur(8px)',
             }} />
-          {/* Diamond frame */}
-          <div className="relative w-28 h-28 sm:w-40 sm:h-40"
+
+          {/* Emerald radial glow behind diamond */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: `radial-gradient(circle at 50% 50%, rgba(67,160,71,0.15), transparent 60%)` }} />
+
+          {/* Diamond frame — outer faceted border */}
+          <div className="relative w-44 h-44 sm:w-56 sm:h-56"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               background: `linear-gradient(135deg, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
-              boxShadow: `0 0 24px ${hexToRgba(SULTAN_EMERALD, 0.3)}, 0 4px 12px rgba(0,0,0,0.15)`,
-              padding: '3px',
+              boxShadow: `0 0 30px ${hexToRgba(SULTAN_EMERALD, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
+              padding: '4px',
             }}>
+            {/* Inner diamond — full-body avatar */}
             <div className="relative w-full h-full overflow-hidden"
               style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}>
               <AvatarMedia
                 src={getAvatarUrl(sultan.gamertag, sultan.division === 'female' ? 'female' : 'male', sultan.avatar)}
                 alt={sultan.gamertag}
-                width={160}
-                height={160}
-                className="w-full h-full object-cover group-hover/sultan-season:scale-110 transition-transform duration-500"
+                fill
+                sizes="(max-width: 640px) 176px, 224px"
+                className="object-cover object-top group-hover/sultan-season:scale-110 transition-transform duration-500"
                 loading="lazy"
               />
-              {/* Facet overlay */}
+              {/* Facet overlay — prism/light reflection effect */}
               <div className="absolute inset-0 pointer-events-none"
                 style={{
                   clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
@@ -508,26 +514,36 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
                 }} />
             </div>
           </div>
-          {/* Gem badge — top center */}
+
+          {/* Gem badge — top center (crown of diamond) */}
           <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
               style={{
                 background: `linear-gradient(135deg, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
                 borderColor: hexToRgba(SULTAN_EMERALD_LIGHT, 0.5),
                 boxShadow: `0 2px 8px ${hexToRgba(SULTAN_EMERALD, 0.4)}`,
               }}>
-              <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+              <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           </div>
         </div>
 
         {/* Name and stats below diamond */}
-        <div className="flex flex-col items-center mt-3 text-center">
-          <h3 className="text-sm font-black truncate" style={{ color: SULTAN_EMERALD_LIGHT }}>{sultan.gamertag}</h3>
+        <div className="flex flex-col items-center mt-4 text-center">
+          <h3 className="text-lg sm:text-xl font-black truncate" style={{ color: SULTAN_EMERALD_LIGHT }}>{sultan.gamertag}</h3>
           <p className="text-[9px] text-muted-foreground/70 mt-0.5">Top Penyawer Season {seasonNumber}</p>
           {sultan.club?.name && (
             <p className="text-[8px] text-muted-foreground/50 mt-0.5 truncate">{sultan.club.name}</p>
           )}
+
+          {/* Certificate bar — stats */}
+          <div className="flex items-center gap-2 mt-2.5">
+            <span className="text-[10px] font-black tabular-nums px-2.5 py-1 rounded-full"
+              style={{ color: SULTAN_EMERALD_LIGHT, backgroundColor: hexToRgba(SULTAN_EMERALD, 0.1), border: `1px solid ${hexToRgba(SULTAN_EMERALD, 0.2)}` }}>
+              💎 S{seasonNumber}
+            </span>
+            <span className="text-[9px] text-muted-foreground/50">{sultan.points}pts</span>
+          </div>
         </div>
       </div>
     </div>
@@ -651,264 +667,179 @@ function DuoChampionCard({
       {/* Gold divider */}
       <div className="h-px mx-4 bg-gradient-to-r from-transparent via-idm-gold-warm/20 to-transparent" />
 
-      {/* ═══ DUO CHAMPION DISPLAY — MVP-style with Crown Divider ═══
-          Avatar full left, stats right — decorative crown divider between divisions
+      {/* ═══ DUO CHAMPION DISPLAY — Full-bleed portrait avatars with Crown Divider ═══
+          Side-by-side full-body avatars — similar to BintangMingguIniDuo but with gold/crown theme
       */}
-      <div className="flex flex-col lg:flex-row">
-        {/* ─── Male Champion Card (MVP style) ─── */}
-        <div className="flex-1 p-4 sm:p-5">
+      <div className="relative flex m-4 rounded-2xl overflow-hidden border" style={{ minHeight: '360px', borderColor: cm('var(--idm-gold)', 10) }}>
+        {/* CHAMPION watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" aria-hidden="true">
+          <span className="text-xl font-black uppercase tracking-widest select-none" style={{ color: cm('var(--idm-gold)', 3), WebkitTextStroke: `1px ${cm('var(--idm-gold)', 5)}` }}>CHAMPION</span>
+        </div>
+
+        {/* Male side */}
+        <div className="relative flex-1 cursor-pointer group/male" onClick={() => {
+          setSelectedPlayer({
+            ...latestMale.player,
+            division: 'male',
+            club: latestMale.club ?? undefined,
+            city: latestMale.player.city,
+            name: latestMale.player.gamertag,
+            gamertag: latestMale.player.gamertag,
+            avatar: latestMale.player.avatar,
+            tier: latestMale.player.tier,
+            points: latestMale.player.points,
+            totalWins: latestMale.player.totalWins,
+            streak: latestMale.player.streak || 0,
+            maxStreak: latestMale.player.maxStreak || 0,
+            totalMvp: latestMale.player.totalMvp || 0,
+            matches: latestMale.player.matches || 0,
+          });
+        }}>
           {hasMale ? (
-            <div className="flex gap-3 sm:gap-4 items-stretch cursor-pointer group/male" onClick={() => {
-              setSelectedPlayer({
-                ...latestMale.player,
-                division: 'male',
-                club: latestMale.club ?? undefined,
-                city: latestMale.player.city,
-                name: latestMale.player.gamertag,
-                gamertag: latestMale.player.gamertag,
-                avatar: latestMale.player.avatar,
-                tier: latestMale.player.tier,
-                points: latestMale.player.points,
-                totalWins: latestMale.player.totalWins,
-                streak: latestMale.player.streak || 0,
-                maxStreak: latestMale.player.maxStreak || 0,
-                totalMvp: latestMale.player.totalMvp || 0,
-                matches: latestMale.player.matches || 0,
-              });
-            }}>
-              {/* Avatar panel — 3/4 aspect ratio — always male division color ring */}
-              <div
-                className="relative w-24 sm:w-32 lg:w-36 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-idm-male/25 to-idm-male/5 border-idm-male/30"
-                style={{ aspectRatio: '3/4' }}
-              >
-                <AvatarMedia
-                  src={getAvatarUrl(latestMale.player.gamertag, 'male', latestMale.player.avatar)}
-                  alt={latestMale.player.gamertag}
-                  width={144}
-                  height={192}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover/male:scale-105"
-                  priority
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-                {/* Crown badge — top right */}
-                <div className="absolute top-2 right-2 z-10">
-                  <div className="w-6 h-6 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-[0_0_12px_color-mix(in_srgb,var(--color-idm-gold-warm)_40%,transparent)]">
-                    <Crown className="w-3 h-3 text-[#0c0a06]" />
-                  </div>
-                </div>
-                {/* Champion badge — bottom */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
-                  <span className="bg-gradient-to-r from-idm-gold-warm to-amber-500 text-black text-[7px] font-black px-2 py-0.5 rounded shadow-[0_0_8px_rgba(249,203,37,0.3)] whitespace-nowrap flex items-center gap-0.5">
-                    <Trophy className="w-2 h-2" />S{latestSeasonNumber}
-                  </span>
-                </div>
-              </div>
-
-              {/* Stats panel */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                {/* Player name + badges */}
-                <div>
-                  <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                    <span className="text-[10px] font-black" style={{ color: maleAccentLight }}>♂</span>
-                    <h3 className="text-sm lg:text-base font-black truncate" style={{ color: maleAccentLight }}>{latestMale.player.gamertag}</h3>
-                    
-                  </div>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    {clubToString(latestMale.player.club) && (
-                      <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{clubToString(latestMale.player.club)}</span>
-                    )}
-                    <span className="bg-idm-male/15 text-idm-male-light text-[7px] lg:text-[8px] border border-idm-male/20 px-1.5 py-0.5 rounded font-bold">
-                      🕺 Cowo
-                    </span>
-                  </div>
-                </div>
-
-                {/* Stats grid — 2x2 */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2">
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-                    <Trophy className="w-3 h-3 shrink-0 text-idm-gold-warm" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-idm-gold-warm leading-tight">{latestMale.player.points}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Points</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-500/5 border border-green-500/10">
-                    <Crown className="w-3 h-3 shrink-0 text-green-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-green-400 leading-tight">{latestMale.player.totalWins}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Wins</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                    <Medal className="w-3 h-3 shrink-0 text-yellow-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-yellow-400 leading-tight">{latestMale.player.totalMvp ?? 0}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">MVP</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/5 border border-orange-500/10">
-                    <Flame className="w-3 h-3 shrink-0 text-orange-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-orange-400 leading-tight">{latestMale.player.streak ?? 0}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Streak</p>
-                    </div>
-                  </div>
-                </div>
+            <>
+              <AvatarMedia
+                src={getAvatarUrl(latestMale.player.gamertag, 'male', latestMale.player.avatar)}
+                alt={latestMale.player.gamertag}
+                fill
+                sizes="50vw"
+                className="object-cover object-top transition-transform duration-500 group-hover/male:scale-105"
+                style={{ transform: 'scale(1.0) translateX(2%)' }}
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/50" />
+              {/* Male gold glow */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 40% 80%, ${cm('var(--idm-male)', 8)}, transparent 50%)` }} />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${cm('var(--idm-male)', 10)}, var(--bg-mid))` }}>
+              <div className="flex flex-col items-center gap-2 opacity-25">
+                <Music className="w-10 h-10" style={{ color: maleAccent }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: maleAccentLight }}>Cowo</span>
               </div>
             </div>
-          ) : (
-            /* Male empty state */
-            <div className="flex gap-3 sm:gap-4 items-stretch opacity-40">
-              <div className="relative w-24 sm:w-32 lg:w-36 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-idm-male/10 to-idm-male/5 border border-idm-male/10 flex items-center justify-center" style={{ aspectRatio: '3/4' }}>
-                <Music className="w-8 h-8 text-idm-male/30" />
+          )}
+          {/* Male info at bottom */}
+          {hasMale && (
+            <div className="absolute bottom-0 inset-x-0 px-3 pb-3 pt-8 z-10" style={{ background: 'linear-gradient(to top, var(--bg-mid) 0%, transparent 100%)' }}>
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[10px] font-black" style={{ color: maleAccentLight }}>♂</span>
+                <p className="text-sm sm:text-base font-black text-foreground truncate dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                  {latestMale.player.gamertag}
+                </p>
               </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                <p className="text-sm font-bold text-muted-foreground">Champion Cowo</p>
-                <p className="text-[10px] text-muted-foreground/60">Belum ada juara</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[9px] font-bold text-idm-gold-warm">{latestMale.player.points}pts</span>
+                <span className="text-[9px] font-bold text-green-400">{latestMale.player.totalWins}W</span>
+                {(latestMale.player.totalMvp ?? 0) > 0 && (
+                  <span className="text-[9px] font-bold text-yellow-400">{latestMale.player.totalMvp}x MVP</span>
+                )}
+                {(latestMale.player.streak ?? 0) >= 2 && (
+                  <span className="text-[9px] font-bold flex items-center gap-0.5 text-orange-400">
+                    <Flame className="w-2 h-2" />{latestMale.player.streak}
+                  </span>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* ═══ Center Divider — Colored line + accent dots ═══ */}
+        {/* ═══ Center Divider — Crown line ═══ */}
         {hasMale && hasFemale && (
-          <>
-            {/* Mobile: horizontal divider */}
-            <div className="flex lg:hidden items-center py-1 px-4">
-              <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${cm('var(--idm-male)', 50)}, ${cm('var(--idm-gold)', 80)})` }} />
-              <div className="w-1.5 h-1.5 rounded-full mx-2 shrink-0" style={{ backgroundColor: 'var(--idm-gold)', boxShadow: `0 0 6px ${cm('var(--idm-gold)', 40)}` }} />
-              <div className="h-px flex-1" style={{ background: `linear-gradient(to left, transparent, ${cm('var(--idm-female)', 50)}, ${cm('var(--idm-gold)', 80)})` }} />
+          <div className="relative flex flex-col items-center justify-center shrink-0 z-10" style={{ width: '3px' }}>
+            {/* Full-height gold gradient line */}
+            <div className="absolute inset-0" style={{
+              background: `linear-gradient(to bottom, transparent 5%, ${cm('var(--idm-male)', 60)} 20%, var(--idm-gold) 50%, ${cm('var(--idm-female)', 60)} 80%, transparent 95%)`,
+              boxShadow: `0 0 12px ${cm('var(--idm-gold)', 30)}, 0 0 24px ${cm('var(--idm-female)', 15)}`,
+            }} />
+            {/* Crown ornament */}
+            <div
+              className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center z-10"
+              style={{
+                backgroundColor: 'var(--bg-mid)',
+                border: `2px solid var(--idm-gold)`,
+                boxShadow: `0 0 16px ${cm('var(--idm-gold)', 35)}, inset 0 0 6px ${cm('var(--idm-gold)', 10)}`,
+              }}
+            >
+              <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm" />
             </div>
-
-            {/* Desktop: vertical divider with accent dots */}
-            <div className="hidden lg:flex relative flex-col items-center justify-center shrink-0" style={{ width: '3px' }}>
-              {/* Full-height gradient line */}
-              <div className="absolute inset-0" style={{
-                background: `linear-gradient(to bottom, transparent 5%, ${cm('var(--idm-male)', 60)} 20%, var(--idm-gold) 50%, ${cm('var(--idm-female)', 60)} 80%, transparent 95%)`,
-                boxShadow: `0 0 12px ${cm('var(--idm-male)', 30)}, 0 0 8px ${cm('var(--idm-gold)', 15)}`,
-              }} />
-              {/* Accent color dots */}
-              <div className="absolute top-[20%] w-2 h-2 rounded-full z-10" style={{ backgroundColor: 'var(--idm-male)', boxShadow: `0 0 6px ${cm('var(--idm-male)', 50)}` }} />
-              <div className="absolute bottom-[20%] w-2 h-2 rounded-full z-10" style={{ backgroundColor: 'var(--idm-female)', boxShadow: `0 0 6px ${cm('var(--idm-female)', 50)}` }} />
-            </div>
-          </>
+            {/* Accent color dots */}
+            <div className="absolute top-[20%] w-2 h-2 rounded-full z-10" style={{ backgroundColor: 'var(--idm-male)', boxShadow: `0 0 6px ${cm('var(--idm-male)', 50)}` }} />
+            <div className="absolute bottom-[20%] w-2 h-2 rounded-full z-10" style={{ backgroundColor: 'var(--idm-female)', boxShadow: `0 0 6px ${cm('var(--idm-female)', 50)}` }} />
+          </div>
         )}
 
-        {/* ─── Female Champion Card (MVP style) ─── */}
-        <div className="flex-1 p-4 sm:p-5">
+        {/* Female side */}
+        <div className="relative flex-1 cursor-pointer group/female" onClick={() => {
+          setSelectedPlayer({
+            ...latestFemale.player,
+            division: 'female',
+            club: latestFemale.club ?? undefined,
+            city: latestFemale.player.city,
+            name: latestFemale.player.gamertag,
+            gamertag: latestFemale.player.gamertag,
+            avatar: latestFemale.player.avatar,
+            tier: latestFemale.player.tier,
+            points: latestFemale.player.points,
+            totalWins: latestFemale.player.totalWins,
+            streak: latestFemale.player.streak || 0,
+            maxStreak: latestFemale.player.maxStreak || 0,
+            totalMvp: latestFemale.player.totalMvp || 0,
+            matches: latestFemale.player.matches || 0,
+          });
+        }}>
           {hasFemale ? (
-            <div className="flex gap-3 sm:gap-4 items-stretch cursor-pointer group/female" onClick={() => {
-              setSelectedPlayer({
-                ...latestFemale.player,
-                division: 'female',
-                club: latestFemale.club ?? undefined,
-                city: latestFemale.player.city,
-                name: latestFemale.player.gamertag,
-                gamertag: latestFemale.player.gamertag,
-                avatar: latestFemale.player.avatar,
-                tier: latestFemale.player.tier,
-                points: latestFemale.player.points,
-                totalWins: latestFemale.player.totalWins,
-                streak: latestFemale.player.streak || 0,
-                maxStreak: latestFemale.player.maxStreak || 0,
-                totalMvp: latestFemale.player.totalMvp || 0,
-                matches: latestFemale.player.matches || 0,
-              });
-            }}>
-              {/* Avatar panel — 3/4 aspect ratio — always female division color ring */}
-              <div
-                className="relative w-24 sm:w-32 lg:w-36 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-idm-female/25 to-idm-female/5 border-idm-female/30"
-                style={{ aspectRatio: '3/4' }}
-              >
-                <AvatarMedia
-                  src={getAvatarUrl(latestFemale.player.gamertag, 'female', latestFemale.player.avatar)}
-                  alt={latestFemale.player.gamertag}
-                  width={144}
-                  height={192}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover/female:scale-105"
-                  priority
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-                {/* Crown badge — top right */}
-                <div className="absolute top-2 right-2 z-10">
-                  <div className="w-6 h-6 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-[0_0_12px_color-mix(in_srgb,var(--color-idm-gold-warm)_40%,transparent)]">
-                    <Crown className="w-3 h-3 text-[#0c0a06]" />
-                  </div>
-                </div>
-                {/* Champion badge — bottom */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
-                  <span className="bg-gradient-to-r from-idm-gold-warm to-amber-500 text-black text-[7px] font-black px-2 py-0.5 rounded shadow-[0_0_8px_rgba(249,203,37,0.3)] whitespace-nowrap flex items-center gap-0.5">
-                    <Trophy className="w-2 h-2" />S{latestSeasonNumber}
-                  </span>
-                </div>
-              </div>
-
-              {/* Stats panel */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                {/* Player name + badges */}
-                <div>
-                  <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                    <span className="text-[10px] font-black" style={{ color: femaleAccentLight }}>♀</span>
-                    <h3 className="text-sm lg:text-base font-black truncate" style={{ color: femaleAccentLight }}>{latestFemale.player.gamertag}</h3>
-                    
-                  </div>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    {clubToString(latestFemale.player.club) && (
-                      <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{clubToString(latestFemale.player.club)}</span>
-                    )}
-                    <span className="bg-idm-female/15 text-idm-female-light text-[7px] lg:text-[8px] border border-idm-female/20 px-1.5 py-0.5 rounded font-bold">
-                      💃 Cewe
-                    </span>
-                  </div>
-                </div>
-
-                {/* Stats grid — 2x2 */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2">
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-                    <Trophy className="w-3 h-3 shrink-0 text-idm-gold-warm" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-idm-gold-warm leading-tight">{latestFemale.player.points}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Points</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-500/5 border border-green-500/10">
-                    <Crown className="w-3 h-3 shrink-0 text-green-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-green-400 leading-tight">{latestFemale.player.totalWins}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Wins</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                    <Medal className="w-3 h-3 shrink-0 text-yellow-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-yellow-400 leading-tight">{latestFemale.player.totalMvp ?? 0}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">MVP</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-orange-500/5 border border-orange-500/10">
-                    <Flame className="w-3 h-3 shrink-0 text-orange-400" />
-                    <div className="min-w-0">
-                      <p className="text-[10px] sm:text-xs font-black tabular-nums text-orange-400 leading-tight">{latestFemale.player.streak ?? 0}</p>
-                      <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">Streak</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <>
+              <AvatarMedia
+                src={getAvatarUrl(latestFemale.player.gamertag, 'female', latestFemale.player.avatar)}
+                alt={latestFemale.player.gamertag}
+                fill
+                sizes="50vw"
+                className="object-cover object-top transition-transform duration-500 group-hover/female:scale-105"
+                style={{ transform: 'scale(1.0) translateX(-2%)' }}
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent to-background/50" />
+              {/* Female gold glow */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 60% 80%, ${cm('var(--idm-female)', 8)}, transparent 50%)` }} />
+            </>
           ) : (
-            /* Female empty state */
-            <div className="flex gap-3 sm:gap-4 items-stretch opacity-40">
-              <div className="relative w-24 sm:w-32 lg:w-36 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br from-idm-female/10 to-idm-female/5 border border-idm-female/10 flex items-center justify-center" style={{ aspectRatio: '3/4' }}>
-                <Shield className="w-8 h-8 text-idm-female/30" />
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                <p className="text-sm font-bold text-muted-foreground">Champion Cewe</p>
-                <p className="text-[10px] text-muted-foreground/60">Belum ada juara</p>
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(225deg, ${cm('var(--idm-female)', 10)}, var(--bg-mid))` }}>
+              <div className="flex flex-col items-center gap-2 opacity-25">
+                <Shield className="w-10 h-10" style={{ color: femaleAccent }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: femaleAccentLight }}>Cewe</span>
               </div>
             </div>
           )}
+          {/* Female info at bottom */}
+          {hasFemale && (
+            <div className="absolute bottom-0 inset-x-0 px-3 pb-3 pt-8 z-10" style={{ background: 'linear-gradient(to top, var(--bg-mid) 0%, transparent 100%)' }}>
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[10px] font-black" style={{ color: femaleAccentLight }}>♀</span>
+                <p className="text-sm sm:text-base font-black text-foreground truncate dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                  {latestFemale.player.gamertag}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[9px] font-bold text-idm-gold-warm">{latestFemale.player.points}pts</span>
+                <span className="text-[9px] font-bold text-green-400">{latestFemale.player.totalWins}W</span>
+                {(latestFemale.player.totalMvp ?? 0) > 0 && (
+                  <span className="text-[9px] font-bold text-yellow-400">{latestFemale.player.totalMvp}x MVP</span>
+                )}
+                {(latestFemale.player.streak ?? 0) >= 2 && (
+                  <span className="text-[9px] font-bold flex items-center gap-0.5 text-orange-400">
+                    <Flame className="w-2 h-2" />{latestFemale.player.streak}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Crown badge floating at top */}
+        <div className="champion-crown-float absolute top-2 left-1/2 -translate-x-1/2 z-20 w-6 h-6 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: 'var(--idm-gold)', boxShadow: `0 4px 12px ${cm('var(--idm-gold)', 40)}` }}>
+          <Crown className="w-3 h-3 text-background" />
         </div>
       </div>
 

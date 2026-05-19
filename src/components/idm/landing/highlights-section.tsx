@@ -934,10 +934,11 @@ function SultanCard({
         </div>
 
         {hasPlayer ? (
-          /* ═══ COIN layout: Circular Medallion + Info Below ═══ */
+          /* ═══ COIN layout: Large Circular Medallion with full-body avatar ═══ */
           <div
-            className="relative rounded-2xl overflow-hidden cursor-pointer group/sultan transition-all duration-300 hover:shadow-lg flex flex-col items-center py-6 px-4 sm:px-6"
+            className="relative rounded-2xl overflow-hidden cursor-pointer group/sultan transition-all duration-300 hover:shadow-lg"
             style={{
+              minHeight: '380px',
               border: `1px solid rgba(${maroon.rgb},0.15)`,
               boxShadow: isLight
                 ? `0 4px 16px rgba(${maroon.rgb},0.06), 0 4px 12px rgba(${divisionRgb},0.04), inset 0 1px 0 rgba(255,255,255,0.5)`
@@ -962,53 +963,57 @@ function SultanCard({
               }
             }}
           >
-            {/* ─── COIN: Circular Medallion ─── */}
-            <div className="relative">
+            {/* ─── COIN: Large Circular Medallion with full-body avatar ─── */}
+            <div className="relative flex items-center justify-center py-6">
+              {/* Radial glow behind coin */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 50% 45%, rgba(${maroon.rgb},0.15), transparent 60%)` }} />
+
               {/* Outer ridge — embossed coin edge */}
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
+              <div className="relative w-48 h-48 sm:w-60 sm:h-60 rounded-full p-[4px]"
                 style={{
-                  background: `conic-gradient(from 0deg, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark})`,
-                  boxShadow: `0 0 20px ${hexToRgba(maroon.nameDark, 0.2)}, 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 ${hexToRgba(maroon.nameMid, 0.3)}`,
+                  background: `conic-gradient(from 0deg, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark})`,
+                  boxShadow: `0 0 30px ${hexToRgba(maroon.nameDark, 0.25)}, 0 6px 20px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(maroon.nameMid, 0.3)}`,
                 }}>
-                {/* Inner coin body */}
+                {/* Inner coin body — full-body avatar */}
                 <div className="w-full h-full rounded-full overflow-hidden border-2"
                   style={{ borderColor: hexToRgba(maroon.nameMid, 0.4) }}>
                   <AvatarMedia
                     src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
                     alt={sultan.player!.gamertag}
-                    width={144}
-                    height={144}
-                    className="w-full h-full object-cover group-hover/sultan:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 640px) 192px, 240px"
+                    className="object-cover object-top group-hover/sultan:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
                 </div>
               </div>
 
-              {/* Heart badge — top center */}
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+              {/* Heart badge — top center (crown of coin) */}
+              <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                   style={{
                     background: `linear-gradient(135deg, ${maroon.nameMid}, ${maroon.nameDark})`,
                     borderColor: hexToRgba(maroon.nameMid, 0.5),
                     boxShadow: `0 2px 8px ${hexToRgba(maroon.nameDark, 0.4)}`,
                   }}>
-                  <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
                 </div>
               </div>
 
-              {/* Decorative dots around coin */}
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+              {/* Notch details — decorative dots around coin */}
+              {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
                 <div key={deg} className="absolute w-1 h-1 rounded-full"
                   style={{
                     top: '50%', left: '50%',
-                    transform: `rotate(${deg}deg) translateY(-72px) translate(-50%, -50%)`,
-                    background: hexToRgba(maroon.nameMid, 0.25),
+                    transform: `rotate(${deg}deg) translateY(-110px) sm:-translateY-[140px] translate(-50%, -50%)`,
+                    background: hexToRgba(maroon.nameMid, 0.2),
                   }} />
               ))}
             </div>
 
             {/* ─── Info Below Coin ─── */}
-            <div className="flex flex-col items-center mt-4 text-center">
+            <div className="flex flex-col items-center pb-5 text-center px-4">
               {/* Gamertag */}
               <p
                 className="text-xl sm:text-2xl font-black leading-tight"

@@ -572,7 +572,7 @@ function SultanOfWeekCard({
           </div>
         </div>
 
-        {/* Body — COIN / MEDALLION layout */}
+        {/* Body — COIN / MEDALLION layout — large coin with full-body avatar */}
         <div className="p-4 sm:p-6">
           {hasPlayer ? (
             <button
@@ -586,57 +586,62 @@ function SultanOfWeekCard({
               }, sultanDivision)}
               className="flex flex-col items-center w-full cursor-pointer group/sultan"
             >
-              {/* 🪙 Coin Container — circular medallion */}
-              <div className="relative">
+              {/* 🪙 Large Coin Container — circular medallion with full-body avatar */}
+              <div className="relative flex items-center justify-center">
+                {/* Radial glow behind coin */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at 50% 45%, rgba(128,0,32,0.12), transparent 60%)` }} />
+
                 {/* Outer ridge — embossed coin edge */}
-                <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
+                <div className="relative w-48 h-48 sm:w-60 sm:h-60 rounded-full p-[4px]"
                   style={{
-                    background: `conic-gradient(from 0deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
-                    boxShadow: `0 0 20px ${hexToRgba(MAROON, 0.2)}, 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.3)}`,
+                    background: `conic-gradient(from 0deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
+                    boxShadow: `0 0 30px ${hexToRgba(MAROON, 0.25)}, 0 6px 20px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.3)}`,
                   }}>
-                  {/* Inner coin body */}
+                  {/* Inner coin body — full-body avatar */}
                   <div className="w-full h-full rounded-full overflow-hidden border-2"
                     style={{ borderColor: hexToRgba(MAROON_LIGHT, 0.4) }}>
                     <AvatarMedia
                       src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
                       alt={sultan.player!.gamertag}
-                      width={144} height={144}
-                      className="w-full h-full object-cover group-hover/sultan:scale-105 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 640px) 192px, 240px"
+                      className="object-cover object-top group-hover/sultan:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
                   </div>
                 </div>
 
                 {/* Heart badge — top center (crown of coin) */}
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                     style={{
                       background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
                       borderColor: hexToRgba(MAROON_LIGHT, 0.5),
                       boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.4)}`,
                     }}>
-                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
                   </div>
                 </div>
 
-                {/* Notch details — small coin ridges (decorative dots around coin) */}
-                {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                {/* Notch details — decorative dots around coin */}
+                {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
                   <div key={deg} className="absolute w-1 h-1 rounded-full"
                     style={{
                       top: '50%', left: '50%',
-                      transform: `rotate(${deg}deg) translateY(-72px) translate(-50%, -50%)`,
-                      background: hexToRgba(MAROON_LIGHT, 0.25),
+                      transform: `rotate(${deg}deg) translateY(-110px) sm:-translateY-[140px] translate(-50%, -50%)`,
+                      background: hexToRgba(MAROON_LIGHT, 0.2),
                     }} />
                 ))}
               </div>
 
               {/* Name — below coin */}
-              <p className="text-sm font-bold mt-3 group-hover/sultan:text-idm-gold-warm transition-colors text-center">
+              <p className="text-base sm:text-lg font-black mt-4 group-hover/sultan:text-idm-gold-warm transition-colors text-center">
                 {sultan.player!.gamertag}
               </p>
               <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Week {sultan.weekNumber}</p>
               {(sultan.player!.city || sultan.player!.club) && (
-                <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[160px]">
+                <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[200px]">
                   {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
                 </p>
               )}
@@ -654,23 +659,23 @@ function SultanOfWeekCard({
             /* No player matched — show donor name only */
             <div className="flex flex-col items-center">
               <div className="relative">
-                <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
+                <div className="w-48 h-48 sm:w-60 sm:h-60 rounded-full p-[4px]"
                   style={{
                     background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.3)}, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)}, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)})`,
                   }}>
                   <div className="w-full h-full rounded-full flex items-center justify-center border-2"
                     style={{ borderColor: hexToRgba(MAROON, 0.2), background: hexToRgba(MAROON, 0.06) }}>
-                    <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: hexToRgba(MAROON, 0.4) }} />
+                    <Heart className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.4) }} />
                   </div>
                 </div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                     style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`, borderColor: hexToRgba(MAROON_LIGHT, 0.5) }}>
-                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
                   </div>
                 </div>
               </div>
-              <p className="text-sm font-bold mt-3">{sultan.donorName}</p>
+              <p className="text-base font-bold mt-4">{sultan.donorName}</p>
               <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Week {sultan.weekNumber}</p>
               <div className="flex items-center gap-2 mt-2.5">
                 <span className="text-[10px] font-black tabular-nums px-2.5 py-1 rounded-full"
@@ -711,16 +716,16 @@ function GhostSultanOfWeekCard() {
           <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[8px] font-bold">TBA</Badge>
         </div>
 
-        {/* Ghost body — coin shape */}
+        {/* Ghost body — large coin shape */}
         <div className="p-4 sm:p-6 flex flex-col items-center">
-          <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
+          <div className="w-48 h-48 sm:w-60 sm:h-60 rounded-full p-[4px]"
             style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)})` }}>
             <div className="w-full h-full rounded-full flex items-center justify-center border-2"
               style={{ borderColor: hexToRgba(MAROON, 0.08), background: hexToRgba(MAROON, 0.03) }}>
-              <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: hexToRgba(MAROON, 0.15) }} />
+              <Heart className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.15) }} />
             </div>
           </div>
-          <div className="h-4 w-24 rounded bg-muted/30 mt-3 mb-1.5" />
+          <div className="h-4 w-24 rounded bg-muted/30 mt-4 mb-1.5" />
           <div className="h-3 w-32 rounded bg-muted/20" />
         </div>
       </div>
@@ -771,7 +776,7 @@ function SultanOfSeasonCardPage({
           </Badge>
         </div>
 
-        {/* Body — DIAMOND shape layout */}
+        {/* Body — 💎 Large DIAMOND shape layout with full-body avatar */}
         <div className="p-4 sm:p-6">
           <button
             onClick={() => onPlayerClick({
@@ -792,26 +797,30 @@ function SultanOfSeasonCardPage({
             }, sultanDivision)}
             className="flex flex-col items-center w-full cursor-pointer group/sultan-season"
           >
-            {/* 💎 Diamond Container — rotated square with clip-path */}
+            {/* 💎 Large Diamond Container — full-body avatar */}
             <div className="relative">
               {/* Outer glow / facet reflection */}
-              <div className="absolute inset-0 scale-110"
+              <div className="absolute inset-0 scale-125"
                 style={{
                   clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
                   background: `conic-gradient(from 45deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD}, transparent, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})`,
-                  opacity: 0.3,
-                  filter: 'blur(6px)',
+                  opacity: 0.25,
+                  filter: 'blur(8px)',
                 }} />
 
+              {/* Emerald radial glow behind diamond */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 50% 50%, rgba(67,160,71,0.12), transparent 60%)` }} />
+
               {/* Diamond frame — the outer faceted border */}
-              <div className="relative w-28 h-28 sm:w-40 sm:h-40"
+              <div className="relative w-44 h-44 sm:w-56 sm:h-56"
                 style={{
                   clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
                   background: `linear-gradient(135deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})`,
-                  boxShadow: `0 0 24px ${hexToRgba(EMERALD, 0.3)}, 0 4px 12px rgba(0,0,0,0.15)`,
-                  padding: '3px',
+                  boxShadow: `0 0 30px ${hexToRgba(EMERALD, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
+                  padding: '4px',
                 }}>
-                {/* Inner diamond — avatar */}
+                {/* Inner diamond — full-body avatar */}
                 <div className="w-full h-full overflow-hidden"
                   style={{
                     clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
@@ -819,8 +828,9 @@ function SultanOfSeasonCardPage({
                   <AvatarMedia
                     src={getAvatarUrl(sultan.gamertag, sultanDivision, sultan.avatar)}
                     alt={sultan.gamertag}
-                    width={160} height={160}
-                    className="w-full h-full object-cover group-hover/sultan-season:scale-110 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 640px) 176px, 224px"
+                    className="object-cover object-top group-hover/sultan-season:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
                   {/* Facet overlay — prism/light reflection effect */}
@@ -834,25 +844,25 @@ function SultanOfSeasonCardPage({
 
               {/* Gem badge — top center (crown of diamond) */}
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                   style={{
                     background: `linear-gradient(135deg, ${EMERALD_LIGHT}, ${EMERALD})`,
                     borderColor: hexToRgba(EMERALD_LIGHT, 0.5),
                     boxShadow: `0 2px 8px ${hexToRgba(EMERALD, 0.4)}`,
                   }}>
-                  <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
               </div>
             </div>
 
             {/* Name — below diamond */}
-            <p className="text-sm font-bold mt-3 group-hover/sultan-season:text-idm-gold-warm transition-colors text-center"
+            <p className="text-base sm:text-lg font-black mt-4 group-hover/sultan-season:text-idm-gold-warm transition-colors text-center"
               style={{ color: EMERALD_LIGHT }}>
               {sultan.gamertag}
             </p>
             <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Season {seasonNumber}</p>
             {sultan.club?.name && (
-              <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[160px]">{sultan.club.name}</p>
+              <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[200px]">{sultan.club.name}</p>
             )}
 
             {/* Certificate bar — stats */}
@@ -894,16 +904,16 @@ function GhostSultanOfSeasonCard() {
           <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[8px] font-bold">TBA</Badge>
         </div>
 
-        {/* Ghost body — diamond shape */}
+        {/* Ghost body — large diamond shape */}
         <div className="p-4 sm:p-6 flex flex-col items-center">
-          <div className="w-28 h-28 sm:w-40 sm:h-40 flex items-center justify-center"
+          <div className="w-44 h-44 sm:w-56 sm:h-56 flex items-center justify-center"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               background: `linear-gradient(135deg, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD_LIGHT, 0.1)})`,
             }}>
-            <Gem className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: hexToRgba(EMERALD, 0.2) }} />
+            <Gem className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(EMERALD, 0.2) }} />
           </div>
-          <div className="h-4 w-24 rounded bg-muted/30 mt-3 mb-1.5" />
+          <div className="h-4 w-24 rounded bg-muted/30 mt-4 mb-1.5" />
           <div className="h-3 w-32 rounded bg-muted/20" />
         </div>
       </div>

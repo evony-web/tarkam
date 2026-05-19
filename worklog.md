@@ -1855,3 +1855,24 @@ Stage Summary:
 ### Verification
 - Lint check passed (no new errors in modified files)
 - Dev server compiles successfully with no errors
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Sultan of Week, Sultan of Season cards to use full-body avatar, and restore Season Champion full-bleed layout
+
+Work Log:
+- Identified the issue: Sultan of Week coin was too small (w-28/w-36), Sultan of Season diamond was too small (w-28/w-40), Season Champion (DuoChampionCard) had a horizontal small avatar + stats layout instead of full-bleed portrait
+- Updated highlights-section.tsx SultanCard: coin enlarged to w-48/w-60 with full-body avatar using `fill` mode and `object-top`
+- Updated season-champion-section.tsx SultanOfSeasonCard: diamond enlarged to w-44/w-56 with full-body avatar using `fill` mode
+- Updated season-champion-section.tsx DuoChampionCard: replaced horizontal small-avatar + stats layout with full-bleed portrait avatars side-by-side (like BintangMingguIniDuo), with crown divider and stats overlaid at bottom
+- Updated highlights-page.tsx SultanOfWeekCard: coin enlarged to w-48/w-60 with full-body avatar
+- Updated highlights-page.tsx GhostSultanOfWeekCard: ghost coin enlarged to match
+- Updated highlights-page.tsx SultanOfSeasonCardPage: diamond enlarged to w-44/w-56 with full-body avatar
+- Updated highlights-page.tsx GhostSultanOfSeasonCard: ghost diamond enlarged to match
+- Ran lint check — no new errors introduced
+
+Stage Summary:
+- Sultan of the Week: COIN shape now uses full-body avatar (w-48/w-60 circle) with `fill` + `object-top` 
+- Sultan of Season: DIAMOND shape now uses full-body avatar (w-44/w-56 rhombus) with `fill` + `object-top`
+- Season Champion: Restored to full-bleed portrait avatars side-by-side with crown divider (matching BintangMingguIniDuo pattern)
+- All 3 shapes (rectangle, circle, diamond) are now visually distinct with large, prominent avatars
