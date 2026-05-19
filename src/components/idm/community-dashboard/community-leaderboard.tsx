@@ -169,7 +169,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
             <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TOP {displayedPlayers?.length || 10}</Badge>
           </div>
           {/* Table — Mobile: no inner scroll (page scrolls). Desktop: max-height with inner scroll */}
-          <div className="sm:max-h-[500px] sm:overflow-y-auto custom-scrollbar">
+          <div className="sm:max-h-[650px] sm:overflow-y-auto custom-scrollbar">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="sticky top-0 z-10">
@@ -313,7 +313,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
           ) : clubs.length > 0 ? (
             <>
               {/* Mobile: no inner scroll (page scrolls). Desktop: max-height with inner scroll */}
-              <div className="sm:max-h-[500px] sm:overflow-y-auto custom-scrollbar">
+              <div className="sm:max-h-[650px] sm:overflow-y-auto custom-scrollbar">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader className="sticky top-0 z-10">
