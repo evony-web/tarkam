@@ -1699,3 +1699,119 @@ Stage Summary:
 - Upper Semi: Unified Challonge-style layout with UB+LB+GF in one scrollable/zoomable container; cross-bracket SVG connectors (UB→GF, LB→GF)
 - `BracketColumnView` kept for reuse but UpperSemiView no longer uses it
 - Lint passes (no new errors), dev server compiles successfully
+
+---
+
+Task ID: 3
+Agent: Main Agent
+Task: Add admin mode to BracketView component and integrate into tournament manager
+
+Work Log:
+
+### Changes to `/home/z/my-project/src/components/idm/bracket-view.tsx`
+
+#### 1. Updated Match interface with admin-specific fields
+- Added `winnerId?: string | null` — winner team ID for admin context
+- Added `format?: string` — match format (BO1, BO3) shown in admin label bar
+- Added `team1Players?: string` — comma-separated gamertags for tooltip below team name
+- Added `team2Players?: string` — same for team 2
+
+#### 2. Added AdminBracketProps interface
+- `tournamentId: string` — for mutation calls
+- `tournamentStatus: string` — to check if tournament is in main_event phase
+- `getTeamName: (id: string | null) => string` — resolves team ID to name
+- `scoreInputs` / `setScoreInputs` — score input state management
+- `scoreMutation` / `startMatchMutation` / `undoScoreMutation` — mutation handlers
+- `setConfirmDialog` — confirmation dialog dispatcher
+
+#### 3. Updated BracketViewProps
+- Added `mode?: 'public' | 'admin'` — defaults to 'public' for backward compatibility
+- Added `adminProps?: AdminBracketProps` — only required in admin mode
+
+#### 4. Updated BracketMatchCard with admin mode
+- Created `BracketMatchCardProps` interface extending original props with `mode` and `adminProps`
+- **Label bar**: In admin mode, shows Start button next to match label (U1, L1, etc.) for ready/pending matches with both teams present and tournament in main_event status
+- **Label bar**: Completed matches show ✅ checkmark in admin mode
+- **Label bar**: Format badge (BO1, BO3) shown on right side in admin mode
+- **Score area**: When admin + live + main_event, score pills are replaced with compact number inputs (`w-10 h-7`)
+- **Team name**: Player gamertags shown below team name in small text when admin mode is on
+- **Submit button**: Appears below card when admin + live + both scores entered, uses gold accent styling with Check icon
+- **Undo button**: Appears below card when admin + completed + main_event, uses orange styling with Undo2 icon
+- **BYE cards**: No admin controls shown (returns early before any admin logic)
+- All admin controls use confirm dialog before executing mutations
+
+#### 5. Passed admin props through component tree
+- `BracketView` → `BracketMatchCard` (single elimination main bracket)
+- `BracketView` → `UpperSemiView` → `BracketMatchCard` (UB, LB, GF cards)
+- `BracketColumnView` → `BracketMatchCard` (reusable column component)
+- Added `mode` and `adminProps` to `UpperSemiView` props
+- Added `mode` and `adminProps` to `BracketColumnViewProps`
+
+### Changes to `/home/z/my-project/src/components/idm/tournament-manager.tsx`
+
+#### 1. Added BracketView import
+- `import { BracketView } from './bracket-view';`
+
+#### 2. Replaced flat match card rendering for single_elimination
+- Old: Grouped matches by round with flat `AdminMatchCard` components in grid layout
+- New: `<BracketView bracketType="single_elimination" mode="admin" ...>` with full bracket visual
+- Maps tournament API match data to BracketView's Match interface
+- Includes `team1Players` and `team2Players` from `team.teamPlayers.map(tp => tp.player.gamertag).join(', ')`
+
+#### 3. Added upper_semi format handling
+- Old: Fell through to "other formats" generic flat rendering
+- New: `<BracketView bracketType="upper_semi" mode="admin" ...>` with double elimination bracket visual
+- Same admin props and data mapping as single_elimination
+
+#### 4. Kept existing flat rendering for other formats
+- Swiss format: Still uses custom inline rendering with Swiss rounds + playoff bracket
+- Group stage: Still uses group tables + playoff bracket
+- Other formats: Still use generic flat `AdminMatchCard` list
+
+### Verification
+- `bun run lint` — No new errors (5 pre-existing errors in hero-section.tsx, shared.tsx, tournament-manager.tsx)
+- `npx tsc --noEmit` — Zero TypeScript errors
+- Dev server compiles successfully (✓ Compiled in ~450ms)
+- Public bracket view unchanged (mode defaults to 'public', adminProps is optional)
+
+Stage Summary:
+- BracketView now supports admin mode with Start/Submit/Undo buttons and inline score inputs
+- single_elimination and upper_semi formats in tournament manager use bracket visual instead of flat cards
+- Admin controls are subtle but accessible — small buttons, compact inputs, gold/orange accent colors
+- BYE placeholder cards don't show admin controls
+- All admin actions go through confirm dialog before execution
+- Public bracket view is completely unaffected
+
+---
+Task ID: 3-4
+Agent: Main Agent (via subagent)
+Task: Add admin mode to BracketView + Integrate into tournament-manager
+
+Work Log:
+- Added `AdminBracketProps` interface with tournamentId, tournamentStatus, getTeamName, scoreInputs, mutations, setConfirmDialog
+- Extended `BracketViewProps` with `mode?: 'public' | 'admin'` and `adminProps?` (defaults to public, fully backward compatible)
+- Extended `Match` interface with `winnerId`, `format`, `team1Players`, `team2Players` for admin context
+- Updated `BracketMatchCard` with comprehensive admin mode controls:
+  - **Start button** (▶ Start) next to match label in label bar for ready/pending matches
+  - **Format badge** (BO1/BO3) shown in label bar right side
+  - **Inline score inputs** (w-10 h-7 number inputs) replacing score pills when match is live
+  - **Player gamertags** shown below team names in small text
+  - **Submit button** (gold accent with ✓) appears when both scores are entered
+  - **Undo button** (orange accent with ↩) for completed matches during main_event
+  - **✅ checkmark** for completed matches in label bar
+  - BYE placeholders don't show admin controls
+  - All mutations go through confirm dialog for safety
+- Passed `mode` and `adminProps` through entire component tree: BracketView → UpperSemiView → BracketMatchCard, BracketView → BracketColumnView → BracketMatchCard
+- Imported BracketView in tournament-manager.tsx
+- Replaced flat AdminMatchCard grid for single_elimination with `<BracketView bracketType="single_elimination" mode="admin" ...>`
+- Added upper_semi format handler with `<BracketView bracketType="upper_semi" mode="admin" ...>` (was previously falling through to generic flat rendering)
+- Match data properly mapped from tournament API format to BracketView Match interface including team1Players/team2Players from team.teamPlayers
+- Swiss, group_stage, and fallback formats keep existing flat card rendering (unchanged)
+
+Stage Summary:
+- Admin panel now shows bracket-style score input for single_elimination and upper_semi formats
+- Start button positioned next to match label (U1, U2, etc.) as user requested
+- Score inputs inline when match is live, submit appears after both scores entered
+- Undo button for completed matches
+- Public bracket view completely unaffected (mode defaults to 'public')
+- Lint: no new errors (5 pre-existing errors in other files)

@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { TierBadge } from './tier-badge';
 import { StatusBadge } from './status-badge';
 import { TeamSpinReveal } from './team-spin-reveal';
+import { BracketView } from './bracket-view';
 import { useState, useMemo, useCallback, memo } from 'react';
 import { toast } from 'sonner';
 import { formatCurrency, parseWIBDate, wibToDatetimeLocal, formatWIBDateShort, formatWIBTime } from '@/lib/utils';
@@ -2297,69 +2298,75 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       )}
                     </>
                   );
-                })() : selected.format === 'single_elimination' ? (() => {
-                  /* ── Single Elimination: grouped by round with section headers ── */
-                  const upperMatches = matchesByBracket['upper'] || [];
-                  const sortedAll = [...upperMatches].sort((a: any, b: any) => a.round - b.round || a.matchNumber - b.matchNumber);
-                  const totalRounds = Math.max(...sortedAll.map((m: any) => m.round), 1);
-
-                  // Group by round
-                  const rounds: { round: number; label: string; matches: any[] }[] = [];
-                  for (let r = 1; r <= totalRounds; r++) {
-                    const roundMatches = sortedAll.filter((m: any) => m.round === r);
-                    if (roundMatches.length === 0) continue;
-                    const fromEnd = totalRounds - r;
-                    const label = fromEnd === 0 ? '🏆 Grand Final' : fromEnd === 1 ? '⚔️ Semi Final' : fromEnd === 2 ? '⚔️ Quarter Final' : `Ronde ${r}`;
-                    rounds.push({ round: r, label, matches: roundMatches });
-                  }
-
-                  return (
-                    <>
-                      {rounds.map(({ round, label, matches: roundMatches }) => {
-                        const isGF = label.includes('Grand Final');
-                        const isSF = label.includes('Semi Final');
-                        const realMatches = roundMatches.filter((m: any) => m.team1Id && m.team2Id);
-                        const byeMatches = roundMatches.filter((m: any) => !m.team1Id || !m.team2Id);
-                        const getByeTeamName = (m: any) => {
-                          if (m.team1Id && m.team1) return m.team1.name;
-                          if (m.team2Id && m.team2) return m.team2.name;
-                          return 'TBD';
-                        };
-                        return (
-                          <div key={round}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                                isGF ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/20' :
-                                isSF ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
-                                'bg-muted/30 text-muted-foreground'
-                              }`}>{label}</div>
-                              <div className="flex-1 h-px bg-border/20" />
-                              <span className="text-[9px] text-muted-foreground">{realMatches.length} match</span>
-                            </div>
-                            <div className={`grid gap-2 ${isGF ? 'grid-cols-1 max-w-sm mx-auto' : isSF ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
-                              {realMatches.map((m: any) => (
-                                <AdminMatchCard key={m.id} m={m} selected={selected} getTeamName={getTeamName}
-                                  scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                                  scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                                  undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />
-                              ))}
-                            </div>
-                            {byeMatches.length > 0 && (
-                              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                {byeMatches.map((m: any) => (
-                                  <div key={m.id} className="px-2 py-1 rounded border border-amber-500/15 bg-amber-500/5 text-[10px] opacity-70 flex items-center gap-1.5">
-                                    <Badge className="text-[7px] border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
-                                    <span className="text-muted-foreground">{getByeTeamName(m)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </>
-                  );
-                })() : selected.format === 'group_stage' ? (() => {
+                })() : selected.format === 'single_elimination' ? (
+                  /* ── Single Elimination: bracket visual with admin mode ── */
+                  <BracketView
+                    matches={selected.matches.map((m: any) => ({
+                      id: m.id,
+                      score1: m.score1,
+                      score2: m.score2,
+                      status: m.status,
+                      team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+                      team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+                      mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, name: m.mvpPlayer.name, gamertag: m.mvpPlayer.gamertag } : null,
+                      round: m.round ?? 1,
+                      matchNumber: m.matchNumber,
+                      bracket: m.bracket,
+                      groupLabel: m.groupLabel,
+                      winnerId: m.winnerId,
+                      format: m.format,
+                      team1Players: m.team1?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                      team2Players: m.team2?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                    }))}
+                    bracketType="single_elimination"
+                    mode="admin"
+                    adminProps={{
+                      tournamentId: selected.id,
+                      tournamentStatus: selected.status,
+                      getTeamName,
+                      scoreInputs,
+                      setScoreInputs,
+                      scoreMutation,
+                      startMatchMutation,
+                      undoScoreMutation,
+                      setConfirmDialog,
+                    }}
+                  />
+                ) : selected.format === 'upper_semi' ? (
+                  /* ── Upper Semi (Double Elimination): bracket visual with admin mode ── */
+                  <BracketView
+                    matches={selected.matches.map((m: any) => ({
+                      id: m.id,
+                      score1: m.score1,
+                      score2: m.score2,
+                      status: m.status,
+                      team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+                      team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+                      mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, name: m.mvpPlayer.name, gamertag: m.mvpPlayer.gamertag } : null,
+                      round: m.round ?? 1,
+                      matchNumber: m.matchNumber,
+                      bracket: m.bracket,
+                      groupLabel: m.groupLabel,
+                      winnerId: m.winnerId,
+                      format: m.format,
+                      team1Players: m.team1?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                      team2Players: m.team2?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                    }))}
+                    bracketType="upper_semi"
+                    mode="admin"
+                    adminProps={{
+                      tournamentId: selected.id,
+                      tournamentStatus: selected.status,
+                      getTeamName,
+                      scoreInputs,
+                      setScoreInputs,
+                      scoreMutation,
+                      startMatchMutation,
+                      undoScoreMutation,
+                      setConfirmDialog,
+                    }}
+                  />
+                ) : selected.format === 'group_stage' ? (() => {
                   /* ── Group Stage: groups + playoff bracket visual ── */
                   const groupMatches = matchesByBracket['group'] || [];
                   const upperBracket = matchesByBracket['upper'] || [];

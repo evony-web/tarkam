@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { Crown, Music, Trophy, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp, Swords } from 'lucide-react';
+import { Crown, Music, Trophy, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp, Swords, Play, Check, Undo2 } from 'lucide-react';
 
 /* ─── Match interface ─── */
 interface Match {
@@ -18,6 +18,11 @@ interface Match {
   matchNumber?: number;
   bracket?: string;
   groupLabel?: string;
+  // Admin-specific fields (from tournament API)
+  winnerId?: string | null;
+  format?: string;
+  team1Players?: string; // comma-separated gamertags for tooltip
+  team2Players?: string;
 }
 
 /** Parse groupLabel (e.g., "U1-2", "U2-1", "SF1", "Final") to get bracket position.
@@ -102,9 +107,23 @@ function fillByePlaceholders(
   return result;
 }
 
+interface AdminBracketProps {
+  tournamentId: string;
+  tournamentStatus: string;
+  getTeamName: (id: string | null) => string;
+  scoreInputs: Record<string, { s1: string; s2: string }>;
+  setScoreInputs: React.Dispatch<React.SetStateAction<Record<string, { s1: string; s2: string }>>>;
+  scoreMutation: { isPending: boolean; mutate: (data: any) => void };
+  startMatchMutation: { isPending: boolean; mutate: (data: any) => void };
+  undoScoreMutation: { isPending: boolean; mutate: (data: any) => void };
+  setConfirmDialog: React.Dispatch<React.SetStateAction<any>>;
+}
+
 interface BracketViewProps {
   matches: Match[];
   bracketType: 'single_elimination' | 'group_stage' | 'round_robin' | 'swiss' | 'upper_semi';
+  mode?: 'public' | 'admin';
+  adminProps?: AdminBracketProps;
 }
 
 /* ─── Round labels ─── */
@@ -120,8 +139,17 @@ function getRoundLabel(roundIdx: number, totalRounds: number): string {
 }
 
 /* ─── Single bracket match card — MPL Premium Style ─── */
-function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; isGrandFinal?: boolean; matchLabel?: string }) {
+interface BracketMatchCardProps {
+  match: Match;
+  isGrandFinal?: boolean;
+  matchLabel?: string;
+  mode?: 'public' | 'admin';
+  adminProps?: AdminBracketProps;
+}
+
+function BracketMatchCard({ match, isGrandFinal, matchLabel, mode = 'public', adminProps }: BracketMatchCardProps) {
   const dt = useDivisionTheme();
+  const isAdmin = mode === 'admin' && !!adminProps;
 
   // BYE placeholder — compact card for missing bracket positions (no match was played)
   if (isByePlaceholder(match)) {
@@ -153,7 +181,46 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
   const winner2 = hasScore && match.score2! > match.score1!;
   const isLive = match.status === 'live' || match.status === 'main_event';
   const isCompleted = match.status === 'completed' || match.status === 'scoring';
+  const isReady = match.status === 'ready';
+  const isPending = match.status === 'pending';
   const isByeMatch = (!match.team1 || !match.team2) && (match.team1 || match.team2) && !isCompleted;
+  const bothTeamsExist = !!(match.team1 && match.team2);
+  const tournamentInMainEvent = isAdmin && adminProps!.tournamentStatus === 'main_event';
+
+  // Check if both scores are entered for submit button visibility
+  const bothScoresEntered = isAdmin && isLive && tournamentInMainEvent &&
+    scoreInputVal(match.id, 's1') !== '' && scoreInputVal(match.id, 's2') !== '';
+
+  // Helper to get score input value
+  function scoreInputVal(matchId: string, key: 's1' | 's2'): string {
+    if (!adminProps) return '';
+    return adminProps.scoreInputs[matchId]?.[key] ?? '';
+  }
+
+  // Handle submit score
+  const handleSubmitScore = () => {
+    if (!adminProps) return;
+    const s1 = parseInt(scoreInputVal(match.id, 's1'));
+    const s2 = parseInt(scoreInputVal(match.id, 's2'));
+    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) return;
+    adminProps.setConfirmDialog({
+      open: true,
+      title: 'Konfirmasi Skor?',
+      description: `${adminProps.getTeamName(match.team1?.id ?? null)} ${s1} - ${s2} ${adminProps.getTeamName(match.team2?.id ?? null)}`,
+      onConfirm: () => adminProps!.scoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: match.id, score1: s1, score2: s2 }),
+    });
+  };
+
+  // Handle undo
+  const handleUndo = () => {
+    if (!adminProps) return;
+    adminProps.setConfirmDialog({
+      open: true,
+      title: 'Undo Skor?',
+      description: `Batalkan skor ${adminProps.getTeamName(match.team1?.id ?? null)} ${match.score1} - ${match.score2} ${adminProps.getTeamName(match.team2?.id ?? null)}? Stats pemain akan dikembalikan.`,
+      onConfirm: () => adminProps!.undoScoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: match.id }),
+    });
+  };
 
   // Division accent colors for winner highlight
   const divisionAccentFrom = dt.division === 'male' ? 'from-idm-male/25' : 'from-idm-female/25';
@@ -192,7 +259,7 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
       }}
     >
       {/* Match label bar — MPL style round indicator */}
-      {(matchLabel || isLive || isByeMatch) && (
+      {(matchLabel || isLive || isByeMatch || isAdmin) && (
         <div className={`flex items-center justify-between px-2.5 py-1 border-b ${dt.borderSubtle} ${
           isGrandFinal ? 'bg-idm-gold-warm/10' : 'bg-muted/30'
         }`}>
@@ -201,6 +268,16 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
               <span className={`text-[10px] font-bold uppercase tracking-wider ${
                 isGrandFinal ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
               }`}>{matchLabel}</span>
+            )}
+            {/* Admin: Start button for ready/pending matches */}
+            {isAdmin && (isReady || isPending) && bothTeamsExist && tournamentInMainEvent && (
+              <button 
+                onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: match.id })}
+                disabled={adminProps!.startMatchMutation.isPending}
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+              >
+                <Play className="w-2.5 h-2.5" /> Start
+              </button>
             )}
             {isLive && (
               <div className="flex items-center gap-1">
@@ -211,10 +288,18 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
                 <span className="text-[9px] font-black uppercase tracking-widest text-red-500">LIVE</span>
               </div>
             )}
+            {isAdmin && isCompleted && tournamentInMainEvent && (
+              <span className="text-[9px] font-bold text-green-400">✅</span>
+            )}
           </div>
-          {isByeMatch && (
-            <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/25 rounded">WALKOVER</span>
-          )}
+          <div className="flex items-center gap-1.5">
+            {isByeMatch && (
+              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/25 rounded">WALKOVER</span>
+            )}
+            {isAdmin && match.format && (
+              <span className="text-[9px] font-bold text-muted-foreground/60">{match.format}</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -238,22 +323,38 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
           }`}>
             {getTeamLabel(match.team1).slice(0, 2).toUpperCase()}
           </div>
-          {/* Team name */}
-          <span className={`text-sm font-semibold truncate flex-1 ${
-            winner1 ? divisionAccentText :
-            !match.team1 ? 'text-muted-foreground italic' :
-            'text-foreground/80'
-          }`}>
-            {getTeamLabel(match.team1)}
-          </span>
-          {/* Score with background pill — MPL style */}
-          <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
-            winner1 
-              ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
-              : 'text-muted-foreground'
-          }`}>
-            {getTeamScore(match.team1, match.score1)}
-          </span>
+          {/* Team name + admin player gamertags */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className={`text-sm font-semibold truncate ${
+              winner1 ? divisionAccentText :
+              !match.team1 ? 'text-muted-foreground italic' :
+              'text-foreground/80'
+            }`}>
+              {getTeamLabel(match.team1)}
+            </span>
+            {isAdmin && match.team1Players && (
+              <span className="text-[9px] text-muted-foreground/50 truncate">{match.team1Players}</span>
+            )}
+          </div>
+          {/* Score: admin mode shows input when live, otherwise score pill */}
+          {isAdmin && isLive && tournamentInMainEvent ? (
+            <input 
+              type="number" 
+              min={0}
+              value={scoreInputVal(match.id, 's1')}
+              onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [match.id]: {...prev[match.id] ?? {s1:'', s2:''}, s1: e.target.value}}))}
+              className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+              placeholder="0"
+            />
+          ) : (
+            <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
+              winner1 
+                ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
+                : 'text-muted-foreground'
+            }`}>
+              {getTeamScore(match.team1, match.score1)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -277,22 +378,38 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
           }`}>
             {getTeamLabel(match.team2).slice(0, 2).toUpperCase()}
           </div>
-          {/* Team name */}
-          <span className={`text-sm font-semibold truncate flex-1 ${
-            winner2 ? divisionAccentText :
-            !match.team2 ? 'text-muted-foreground italic' :
-            'text-foreground/80'
-          }`}>
-            {getTeamLabel(match.team2)}
-          </span>
-          {/* Score with background pill */}
-          <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
-            winner2 
-              ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
-              : 'text-muted-foreground'
-          }`}>
-            {getTeamScore(match.team2, match.score2)}
-          </span>
+          {/* Team name + admin player gamertags */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className={`text-sm font-semibold truncate ${
+              winner2 ? divisionAccentText :
+              !match.team2 ? 'text-muted-foreground italic' :
+              'text-foreground/80'
+            }`}>
+              {getTeamLabel(match.team2)}
+            </span>
+            {isAdmin && match.team2Players && (
+              <span className="text-[9px] text-muted-foreground/50 truncate">{match.team2Players}</span>
+            )}
+          </div>
+          {/* Score: admin mode shows input when live, otherwise score pill */}
+          {isAdmin && isLive && tournamentInMainEvent ? (
+            <input 
+              type="number" 
+              min={0}
+              value={scoreInputVal(match.id, 's2')}
+              onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [match.id]: {...prev[match.id] ?? {s1:'', s2:''}, s2: e.target.value}}))}
+              className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+              placeholder="0"
+            />
+          ) : (
+            <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
+              winner2 
+                ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
+                : 'text-muted-foreground'
+            }`}>
+              {getTeamScore(match.team2, match.score2)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -301,6 +418,32 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; i
         <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle} bg-yellow-500/[0.04]`}>
           <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
           <span className="text-[11px] text-yellow-500/80 font-semibold truncate">MVP: {match.mvpPlayer.gamertag}</span>
+        </div>
+      )}
+
+      {/* Submit button row (when admin, live, both scores entered) */}
+      {isAdmin && isLive && tournamentInMainEvent && bothScoresEntered && (
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+          <button 
+            onClick={handleSubmitScore}
+            disabled={adminProps!.scoreMutation.isPending}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+          >
+            <Check className="w-3 h-3" /> Submit
+          </button>
+        </div>
+      )}
+
+      {/* Undo button for completed matches */}
+      {isAdmin && isCompleted && tournamentInMainEvent && bothTeamsExist && (
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+          <button
+            onClick={handleUndo}
+            disabled={adminProps!.undoScoreMutation.isPending}
+            className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+          >
+            <Undo2 className="w-3 h-3" /> Undo
+          </button>
         </div>
       )}
 
@@ -1430,6 +1573,8 @@ interface BracketColumnViewProps {
   headerBg: string;
   headerText: string;
   matchLabelPrefix: string;
+  mode?: 'public' | 'admin';
+  adminProps?: AdminBracketProps;
 }
 
 function BracketColumnView({
@@ -1441,6 +1586,8 @@ function BracketColumnView({
   headerBg,
   headerText,
   matchLabelPrefix,
+  mode,
+  adminProps,
 }: BracketColumnViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -1682,6 +1829,8 @@ function BracketColumnView({
                               match={m}
                               isGrandFinal={isGF}
                               matchLabel={`${matchLabelPrefix}${mi + 1}`}
+                              mode={mode}
+                              adminProps={adminProps}
                             />
                           </div>
                         ))}
@@ -1698,7 +1847,7 @@ function BracketColumnView({
   );
 }
 
-function UpperSemiView({ matches }: { matches: Match[] }) {
+function UpperSemiView({ matches, mode, adminProps }: { matches: Match[]; mode?: 'public' | 'admin'; adminProps?: AdminBracketProps }) {
   const dt = useDivisionTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -2134,6 +2283,8 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
                                   <BracketMatchCard
                                     match={m}
                                     matchLabel={`U${mi + 1}`}
+                                    mode={mode}
+                                    adminProps={adminProps}
                                   />
                                 </div>
                               ))}
@@ -2194,6 +2345,8 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
                                   <BracketMatchCard
                                     match={m}
                                     matchLabel={`L${mi + 1}`}
+                                    mode={mode}
+                                    adminProps={adminProps}
                                   />
                                 </div>
                               ))}
@@ -2219,7 +2372,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
                         key={m.id}
                         ref={(el) => setCardRef(`gf-match-${m.id}`, el)}
                       >
-                        <BracketMatchCard match={m} isGrandFinal matchLabel="Grand Final" />
+                        <BracketMatchCard match={m} isGrandFinal matchLabel="Grand Final" mode={mode} adminProps={adminProps} />
                       </div>
                     ))}
                     <div className="text-center mt-3">
@@ -2237,7 +2390,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
 }
 
 /* ─── Main BracketView Component ─── */
-export function BracketView({ matches, bracketType }: BracketViewProps) {
+export function BracketView({ matches, bracketType, mode = 'public', adminProps }: BracketViewProps) {
   const dt = useDivisionTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -2612,7 +2765,7 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
 
   /* ─── Render: Upper Semi (Double Elimination) ─── */
   if (bracketType === 'upper_semi') {
-    return <UpperSemiView matches={matches} />;
+    return <UpperSemiView matches={matches} mode={mode} adminProps={adminProps} />;
   }
 
   /* ─── Render: Group Stage ─── */
@@ -2690,6 +2843,8 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
                         match={m} 
                         isGrandFinal={isGF}
                         matchLabel={roundIdx === roundsData.length - 1 && isGF ? 'Grand Final' : `M${mi + 1}`}
+                        mode={mode}
+                        adminProps={adminProps}
                       />
                     </div>
                   ))}
