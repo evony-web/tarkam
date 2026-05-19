@@ -1876,3 +1876,71 @@ Stage Summary:
 - Sultan of Season: DIAMOND shape now uses full-body avatar (w-44/w-56 rhombus) with `fill` + `object-top`
 - Season Champion: Restored to full-bleed portrait avatars side-by-side with crown divider (matching BintangMingguIniDuo pattern)
 - All 3 shapes (rectangle, circle, diamond) are now visually distinct with large, prominent avatars
+
+---
+Task ID: 14
+Agent: Main Agent
+Task: Fix Sultan of Week COIN design in Juara page
+
+Work Log:
+- Read highlights-page.tsx to understand current code structure, identified SultanOfWeekSection (lines 1072-1128) used SultanOfWeekDivisionCard (small compact card with w-12 h-12 avatar)
+- Created new SultanOfWeekCoin component with full COIN medallion design: w-36 h-36 sm:w-48 sm:h-48 rounded-full with conic-gradient border, full-body avatar via AvatarMedia fill prop, Heart badge at top, name/donation stats below
+- Created GhostSultanOfWeekCoin component for empty state matching COIN design with dimmed maroon colors
+- Rewrote SultanOfWeekSection to render SultanOfWeekCoin and GhostSultanOfWeekCoin instead of SultanOfWeekDivisionCard/GhostSultanOfWeekDivisionCard
+- Kept outer casino card wrapper with maroon accent bar and header intact
+- Maintained division filter logic (showMale/showFemale) with grid-cols-1 sm:grid-cols-2 layout
+- Left SultanOfWeekCard and SultanOfWeekDivisionCard components as-is (may be used elsewhere)
+
+Stage Summary:
+- Sultan of the Week section now shows large COIN medallions for each division's sultan instead of small compact cards
+- Two COINs side-by-side on desktop (grid-cols-2), stacked on mobile (grid-cols-1)
+- Each COIN has: circular frame with conic-gradient border, full-body avatar, Heart badge, name, donation stats
+- Ghost/empty states included for divisions with no sultan data
+- All MAROON (#800020) and MAROON_LIGHT (#d4576a) constants reused with hexToRgba for transparency
+
+---
+Task ID: 14b
+Agent: Main Agent
+Task: Update community dashboard SultanOfWeekSection with COIN design
+
+Work Log:
+- Read community-champions.tsx to understand current SultanOfWeekSection layout (small banner + PlayerCard grid)
+- Read highlights-page.tsx to study COIN medallion reference design (SultanOfWeekCard component)
+- Read AvatarMedia component and utils (getAvatarUrl, hexToRgba) for import paths
+- Added imports: AvatarMedia from @/components/ui/avatar-media, getAvatarUrl and hexToRgba from @/lib/utils
+- Added MAROON and MAROON_LIGHT constants before SultanOfWeekSection
+- Replaced the `content` variable inside SultanOfWeekSection with COIN medallion design:
+  - Filled state: circular conic-gradient maroon border (w-36 h-36 / sm:w-44 sm:h-44), full-body avatar via AvatarMedia with fill prop, heart badge at top center, division label, player name, city/club info, donation stats pill, tier badge
+  - Empty/ghost state: dimmed COIN shape with reduced opacity conic-gradient, heart icon, skeleton lines
+- Kept Card wrapper, casino bar, header with heart icon + "Sultan of the Week" label
+- Kept cross-division support logic (isCrossDivision check with badge)
+- Kept formatCurrencyShort, Banknote, and PlayerCard imports (used elsewhere)
+- Lint passes (no errors in community-champions.tsx; pre-existing errors only in tournament-manager.tsx)
+- Dev server compiles successfully
+
+Stage Summary:
+- SultanOfWeekSection now uses COIN medallion design matching highlights-page.tsx style
+- Smaller coin size (w-36/w-44) appropriate for tabbed panel context
+- All existing logic preserved (cross-division, empty state, Card wrapper, header)
+
+---
+Task ID: 14
+Agent: Main Agent
+Task: Fix Sultan of Week COIN design not showing in Juara page + Update community dashboard Sultan section
+
+Work Log:
+- Analyzed the codebase and found that `SultanOfWeekCard` (COIN design) was defined but NEVER USED in the HighlightsPage component
+- The actual rendering used `SultanOfWeekSection` which rendered `SultanOfWeekDivisionCard` (small compact card with w-12 h-12 avatar)
+- Created `SultanOfWeekCoin` component in highlights-page.tsx — large circular medallion (w-36 h-36 / sm:w-48 sm:h-48) with conic-gradient maroon border, full-body avatar, heart badge at top
+- Created `GhostSultanOfWeekCoin` component — dimmed COIN shape for empty state
+- Rewrote `SultanOfWeekSection` to render `SultanOfWeekCoin` / `GhostSultanOfWeekCoin` instead of old compact cards
+- Updated community-champions.tsx `SultanOfWeekSection` to also use COIN design for consistency
+- Verified Sultan of Season (DIAMOND) already correctly implemented in both highlights-page.tsx and season-champion-section.tsx
+- Verified landing page SultanCard already uses COIN design
+- Lint passes with no new errors
+
+Stage Summary:
+- Sultan of the Week now shows as COIN medallion with full avatar in ALL locations (Juara page, Landing page, Community dashboard)
+- Sultan of Season already shows as DIAMOND with full avatar in ALL locations
+- The previous bug where SultanOfWeekCard was defined but never used is now fixed
+- 5 cards, 3 shapes design: Weekly Champion (rectangle), MVP (rectangle), Season Champion (rectangle portrait), Sultan Week (COIN/circle), Sultan Season (DIAMOND/rhombus)
