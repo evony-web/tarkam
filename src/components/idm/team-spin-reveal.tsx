@@ -28,10 +28,10 @@ interface TeamSpinRevealProps {
   tournamentId: string;
 }
 
-const TIER_CONFIG: Record<string, { color: string; bg: string; border: string; shadow: string }> = {
-  S: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30', shadow: '0 0 20px rgba(239,68,68,0.2)' },
-  A: { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', shadow: '0 0 20px rgba(245,158,11,0.2)' },
-  B: { color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30', shadow: '0 0 20px rgba(34,197,94,0.2)' },
+const TIER_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
+  S: { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+  A: { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
+  B: { color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
 };
 
 const ROUND_LABELS: Record<string, string> = { S: 'Round 1', A: 'Round 2', B: 'Round 3' };
@@ -453,14 +453,14 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
         <div className="
           w-full max-w-3xl lg:max-w-none
           flex flex-col
-          lg:border lg:border-idm-gold-warm/20
-          lg:rounded-2xl lg:bg-card lg:shadow-lg lg:overflow-hidden
+          lg:border lg:border-border
+          lg:rounded-lg lg:bg-card lg:overflow-hidden
         ">
           {/* Casino bar — desktop only */}
           <div className="hidden lg:block h-1 bg-gradient-to-r from-idm-gold-warm via-amber-400 to-idm-gold-warm" />
 
           {/* ===== HEADER ===== */}
-          <div className="bg-black/95 lg:bg-card/95 border-b border-border/30 lg:border-idm-gold-warm/10 px-4 py-3 shrink-0">
+          <div className="bg-black/95 lg:bg-card/95 border-b border-border px-4 py-3 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-idm-gold-warm" />
@@ -469,17 +469,17 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                 </h2>
               </div>
               <div className="flex items-center gap-1.5">
-                <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">
+                <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">
                   {division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
                 </Badge>
-                <Badge className="text-[9px] border-0 bg-muted/50">
+                <Badge className="text-xs border-0 bg-muted/50">
                   {Math.min(doneCount + 1, totalSteps)}/{totalSteps}
                 </Badge>
                 {!isComplete && (
                   <Button
                     size="sm"
                     variant={autoPlay ? 'default' : 'outline'}
-                    className={`h-6 text-[9px] px-2 ${autoPlay ? 'bg-amber-500 hover:bg-amber-600 text-black' : 'border-border/30 lg:border-idm-gold-warm/20 text-muted-foreground lg:text-idm-gold-warm/60'}`}
+                    className={`h-8 text-xs px-2 ${autoPlay ? 'bg-amber-500 hover:bg-amber-600 text-black' : 'border-border text-muted-foreground lg:text-idm-gold-warm/60'}`}
                     onClick={toggleAutoPlay}
                   >
                     <Zap className="w-3 h-3 mr-0.5" />
@@ -489,7 +489,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 p-0 text-white/40 lg:text-idm-gold-warm/40 hover:text-white lg:hover:text-idm-gold-warm hover:bg-white/10 lg:hover:bg-idm-gold-warm/10"
+                  className="h-8 w-8 p-0 text-white/40 lg:text-idm-gold-warm/40 hover:text-white lg:hover:text-idm-gold-warm hover:bg-white/10 lg:hover:bg-idm-gold-warm/10"
                   onClick={handleClose}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -516,7 +516,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                   return (
                     <div
                       key={gi}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold transition-all duration-300
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300
                         ${isCurrentRound ? `${tc.bg} ${tc.color} border ${tc.border}` :
                           isDone ? 'bg-white/5 lg:bg-idm-gold-warm/5 text-white/30 lg:text-idm-gold-warm/30' : 'bg-white/5 lg:bg-idm-gold-warm/5 text-white/20 lg:text-idm-gold-warm/20'}`}
                     >
@@ -543,7 +543,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                     key={currentStep}
                     className="animate-fade-enter space-y-1"
                   >
-                    <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40 uppercase tracking-widest">{currentRoundLabel}</p>
+                    <p className="text-xs text-white/40 lg:text-idm-gold-warm/40 uppercase tracking-widest">{currentRoundLabel}</p>
                     <p className="text-sm font-bold text-idm-gold-warm">
                       Tim {currentItem.teamIndex + 1} — {currentRound}
                     </p>
@@ -551,13 +551,12 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                   {/* ===== SLOT MACHINE ROLLER — JS-DRIVEN ===== */}
                   <div
-                    className={`relative mx-auto w-80 lg:w-96 rounded-2xl border-2 overflow-hidden transition-shadow duration-500
+                    className={`relative mx-auto w-80 lg:w-96 rounded-lg border-2 overflow-hidden
                       ${isSpinning ? `border-idm-gold-warm/50 ${tierConf.bg}` :
                         showReveal ? `border-idm-gold-warm/60 ${tierConf.bg}` :
                         `${tierConf.border} ${tierConf.bg}`}`}
                     style={{
                       height: VIEWPORT_H,
-                      boxShadow: (isSpinning || showReveal) ? tierConf.shadow : 'none',
                     }}
                   >
                     {/* Top gradient mask — fades top item */}
@@ -573,15 +572,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       style={{ top: Math.floor(VISIBLE_COUNT / 2) * ITEM_H, height: ITEM_H }}
                     />
 
-                    {/* Pulsing glow while spinning */}
-                    {isSpinning && (
-                      <div
-                        className="absolute inset-0 z-5 pointer-events-none"
-                        style={{
-                          animation: 'slot-pulse 0.6s ease-in-out infinite',
-                        }}
-                      />
-                    )}
+
 
                     {/* Roller content — JS-driven translateY */}
                     {rollerStrip.length > 0 ? (
@@ -621,10 +612,10 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                     {/* Corner decorations */}
                     <div className="absolute top-1.5 left-2.5 z-20">
-                      <span className={`text-[9px] font-bold ${tierConf.color}`}>{currentRound}</span>
+                      <span className={`text-xs font-bold ${tierConf.color}`}>{currentRound}</span>
                     </div>
                     <div className="absolute bottom-1.5 right-2.5 z-20">
-                      <span className="text-[9px] text-white/30 lg:text-idm-gold-warm/30">Tim {currentItem.teamIndex + 1}</span>
+                      <span className="text-xs text-white/30 lg:text-idm-gold-warm/30">Tim {currentItem.teamIndex + 1}</span>
                     </div>
 
                     {/* Reveal sparkle explosion */}
@@ -665,7 +656,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                           />
                         ))}
                       </div>
-                      <p className="text-[10px] text-white/40 lg:text-idm-gold-warm/40 ml-1">
+                      <p className="text-xs text-white/40 lg:text-idm-gold-warm/40 ml-1">
                         {currentRound} Tim {currentItem.teamIndex + 1} sedang diacak...
                       </p>
                     </div>
@@ -702,7 +693,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
 
                       {/* Helper text */}
                       {!isSpinning && !showReveal && (
-                        <p className="text-[10px] text-white/30 lg:text-idm-gold-warm/30">
+                        <p className="text-xs text-white/30 lg:text-idm-gold-warm/30">
                           Klik untuk mengacak {currentRound} Tim {currentItem.teamIndex + 1}
                         </p>
                       )}
@@ -712,7 +703,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-[9px] text-white/20 lg:text-idm-gold-warm/20 hover:text-amber-400 h-5"
+                          className="text-xs text-white/20 lg:text-idm-gold-warm/20 hover:text-amber-400 h-7"
                           onClick={toggleAutoPlay}
                         >
                           <Zap className="w-3 h-3 mr-0.5" /> Auto Play semua
@@ -723,7 +714,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       {autoPlay && isSpinning && (
                         <div className="flex items-center gap-1.5">
                           <Zap className="w-3 h-3 text-amber-400" />
-                          <span className="text-[10px] text-amber-400/60">Auto Play aktif</span>
+                          <span className="text-xs text-amber-400/60">Auto Play aktif</span>
                         </div>
                       )}
                     </div>
@@ -752,7 +743,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       return (
                         <div
                           key={i}
-                          className="animate-fade-enter p-3 sm:p-4 rounded-lg border border-white/10 lg:border-idm-gold-warm/10 bg-white/5 lg:bg-idm-gold-warm/5 text-xs"
+                          className="animate-fade-enter p-3 rounded-lg border border-border bg-muted/30 text-sm"
                           style={{ animationDelay: `${i * 50}ms` }}
                         >
                           <div className="font-semibold text-idm-gold-warm truncate flex items-center gap-1">
@@ -765,7 +756,7 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               const tc = TIER_CONFIG[tier];
                               return (
                                 <div key={tier} className="flex items-center gap-1">
-                                  <span className={`text-[10px] truncate ${player ? tc.color : 'text-white/20 lg:text-idm-gold-warm/20'}`}>
+                                  <span className={`text-xs truncate ${player ? tc.color : 'text-white/20 lg:text-idm-gold-warm/20'}`}>
                                     {player?.gamertag || '???'}
                                   </span>
                                 </div>
@@ -803,9 +794,9 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                       return (
                         <div
                           key={i}
-                          className={`p-3 sm:p-4 rounded-lg border text-xs transition-all duration-300
-                            ${isCurrentlyRevealing ? 'border-idm-gold-warm/50 bg-idm-gold-warm/5 ring-1 ring-idm-gold-warm/20' :
-                              hasAny ? 'bg-white/5 lg:bg-idm-gold-warm/5 border-white/10 lg:border-idm-gold-warm/10' : 'bg-white/[0.02] lg:bg-idm-gold-warm/[0.02] border-white/5 lg:border-idm-gold-warm/5'}`}
+                          className={`p-3 rounded-lg border text-sm
+                            ${isCurrentlyRevealing ? 'border-idm-gold-warm/50 bg-idm-gold-warm/5' :
+                              hasAny ? 'bg-muted/30 border-border' : 'bg-muted/10 border-border'}`}
                         >
                           {/* Team name */}
                           <div className="flex items-center justify-between mb-1">
@@ -814,8 +805,8 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               {slot?.s && <Crown className="w-3 h-3 text-idm-gold-warm shrink-0" />}
                             </span>
                             {hasAny && (
-                              <span className="text-[9px] text-idm-gold-warm/60 font-medium shrink-0 ml-1">
-                                ⚡ {((slot?.s?.points || 0) + (slot?.a?.points || 0) + (slot?.b?.points || 0))}
+                              <span className="text-xs text-idm-gold-warm/60 font-medium shrink-0 ml-1">
+                                {((slot?.s?.points || 0) + (slot?.a?.points || 0) + (slot?.b?.points || 0))} pts
                               </span>
                             )}
                           </div>
@@ -831,21 +822,21 @@ export function TeamSpinReveal({ spinRevealOrder, teamCount, onComplete, divisio
                               return (
                                 <div
                                   key={tier}
-                                  className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded transition-all duration-300
+                                  className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded
                                     ${player ? `${tc.bg} border ${tc.border}` :
                                       isThisSlotRevealing ? 'bg-idm-gold-warm/10 border border-idm-gold-warm/30 animate-pulse' :
-                                      'bg-white/5 lg:bg-idm-gold-warm/5 border border-transparent'}`}
+                                      'bg-muted/10 border border-transparent'}`}
                                 >
                                   {player ? (
                                     <span
-                                      className={`animate-fade-enter text-[11px] font-medium truncate ${tc.color}`}
+                                      className={`animate-fade-enter text-xs font-medium truncate ${tc.color}`}
                                     >
                                       {player.gamertag}
                                     </span>
                                   ) : isThisSlotRevealing ? (
-                                    <span className="text-[11px] text-idm-gold-warm animate-pulse">Mengacak...</span>
+                                    <span className="text-xs text-idm-gold-warm animate-pulse">Mengacak...</span>
                                   ) : (
-                                    <span className="text-[11px] text-white/15 lg:text-idm-gold-warm/15">???</span>
+                                    <span className="text-xs text-white/15 lg:text-idm-gold-warm/15">???</span>
                                   )}
                                 </div>
                               );
