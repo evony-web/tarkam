@@ -147,3 +147,30 @@ Stage Summary:
 - Hasil section now shows ALL weeks in the season, not just active tournament
 - Week grouping: collapsible cards with bracket labels, scores, MVP, champion
 - API tested and verified: male has 2 weeks of data, female has 1 completed week
+
+---
+Task ID: 7
+Agent: Main
+Task: Compact Hasil Section redesign — mobile-first, single-line match rows, only latest week expanded
+
+Work Log:
+- User feedback: "apa tidak terlalu panjang bro jika seperti itu apalagi kita akan menerapkan mobile 1st dalam aplikasi ini?"
+- Redesigned hasil-section.tsx for mobile-first compactness:
+  - Replaced 2-line TournamentMatchRow/LeagueMatchRow with single-line CompactMatchRow/CompactLeagueRow
+  - Format: `[Round Badge] Team1 2-1 Team2 ⭐MVP` — all in one line
+  - Round labels shortened: SF (Semi Final), QF (Quarter Final), GF (Grand Final), LF (Lower Final), LSF (Lower Semi), Sw# (Swiss), Gr# (Group)
+  - Grand Final still highlighted with gold bg + 🏆 emoji in badge
+  - MVP gamertag hidden on mobile (sm:inline), only ⭐ shown
+  - Only the LATEST week auto-expanded (idx === 0), all others collapsed
+  - Removed separate round group headers — round badge is inline in each match row
+  - Removed champion summary from expanded content — champion shown directly in week header: "👑 TeamAlpha"
+  - Week card padding reduced: px-3 py-2.5 (was px-4 py-3)
+  - Spacing reduced: space-y-1 for matches (was space-y-1.5), space-y-2 between cards (was space-y-3)
+  - Badge text shortened: "Wk" instead of "Minggu"
+  - API unchanged — same /api/season-results endpoint
+
+Stage Summary:
+- File modified: `/home/z/my-project/src/components/idm/landing/hasil-section.tsx` (compact redesign)
+- Key change: 2-line match rows → 1-line match rows (saves ~50% vertical space per match)
+- Only latest week expanded by default (was 2-3 weeks before)
+- Total vertical space reduced significantly — mobile-first friendly
