@@ -374,12 +374,28 @@ function GhostWeekCard({ divStyle }: { divStyle: DivisionStyle }) {
   );
 }
 
-/* ─── Week List with "Show older weeks" ─── */
+/* ─── Beranda highlight filter: only Semi Final + Grand Final ─── */
+function filterHighlightMatches(matches: WeekResult['tournamentMatches']) {
+  return matches.filter(m =>
+    m.bracket === 'grand_final' ||
+    (m.bracket === 'upper' && m.round === 2)  // Semi Final
+  );
+}
+
+/* ─── Week List with "Show older weeks" (beranda: highlight rounds only) ─── */
 function WeekList({ weeks, divStyle }: { weeks: WeekResult[]; divStyle: DivisionStyle }) {
   const [showAll, setShowAll] = useState(false);
 
-  // Reverse so newest week is at the top
-  const reversedWeeks = useMemo(() => [...weeks].reverse(), [weeks]);
+  // Reverse so newest week is at the top + filter to highlight matches only
+  const reversedWeeks = useMemo(() =>
+    [...weeks].reverse().map(w => ({
+      ...w,
+      tournamentMatches: filterHighlightMatches(w.tournamentMatches),
+      // Keep leagueMatches empty for beranda summary — full detail in Bracket > Hasil
+      leagueMatches: [],
+    })),
+    [weeks]
+  );
   const expandIdx = lastResultIdx(reversedWeeks);
 
   const visibleWeeks = showAll ? reversedWeeks : reversedWeeks.slice(0, RECENT_WEEKS_LIMIT);
