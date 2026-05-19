@@ -351,3 +351,28 @@ Stage Summary:
 - Beranda section order: Hero → Marquee → Cari Turnamen → Kompetisi → **Season Progress** → Hasil → Peringkat → Clubs → Sponsors → Footer
 - Season Progress uses existing `seasonProgress` data from `/api/stats` — no new API needed
 - No lint errors introduced
+
+---
+Task ID: 8
+Agent: main
+Task: Move Season Progress into TournamentHub division cards (per user request)
+
+Work Log:
+- User requested: "diletakan didalam card divisi saja bro section kompetisi progressnya sesuai divisi" — move progress INTO each division card instead of separate section
+- Added season progress inline inside `TournamentCard` component in tournament-hub.tsx
+  - Placed after prize pool section, before CTA buttons
+  - Uses division's own color (blue for male, pink for female) for timeline bars
+  - Compact: season name + phase badge, week timeline bars (h-1.5), stats row
+  - Phase badge color-coded: Registrasi (blue), Kompetisi (green), Playoff (amber)
+- Removed separate `SeasonProgressSection` component from landing-page.tsx
+- Deleted `/home/z/my-project/src/components/idm/landing/season-progress-section.tsx`
+- Each division card now shows its own progress using `data.seasonProgress`
+- Added Zap, Flag, Target icons to tournament-hub imports for phase badges
+
+Stage Summary:
+- Modified: `/home/z/my-project/src/components/idm/landing/tournament-hub.tsx` (added season progress inside TournamentCard)
+- Modified: `/home/z/my-project/src/components/idm/landing-page.tsx` (removed SeasonProgressSection import + placement)
+- Deleted: `/home/z/my-project/src/components/idm/landing/season-progress-section.tsx`
+- Season progress now lives inside each division card (Cowo/Cewe) with division-colored timeline
+- No separate section — more contextual, saves vertical space
+- No new lint errors

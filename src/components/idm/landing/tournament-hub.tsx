@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X } from 'lucide-react';
+import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X, Zap, Flag, Target } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -446,6 +446,69 @@ function TournamentCard({
             </span>
           </div>
         )}
+
+        {/* Season Progress — compact timeline inside division card */}
+        {data?.seasonProgress && (() => {
+          const { totalWeeks, completedWeeks, percentage } = data.seasonProgress;
+          const curWeek = data?.activeTournament?.weekNumber || (completedWeeks + 1);
+          const hasActive = curWeek <= totalWeeks && curWeek > completedWeeks;
+          // Phase config
+          const phase = curWeek <= 2 ? 'registration' : curWeek <= totalWeeks - 2 ? 'competition' : 'playoffs';
+          const phaseCfg = {
+            registration: { label: 'Registrasi', Icon: Flag, bg: 'bg-blue-500/10', text: 'text-blue-400' },
+            competition: { label: 'Kompetisi', Icon: Zap, bg: 'bg-green-500/10', text: 'text-green-400' },
+            playoffs: { label: 'Playoff', Icon: Target, bg: 'bg-amber-500/10', text: 'text-amber-400' },
+          }[phase];
+          const PhaseIcon = phaseCfg.Icon;
+          return (
+            <div className="mt-4 pt-3 border-t border-border/10">
+              {/* Header: season name + phase badge */}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3" />
+                  <span className="font-semibold text-foreground/80">{data.season?.name || `Season ${data.season?.number || ''}`}</span>
+                </span>
+                <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${phaseCfg.bg} ${phaseCfg.text}`}>
+                  <PhaseIcon className="w-2.5 h-2.5" />
+                  <span className="text-[8px] font-bold uppercase tracking-wider">{phaseCfg.label}</span>
+                </div>
+              </div>
+              {/* Week timeline bars */}
+              <div className="flex items-center gap-1 mb-1.5">
+                {Array.from({ length: totalWeeks }, (_, i) => {
+                  const wn = i + 1;
+                  const done = wn <= completedWeeks;
+                  const active = wn === curWeek && hasActive;
+                  return (
+                    <div key={wn} className="flex-1 flex flex-col items-center gap-0.5">
+                      <div className="relative w-full h-1.5 rounded-full overflow-hidden bg-muted/15">
+                        {done && (
+                          <div className="absolute inset-0 rounded-full transition-all duration-500" style={{ background: `linear-gradient(90deg, ${division.color}, ${division.color}cc)` }} />
+                        )}
+                        {active && (
+                          <div className="absolute inset-0 rounded-full animate-pulse" style={{ backgroundColor: `${division.color}40` }} />
+                        )}
+                      </div>
+                      <span className={`text-[7px] font-medium tabular-nums ${
+                        done ? '' : active ? 'font-bold' : 'text-muted-foreground/30'
+                      }`} style={done || active ? { color: division.color } : undefined}>
+                        {wn}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Stats row */}
+              <div className="flex items-center justify-between text-[9px]">
+                <span className="text-muted-foreground">
+                  <span className="font-bold" style={{ color: division.color }}>{completedWeeks}</span>/{totalWeeks} minggu
+                  {hasActive && <> · Minggu <span className="font-bold" style={{ color: division.color }}>{curWeek}</span></>}
+                </span>
+                <span className="font-bold tabular-nums" style={{ color: division.color }}>{percentage}%</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* CTA buttons — stacked on mobile, side-by-side on sm+ */}
         <div className="flex flex-col sm:flex-row gap-2.5">
