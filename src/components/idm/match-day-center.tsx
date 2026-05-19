@@ -821,9 +821,10 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
 }
 
 /* ═══════════════════════════════════════════════
-   BracketContent — Format selector + BracketView ONLY
+   BracketContent — Format selector + BracketView + Sponsor
    Used by the new BracketPage primary "Bracket" tab
    Hero Banner is in ResultsContent (match scores = hasil context)
+   Sponsor stays in Bracket (sponsors fund the tournament/bracket)
    ═══════════════════════════════════════════════ */
 export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
   const ct = getDivisionTheme(divisionProp);
@@ -895,14 +896,24 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
           bracketType={bracketType as any}
         />
       )}
+
+      {/* Sponsor Banner — stays in Bracket tab */}
+      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
+      {data?.activeTournament?.id && (
+        <div className="space-y-3">
+          <PresentedBy tournamentId={data.activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={data.activeTournament.id} />
+        </div>
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════
-   ResultsContent — Hero Banner + Sponsor + Season Results
+   ResultsContent — Hero Banner + Season Results
    Used by the new BracketPage primary "Hasil" tab
    Hero Banner here because match scores are "hasil" context
+   Sponsor stays in BracketContent (sponsors fund the tournament/bracket)
    ═══════════════════════════════════════════════ */
 export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
   const ct = getDivisionTheme(divisionProp);
@@ -1172,15 +1183,6 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
               </div>
             </div>
           </Card>
-        </div>
-      )}
-
-      {/* Sponsor Banner */}
-      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
-      {activeTournament?.id && (
-        <div className="space-y-3">
-          <PresentedBy tournamentId={activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={activeTournament.id} />
         </div>
       )}
 

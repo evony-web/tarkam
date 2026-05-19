@@ -247,3 +247,21 @@ Stage Summary:
 - If current week has no results, banner shows the last completed week instead of empty "MENDATANG"
 - Badge "Hasil Terakhir" appears when showing fallback data
 - Consistent UX: both banner and week list show the same "most recent results" logic
+---
+Task ID: 3
+Agent: main
+Task: Move Sponsor back to Bracket tab (was mistakenly moved to Hasil tab)
+
+Work Log:
+- User clarified they were only ASKING about moving sponsor, not requesting it — they want sponsor to stay in Bracket tab
+- Analyzed current code: sponsor was in `ResultsContent` (Hasil tab) after previous session's restructuring
+- Removed sponsor section (SponsorBanner, PresentedBy, SponsoredPrizes) from `ResultsContent`
+- Added sponsor section to `BracketContent` after the BracketView component
+- Updated comments to reflect new structure: BracketContent = Format selector + BracketView + Sponsor, ResultsContent = Hero Banner + Season Results
+- Verified lint passes (only pre-existing errors, no new ones from this change)
+
+Stage Summary:
+- Sponsor is now in Bracket tab (correct placement — sponsors fund the tournament/bracket)
+- Hero Banner remains in Hasil tab (correct — shows scores/results)
+- ResultsContent no longer contains sponsor components
+- BracketContent now contains: Format selector → BracketView → SponsorBanner → PresentedBy → SponsoredPrizes
