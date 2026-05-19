@@ -26,7 +26,7 @@ export function BracketPage() {
 
       {/* Division pills — sticky below fixed nav (h-14 = 56px) */}
       <div className="sticky top-14 z-30 border-b border-idm-gold-warm/10 bg-background/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-end">
           <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 shrink-0">
             {([
               { key: 'semua' as const, label: 'Semua' },
