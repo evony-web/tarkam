@@ -12,19 +12,14 @@ export const dynamic = 'force-dynamic';
 // Admin mutations that affect standings/scores call revalidateTag('stats-data').
 
 const STATS_CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+  'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
   'Surrogate-Key': 'stats-data',
   'Vary': 'Accept-Encoding',
 };
 
-const STATS_CACHE_HEADERS_SHORT = {
-  'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-  'Surrogate-Key': 'stats-data',
-};
-
 export async function GET(request: Request) {
   const headers = new Headers();
-  headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
 
   try {
   const { searchParams } = new URL(request.url);
@@ -45,7 +40,7 @@ export async function GET(request: Request) {
 
   if (!season) {
     return NextResponse.json({ hasData: false, division, allSeasons: [], weeklyChampions: [], weeklyTopPerformers: [], sultanOfWeekly: [], totalPlayers: 0, approvedPlayerCount: 0 }, {
-      headers: STATS_CACHE_HEADERS_SHORT,
+      headers: STATS_CACHE_HEADERS,
     });
   }
 

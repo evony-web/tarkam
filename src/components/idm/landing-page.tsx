@@ -5,7 +5,7 @@ import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home, Target, Play, XCircle, CheckCircle2, Clock, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home, Target } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -252,7 +252,7 @@ function LandingAuthButton({
 }
 
 export function LandingPage() {
-  const { setCurrentView, setDivision, setInitialDashboardTab, currentView } = useAppStore();
+  const { setCurrentView, setDivision, currentView } = useAppStore();
   const [selectedPlayerRaw, setSelectedPlayerRaw] = useState<StatsData['topPlayers'][0] & { division?: string } | null>(null);
   const [preferredSkinType, setPreferredSkinType] = useState<string | null>(null);
   // Wrapper: always clear preferredSkinType when selecting from non-MVP contexts

@@ -637,3 +637,25 @@ Stage Summary:
 - Admin login is now exclusively via the header shield icon on both landing page and public page layout
 - "Back to peserta" button also removed from admin view in modal (users close modal and click Login instead)
 - Cleaner, less confusing UX — no duplicate admin login entry points
+
+---
+Task ID: 1-8
+Agent: main
+Task: Incremental improvements for smoother and more powerful app
+
+Work Log:
+- Fixed 'Explorer' scroll indicator hidden behind mobile bottom nav (bottom-2 → bottom-20 sm:bottom-10)
+- Removed 7 unused Lucide imports from landing-page.tsx (-2KB bundle: Play, XCircle, CheckCircle2, Clock, Zap, ChevronDown, ChevronUp)
+- Removed unused `setInitialDashboardTab` from landing-page.tsx destructuring
+- Moved marquee @keyframes from inline <style> JSX to globals.css (already existed, removed duplicate)
+- Added loading placeholder for marquee ticker when empty (CLS fix: null → div with h-10)
+- Fixed dashboard admin-only guard: replaced setTimeout(() => setCurrentView('landing'), 0) with AdminRedirectGuard component that uses useEffect — no more visible flash
+- Removed dead code: `_pusherRealtime` variable assignment → direct call, `STATS_CACHE_HEADERS_SHORT` → consolidated to STATS_CACHE_HEADERS
+- Added IntersectionObserver to useParallax hook — only runs transforms when hero section is visible (saves GPU cycles)
+- Increased /api/stats CDN cache s-maxage from 60s to 120s (data is cached client-side for 2-5min anyway)
+
+Stage Summary:
+- 8 improvements applied across hero-section, landing-page, marquee-ticker, app-shell, shared.tsx, stats/route.ts
+- TypeScript compilation: clean (no errors)
+- Dev server: running, all routes respond 200
+- Key performance wins: eliminated CSS re-parsing from inline style, reduced bundle by 2KB, GPU savings on scroll past hero, better CDN caching

@@ -33,6 +33,7 @@ export function useParallax(layers: ParallaxLayer[]) {
   const cacheRef = useRef<CachedLayer[]>([]);
   const scrollYRef = useRef(0);
   const lastAppliedRef = useRef(0); // Track last applied scroll to skip no-op frames
+  const isVisibleRef = useRef(true); // Track if hero section is visible
 
   // Stabilize layers with a key-based comparison to avoid re-subscribe cascade
   const layersKey = layers.map(l => `${l.selector}:${l.speed}`).join('|');
@@ -54,13 +55,29 @@ export function useParallax(layers: ParallaxLayer[]) {
       }
     }
 
+    // ── Step 1.5: IntersectionObserver — only run parallax when hero is visible ──
+    // This prevents wasted GPU cycles on transforms when the hero is scrolled past
+    const heroEl = document.querySelector('.hero-section-immediate') || cached[0]?.els[0]?.parentElement;
+    if (heroEl) {
+      const visibilityIO = new IntersectionObserver(
+        ([entry]) => { isVisibleRef.current = entry.isIntersecting; },
+        { rootMargin: '100px 0px', threshold: 0 }
+      );
+      visibilityIO.observe(heroEl);
+
+      // Cleanup visibility observer on unmount
+      const originalCleanup = () => visibilityIO.disconnect();
+      // We'll call this in the return cleanup
+      var _cleanupVis = originalCleanup;
+    }
+
     // ── Step 2: Single rAF loop — reads scrollY, writes transforms ──
     const tick = () => {
       rafRef.current = 0;
       const scrollY = scrollYRef.current;
 
-      // Skip if scroll hasn't changed since last apply
-      if (scrollY === lastAppliedRef.current) return;
+      // Skip if scroll hasn't changed since last apply OR hero not visible
+      if (scrollY === lastAppliedRef.current || !isVisibleRef.current) return;
       lastAppliedRef.current = scrollY;
 
       for (const c of cacheRef.current) {
@@ -88,6 +105,7 @@ export function useParallax(layers: ParallaxLayer[]) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = 0;
       }
+      if (typeof _cleanupVis === 'function') _cleanupVis();
     };
   }, [stableLayers]);
 }

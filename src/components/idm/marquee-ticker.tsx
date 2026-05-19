@@ -321,7 +321,7 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
     return Math.round(baseDuration * itemFactor);
   }, [combinedItems.length, isMobile, resizeTick]);
 
-  if (combinedItems.length === 0) return null;
+  if (combinedItems.length === 0) return <div className="w-full h-10" />;
 
   return (
     <div className="w-full overflow-hidden relative group">
@@ -334,12 +334,6 @@ export function MarqueeTicker({ maleData, femaleData, leagueData }: UnifiedMarqu
       />
 
       {/* Scrolling track — 2x for seamless loop, CSS animation on compositor thread */}
-      <style>{`
-        @keyframes marquee-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-      `}</style>
       <div
         ref={trackRef}
         className="flex items-center marquee-track"

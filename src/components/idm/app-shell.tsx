@@ -479,6 +479,12 @@ function NavButton({ icon: Icon, label, collapsed, isActive, iconBg, activeGlow,
   );
 }
 
+/* ─── Admin Redirect Guard — no-flash redirect via useEffect ─── */
+function AdminRedirectGuard({ onRedirect, children }: { onRedirect: () => void; children: React.ReactNode }) {
+  useEffect(() => { onRedirect(); }, [onRedirect]);
+  return <>{children}</>;
+}
+
 export function AppShell() {
   const { currentView, donationPopup, hideDonationPopup, division, setDivision, adminAuth, setAdminAuth, clearAdminAuth, setCurrentView, playerAuth, setPlayerAuth, clearPlayerAuth, refreshPlayerSession } = useAppStore();
   const dt = useShellTheme();
@@ -486,7 +492,7 @@ export function AppShell() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { canInstall: _canInstall, promptInstall } = usePWA();
-  const _pusherRealtime = usePusherRealtime(currentView !== 'landing');
+  usePusherRealtime(currentView !== 'landing');
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === 'undefined') return false;
     return !!localStorage.getItem('pwa-install-dismissed');
@@ -561,13 +567,13 @@ export function AppShell() {
   /* ═══ Dashboard-only guard: non-admin players should NOT see the sidebar layout ═══ */
   const isDashboardView = ['dashboard', 'admin', 'matchday', 'league', 'marketplace', 'register'].includes(currentView as string);
   if (isDashboardView && !adminAuth.isAuthenticated) {
-    // Non-admin users should never reach the sidebar layout — redirect to landing
-    setTimeout(() => setCurrentView('landing'), 0);
+    // Non-admin users should never reach the sidebar layout — synchronous redirect (no flash)
+    // Use useEffect to avoid setState during render, but render landing immediately
     return (
-      <>
+      <AdminRedirectGuard onRedirect={() => setCurrentView('landing')}>
         <LandingPage />
         <DonationPopup show={donationPopup.show} message={donationPopup.message} onClose={hideDonationPopup} />
-      </>
+      </AdminRedirectGuard>
     );
   }
 
@@ -576,7 +582,7 @@ export function AppShell() {
       case 'dashboard': return <CommunityDashboard />;
       case 'matchday': return <MatchDayCenter />;
       case 'league': return <LeagueView />;
-      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : (() => { setTimeout(() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }, 0); return null; })();
+      case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminRedirectGuard onRedirect={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }}><LandingPage /></AdminRedirectGuard>;
       case 'register': return <RegistrationForm />;
 
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
