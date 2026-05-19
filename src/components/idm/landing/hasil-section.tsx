@@ -11,8 +11,6 @@ import { AnimatedSection, SectionHeader } from './shared';
 import { useAppStore } from '@/lib/store';
 
 /* ─── Types ─── */
-type DivisionFilter = 'all' | 'male' | 'female';
-
 interface WeekResult {
   weekNumber: number;
   tournamentName: string;
@@ -414,7 +412,6 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
 }) {
   const setCurrentView = useAppStore(s => s.setCurrentView);
   const setInitialBracketTab = useAppStore(s => s.setInitialBracketTab);
-  const [hasilDivision, setHasilDivision] = useState<DivisionFilter>('all');
 
   // Fetch season results for both divisions
   const { data: maleResults, isLoading: maleLoading } = useQuery({
@@ -469,39 +466,16 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
           />
         </AnimatedSection>
 
-        {/* Section Title Row + Division Filter */}
-        <div className="stagger-item-fast flex items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
-              <Trophy className="w-3 h-3 text-idm-gold-warm" />
-            </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider" style={{
-              background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>Hasil Pertandingan</h3>
+        {/* Section Title Row */}
+        <div className="stagger-item-fast flex items-center gap-2.5 mb-6">
+          <div className="w-5 h-5 rounded bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
+            <Trophy className="w-3 h-3 text-idm-gold-warm" />
           </div>
-
-          {/* Division pills */}
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
-            {([
-              { key: 'all' as DivisionFilter, label: 'Semua' },
-              { key: 'male' as DivisionFilter, label: 'Cowo' },
-              { key: 'female' as DivisionFilter, label: 'Cewe' },
-            ]).map(div => (
-              <button
-                key={div.key}
-                onClick={() => setHasilDivision(div.key)}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  hasilDivision === div.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
-                    : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
-                }`}
-              >
-                {div.label}
-              </button>
-            ))}
-          </div>
+          <h3 className="text-sm font-bold uppercase tracking-wider" style={{
+            background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>Hasil Pertandingan</h3>
         </div>
 
         {/* Content */}
@@ -522,59 +496,35 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Semua — both divisions side by side on desktop */}
-            {hasilDivision === 'all' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Male column */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm">{DIVISION_STYLE.male.emoji}</span>
-                    <span className={`text-xs font-bold ${DIVISION_STYLE.male.text}`}>Cowo</span>
-                    <Badge className={`${DIVISION_STYLE.male.bg} ${DIVISION_STYLE.male.text} text-[8px] border-0`}>{maleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
-                  </div>
-                  {hasMaleResults ? (
-                    <WeekList weeks={maleWeeks} divStyle={DIVISION_STYLE.male} />
-                  ) : (
-                    <GhostWeekCard divStyle={DIVISION_STYLE.male} />
-                  )}
+            {/* Both divisions side by side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Male column */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">{DIVISION_STYLE.male.emoji}</span>
+                  <span className={`text-xs font-bold ${DIVISION_STYLE.male.text}`}>Cowo</span>
+                  <Badge className={`${DIVISION_STYLE.male.bg} ${DIVISION_STYLE.male.text} text-[8px] border-0`}>{maleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
                 </div>
-                {/* Female column */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm">{DIVISION_STYLE.female.emoji}</span>
-                    <span className={`text-xs font-bold ${DIVISION_STYLE.female.text}`}>Cewe</span>
-                    <Badge className={`${DIVISION_STYLE.female.bg} ${DIVISION_STYLE.female.text} text-[8px] border-0`}>{femaleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
-                  </div>
-                  {hasFemaleResults ? (
-                    <WeekList weeks={femaleWeeks} divStyle={DIVISION_STYLE.female} />
-                  ) : (
-                    <GhostWeekCard divStyle={DIVISION_STYLE.female} />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Male only */}
-            {hasilDivision === 'male' && (
-              <div className="max-w-2xl">
                 {hasMaleResults ? (
                   <WeekList weeks={maleWeeks} divStyle={DIVISION_STYLE.male} />
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.male} />
                 )}
               </div>
-            )}
-
-            {/* Female only */}
-            {hasilDivision === 'female' && (
-              <div className="max-w-2xl">
+              {/* Female column */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">{DIVISION_STYLE.female.emoji}</span>
+                  <span className={`text-xs font-bold ${DIVISION_STYLE.female.text}`}>Cewe</span>
+                  <Badge className={`${DIVISION_STYLE.female.bg} ${DIVISION_STYLE.female.text} text-[8px] border-0`}>{femaleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
+                </div>
                 {hasFemaleResults ? (
                   <WeekList weeks={femaleWeeks} divStyle={DIVISION_STYLE.female} />
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.female} />
                 )}
               </div>
-            )}
+            </div>
 
             {/* CTA — Lihat Semua Hasil → Bracket > Hasil tab */}
             <div className="flex justify-center mt-6">
