@@ -934,11 +934,10 @@ function SultanCard({
         </div>
 
         {hasPlayer ? (
-          /* ═══ COIN layout: Large Circular Medallion with full-body avatar ═══ */
+          /* ═══ COIN layout: Circular Medallion (left) + Info (right) ═══ */
           <div
             className="relative rounded-2xl overflow-hidden cursor-pointer group/sultan transition-all duration-300 hover:shadow-lg"
             style={{
-              minHeight: '380px',
               border: `1px solid rgba(${maroon.rgb},0.15)`,
               boxShadow: isLight
                 ? `0 4px 16px rgba(${maroon.rgb},0.06), 0 4px 12px rgba(${divisionRgb},0.04), inset 0 1px 0 rgba(255,255,255,0.5)`
@@ -963,157 +962,155 @@ function SultanCard({
               }
             }}
           >
-            {/* ─── COIN: Large Circular Medallion with full-body avatar ─── */}
-            <div className="relative flex items-center justify-center py-6">
-              {/* Radial glow behind coin */}
-              <div className="absolute inset-0 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 45%, rgba(${maroon.rgb},0.15), transparent 60%)` }} />
+            <div className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6">
+              {/* ─── COIN: Circular Medallion with full-body avatar (LEFT) ─── */}
+              <div className="relative flex items-center justify-center shrink-0">
+                {/* Radial glow behind coin */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at 50% 45%, rgba(${maroon.rgb},0.15), transparent 60%)` }} />
 
-              {/* Outer ridge — embossed coin edge */}
-              <div className="relative w-48 h-48 sm:w-60 sm:h-60 rounded-full p-[4px]"
-                style={{
-                  background: `conic-gradient(from 0deg, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark})`,
-                  boxShadow: `0 0 30px ${hexToRgba(maroon.nameDark, 0.25)}, 0 6px 20px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(maroon.nameMid, 0.3)}`,
-                }}>
-                {/* Inner coin body — full-body avatar */}
-                <div className="w-full h-full rounded-full overflow-hidden border-2"
-                  style={{ borderColor: hexToRgba(maroon.nameMid, 0.4) }}>
-                  <AvatarMedia
-                    src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
-                    alt={sultan.player!.gamertag}
-                    fill
-                    sizes="(max-width: 640px) 192px, 240px"
-                    className="object-cover object-top group-hover/sultan:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-
-              {/* Heart badge — top center (crown of coin) */}
-              <div className="absolute top-1 left-1/2 -translate-x-1/2 z-10">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
+                {/* Outer ridge — embossed coin edge */}
+                <div className="relative w-32 h-32 sm:w-44 sm:h-44 rounded-full p-[3px]"
                   style={{
-                    background: `linear-gradient(135deg, ${maroon.nameMid}, ${maroon.nameDark})`,
-                    borderColor: hexToRgba(maroon.nameMid, 0.5),
-                    boxShadow: `0 2px 8px ${hexToRgba(maroon.nameDark, 0.4)}`,
+                    background: `conic-gradient(from 0deg, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark})`,
+                    boxShadow: `0 0 24px ${hexToRgba(maroon.nameDark, 0.25)}, 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(maroon.nameMid, 0.3)}`,
                   }}>
-                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
+                  {/* Inner coin body — full-body avatar */}
+                  <div className="w-full h-full rounded-full overflow-hidden border-2"
+                    style={{ borderColor: hexToRgba(maroon.nameMid, 0.4) }}>
+                    <AvatarMedia
+                      src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
+                      alt={sultan.player!.gamertag}
+                      fill
+                      sizes="(max-width: 640px) 128px, 176px"
+                      className="object-cover object-top group-hover/sultan:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+
+                {/* Heart badge — top center (crown of coin) */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+                    style={{
+                      background: `linear-gradient(135deg, ${maroon.nameMid}, ${maroon.nameDark})`,
+                      borderColor: hexToRgba(maroon.nameMid, 0.5),
+                      boxShadow: `0 2px 8px ${hexToRgba(maroon.nameDark, 0.4)}`,
+                    }}>
+                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                  </div>
                 </div>
               </div>
 
-              {/* Notch details — decorative dots around coin */}
-              {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
-                <div key={deg} className="absolute w-1 h-1 rounded-full"
-                  style={{
-                    top: '50%', left: '50%',
-                    transform: `rotate(${deg}deg) translateY(-110px) sm:-translateY-[140px] translate(-50%, -50%)`,
-                    background: hexToRgba(maroon.nameMid, 0.2),
-                  }} />
-              ))}
-            </div>
-
-            {/* ─── Info Below Coin ─── */}
-            <div className="flex flex-col items-center pb-5 text-center px-4">
-              {/* Gamertag */}
-              <p
-                className="text-xl sm:text-2xl font-black leading-tight"
-                style={{
-                  color: maroon.nameLight,
-                  textShadow: isLight ? 'none' : `0 0 8px ${maroon.glow}`,
-                }}
-              >
-                {sultan.player!.gamertag}
-              </p>
-
-              {/* City / Club subtitle */}
-              {(sultan.player!.city || sultan.player!.club) && (
-                <p className="text-[10px] font-medium mt-1 truncate" style={{ color: COLORS.secondaryText }}>
-                  {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
-                </p>
-              )}
-
-              {/* Stats pill badges */}
-              <div className="flex items-center gap-2 mt-3 flex-wrap justify-center">
-                <span
-                  className="text-[9px] font-bold px-2.5 py-1 rounded-full"
-                  style={{
-                    backgroundColor: `rgba(${maroon.rgb},0.15)`,
-                    color: maroon.nameLight,
-                    border: `1px solid rgba(${maroon.rgb},0.3)`,
-                  }}
-                >
-                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-                </span>
-                <span
-                  className="text-[9px] font-bold px-2.5 py-1 rounded-full"
-                  style={{
-                    backgroundColor: `rgba(${maroon.rgb},0.12)`,
-                    color: maroon.nameMid,
-                    border: `1px solid rgba(${maroon.rgb},0.2)`,
-                  }}
-                >
-                  {sultan.donationCount}x sawer
-                </span>
-              </div>
-
-              {/* Tier + division badges */}
-              <div className="flex items-center gap-1.5 mt-2 flex-wrap justify-center">
-                {sultan.player!.tier && (
-                  <span
-                    className="text-[8px] font-bold px-2 py-0.5 rounded"
-                    style={{ backgroundColor: isLight ? 'rgba(146,120,12,0.1)' : 'rgba(239,249,35,0.12)', color: COLORS.gold, border: isLight ? '1px solid rgba(146,120,12,0.2)' : '1px solid rgba(239,249,35,0.2)' }}
-                  >
-                    Tier {sultan.player!.tier}
+              {/* ─── Info RIGHT side ─── */}
+              <div className="flex-1 min-w-0 text-left">
+                {/* Division + Week label */}
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {React.createElement(divisionIcon, { className: 'w-3 h-3 shrink-0', style: { color: divisionAccent } })}
+                  <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccentLight }}>
+                    {divisionLabel}
                   </span>
-                )}
-                <span
-                  className="text-[8px] font-bold px-2 py-0.5 rounded"
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-md"
+                    style={{ color: maroon.nameMid, backgroundColor: `rgba(${maroon.rgb},0.1)`, border: `1px solid rgba(${maroon.rgb},0.2)` }}>
+                    W{sultan.weekNumber}
+                  </span>
+                </div>
+
+                {/* Gamertag */}
+                <p
+                  className="text-lg sm:text-xl font-black leading-tight"
                   style={{
-                    backgroundColor: `rgba(${divisionRgb},0.1)`,
-                    color: divisionAccentLight,
-                    border: `1px solid rgba(${divisionRgb},0.2)`,
+                    color: maroon.nameLight,
+                    textShadow: isLight ? 'none' : `0 0 8px ${maroon.glow}`,
                   }}
                 >
-                  {divisionLabel}
-                </span>
+                  {sultan.player!.gamertag}
+                </p>
+
+                {/* City / Club subtitle */}
+                {(sultan.player!.city || sultan.player!.club) && (
+                  <p className="text-[10px] font-medium mt-0.5 truncate" style={{ color: COLORS.secondaryText }}>
+                    {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+
+                {/* Stats pill badges */}
+                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                  <span
+                    className="text-[9px] font-bold px-2.5 py-1 rounded-full"
+                    style={{
+                      backgroundColor: `rgba(${maroon.rgb},0.15)`,
+                      color: maroon.nameLight,
+                      border: `1px solid rgba(${maroon.rgb},0.3)`,
+                    }}
+                  >
+                    Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                  </span>
+                  <span
+                    className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: `rgba(${maroon.rgb},0.12)`,
+                      color: maroon.nameMid,
+                      border: `1px solid rgba(${maroon.rgb},0.2)`,
+                    }}
+                  >
+                    {sultan.donationCount}x sawer
+                  </span>
+                </div>
+
+                {/* Tier badge */}
+                {sultan.player!.tier && (
+                  <div className="mt-2">
+                    <span
+                      className="text-[8px] font-bold px-2 py-0.5 rounded"
+                      style={{ backgroundColor: isLight ? 'rgba(146,120,12,0.1)' : 'rgba(239,249,35,0.12)', color: COLORS.gold, border: isLight ? '1px solid rgba(146,120,12,0.2)' : '1px solid rgba(239,249,35,0.2)' }}
+                    >
+                      Tier {sultan.player!.tier}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         ) : (
-          /* No player matched — show donor name only */
+          /* No player matched — show donor name only (horizontal) */
           <div
-            className="flex flex-col items-center justify-center gap-3 rounded-2xl"
+            className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl"
             style={{
-              minHeight: '320px',
               backgroundColor: `rgba(${maroon.rgb},0.05)`,
               border: `1px solid rgba(${maroon.rgb},0.15)`,
             }}
           >
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{
-                background: `linear-gradient(135deg, ${maroon.nameLight}, ${maroon.nameDark})`,
-                boxShadow: `0 2px 10px ${maroon.glow}`,
-              }}
-            >
-              <Heart className="w-8 h-8" style={{ color: isLight ? '#800020' : 'white' }} />
-            </div>
-            <p className="text-sm font-bold" style={{ color: maroon.nameLight }}>
-              {sultan.donorName}
-            </p>
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[9px] font-bold px-2 py-0.5 rounded"
+            <div className="relative flex items-center justify-center shrink-0">
+              <div
+                className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center"
                 style={{
-                  backgroundColor: `rgba(${maroon.rgb},0.12)`,
-                  color: maroon.nameLight,
+                  background: `linear-gradient(135deg, ${maroon.nameLight}, ${maroon.nameDark})`,
+                  boxShadow: `0 2px 10px ${maroon.glow}`,
                 }}
               >
-                Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-              </span>
-              <span className="text-[9px]" style={{ color: COLORS.secondaryText }}>
-                {sultan.donationCount}x sawer
-              </span>
+                <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: isLight ? '#800020' : 'white' }} />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-bold" style={{ color: maroon.nameLight }}>
+                {sultan.donorName}
+              </p>
+              <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span
+                  className="text-[9px] font-bold px-2 py-0.5 rounded"
+                  style={{
+                    backgroundColor: `rgba(${maroon.rgb},0.12)`,
+                    color: maroon.nameLight,
+                  }}
+                >
+                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                </span>
+                <span className="text-[9px]" style={{ color: COLORS.secondaryText }}>
+                  {sultan.donationCount}x sawer
+                </span>
+              </div>
             </div>
           </div>
         )}

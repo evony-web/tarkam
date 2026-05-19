@@ -1944,3 +1944,29 @@ Stage Summary:
 - Sultan of Season already shows as DIAMOND with full avatar in ALL locations
 - The previous bug where SultanOfWeekCard was defined but never used is now fixed
 - 5 cards, 3 shapes design: Weekly Champion (rectangle), MVP (rectangle), Season Champion (rectangle portrait), Sultan Week (COIN/circle), Sultan Season (DIAMOND/rhombus)
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Change Sultan of the Week COIN layout from vertical (info below) to horizontal (info on right) to reduce card height
+
+Work Log:
+- Updated SultanOfWeekCoin in highlights-page.tsx: Changed from flex-col items-center to flex items-center gap-4
+  - COIN medallion moved to LEFT (w-28 h-28 / sm:w-36 sm:h-36, slightly smaller than before)
+  - Info (division label, name, city/club, donation stats) moved to RIGHT side
+  - Same treatment for no-player and ghost states
+- Updated GhostSultanOfWeekCoin: Same horizontal layout with ghost info on right
+- Updated SultanOfWeekSection grid: Changed from grid-cols-2 to space-y (stacked rows, not side-by-side columns)
+- Updated community-champions.tsx SultanOfWeekSection: Same horizontal layout (coin left, info right)
+  - COIN size w-24 h-24 / sm:w-32 sm:h-32 (smaller for dashboard panel)
+- Updated landing/highlights-section.tsx SultanCard: Same horizontal layout
+  - COIN size w-32 h-32 / sm:w-44 sm:h-44 (larger for landing page)
+  - Added division icon + week badge at top of info section
+  - Donor-only state also horizontal
+
+Stage Summary:
+- Sultan of the Week cards are now compact horizontal layout across ALL locations
+- Card height dramatically reduced (was ~500px+ with coin+info stacked, now ~150px)
+- COIN medallion keeps its distinctive circular embossed design on the left
+- Info (name, stats, badges) neatly aligned on the right
+- Lint passes clean, dev server running

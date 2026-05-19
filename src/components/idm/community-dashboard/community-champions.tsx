@@ -196,18 +196,18 @@ export const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
   const crossDivisionLabel = donorDivision === 'female' ? 'Cewe' : 'Cowo';
 
   const content = latestSultan ? (
-    <div className="flex flex-col items-center py-4">
-      {/* COIN: circular medallion with full-body avatar */}
-      <div className="relative flex items-center justify-center">
+    <div className="flex items-center gap-4 sm:gap-5">
+      {/* COIN: circular medallion with full-body avatar (LEFT) */}
+      <div className="relative flex items-center justify-center shrink-0">
         {/* Radial glow behind coin */}
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(circle at 50% 45%, ${hexToRgba(MAROON, 0.12)}, transparent 60%)` }} />
+          style={{ background: `radial-gradient(circle at 50% 45%, ${hexToRgba(MAROON, 0.10)}, transparent 60%)` }} />
 
-        {/* Outer ridge — embossed coin edge (conic-gradient, rounded-full, p-[3px]) */}
-        <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-[3px]"
+        {/* Outer ridge — embossed coin edge */}
+        <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full p-[3px]"
           style={{
             background: `conic-gradient(from 0deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
-            boxShadow: `0 0 24px ${hexToRgba(MAROON, 0.25)}, 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.3)}`,
+            boxShadow: `0 0 20px ${hexToRgba(MAROON, 0.22)}, 0 4px 12px rgba(0,0,0,0.18), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.25)}`,
           }}>
           {/* Inner coin body — full-body avatar */}
           <div className="w-full h-full rounded-full overflow-hidden border-2"
@@ -217,7 +217,7 @@ export const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
                 src={getAvatarUrl(latestSultan.player.gamertag, division, latestSultan.player.avatar)}
                 alt={latestSultan.player.gamertag}
                 fill
-                sizes="(max-width: 640px) 144px, 176px"
+                sizes="(max-width: 640px) 96px, 128px"
                 className="object-cover object-top"
                 loading="lazy"
               />
@@ -225,7 +225,7 @@ export const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
               /* Anonymous donor — heart icon inside coin */
               <div className="w-full h-full flex items-center justify-center"
                 style={{ background: hexToRgba(MAROON, 0.08) }}>
-                <Banknote className="w-10 h-10 sm:w-12 sm:h-12" style={{ color: hexToRgba(MAROON, 0.5) }} />
+                <Banknote className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: hexToRgba(MAROON, 0.5) }} />
               </div>
             )}
           </div>
@@ -233,71 +233,87 @@ export const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
 
         {/* Heart badge at top center */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-lg border-2"
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-lg border-2"
             style={{
               background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
               borderColor: hexToRgba(MAROON_LIGHT, 0.5),
-              boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.4)}`,
+              boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.35)}`,
             }}>
-            <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+            <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="white" />
           </div>
         </div>
       </div>
 
-      {/* Division label */}
-      <div className="flex items-center gap-1 mt-3">
-        <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: accentColor }}>
-          {division === 'male' ? 'COWO' : 'CEWE'}
-        </span>
-        {isCrossDivision && (
-          <Badge className="bg-pink-500/15 text-pink-400 border-0 text-[8px] ml-1">
-            {crossDivisionEmoji} {crossDivisionLabel}
-          </Badge>
+      {/* Info — RIGHT side */}
+      <div className="flex-1 min-w-0 text-left">
+        {/* Division label */}
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: accentColor }}>
+            {division === 'male' ? 'COWO' : 'CEWE'}
+          </span>
+          {isCrossDivision && (
+            <Badge className="bg-pink-500/15 text-pink-400 border-0 text-[8px]">
+              {crossDivisionEmoji} {crossDivisionLabel}
+            </Badge>
+          )}
+        </div>
+
+        {/* Player name */}
+        <p className="text-sm sm:text-base font-black truncate">
+          {latestSultan.player?.gamertag || latestSultan.donorName}
+        </p>
+
+        {/* City/Club info */}
+        {latestSultan.player && (latestSultan.player.city || latestSultan.player.club) && (
+          <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5">
+            {[latestSultan.player.city, typeof latestSultan.player.club === 'string' ? latestSultan.player.club : latestSultan.player.club?.name].filter(Boolean).join(' · ')}
+          </p>
+        )}
+
+        {/* Donation stats */}
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
+            style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
+            {formatCurrencyShort(latestSultan.totalAmount)}
+          </span>
+          <span className="text-[8px] text-muted-foreground/50 tabular-nums">{latestSultan.donationCount}x sawer</span>
+        </div>
+
+        {/* Tier badge */}
+        {latestSultan.player?.tier && (
+          <span className="text-[8px] font-bold mt-1.5 inline-block px-2 py-0.5 rounded-md" style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.08) }}>
+            Tier {latestSultan.player.tier}
+          </span>
         )}
       </div>
-
-      {/* Player name */}
-      <p className="text-sm sm:text-base font-black mt-1 text-center">
-        {latestSultan.player?.gamertag || latestSultan.donorName}
-      </p>
-
-      {/* City/Club info */}
-      {latestSultan.player && (latestSultan.player.city || latestSultan.player.club) && (
-        <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[180px]">
-          {[latestSultan.player.city, typeof latestSultan.player.club === 'string' ? latestSultan.player.club : latestSultan.player.club?.name].filter(Boolean).join(' · ')}
-        </p>
-      )}
-
-      {/* Donation stats (Rp amount + count) */}
-      <div className="flex items-center gap-2 mt-2">
-        <span className="text-[10px] font-black tabular-nums px-2.5 py-1 rounded-full"
-          style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
-          {formatCurrencyShort(latestSultan.totalAmount)}
-        </span>
-        <span className="text-[9px] text-muted-foreground/50 tabular-nums">{latestSultan.donationCount}x sawer</span>
-      </div>
-
-      {/* Tier badge */}
-      {latestSultan.player?.tier && (
-        <span className="text-[8px] font-bold mt-1 px-2 py-0.5 rounded-md" style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.08) }}>
-          {latestSultan.player.tier}
-        </span>
-      )}
     </div>
   ) : (
-    /* Ghost/empty state — dimmed COIN shape */
-    <div className="flex flex-col items-center py-4 opacity-55">
+    /* Ghost/empty state — dimmed horizontal layout */
+    <div className="flex items-center gap-4 sm:gap-5 opacity-55">
       {/* Dimmed coin shape */}
-      <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full p-[3px]"
-        style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)})` }}>
-        <div className="w-full h-full rounded-full flex items-center justify-center border-2"
-          style={{ borderColor: hexToRgba(MAROON, 0.08), background: hexToRgba(MAROON, 0.03) }}>
-          <Heart className="w-10 h-10 sm:w-12 sm:h-12" style={{ color: hexToRgba(MAROON, 0.15) }} />
+      <div className="relative flex items-center justify-center shrink-0">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full p-[3px]"
+          style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)})` }}>
+          <div className="w-full h-full rounded-full flex items-center justify-center border-2"
+            style={{ borderColor: hexToRgba(MAROON, 0.06), background: hexToRgba(MAROON, 0.02) }}>
+            <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: hexToRgba(MAROON, 0.12) }} />
+          </div>
+        </div>
+        {/* Ghost heart badge */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center border-2"
+            style={{ background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)})`, borderColor: hexToRgba(MAROON_LIGHT, 0.2) }}>
+            <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/40" />
+          </div>
         </div>
       </div>
-      {/* Ghost skeleton lines */}
-      <div className="h-4 w-24 rounded bg-muted/30 mt-3 mb-1" />
-      <div className="h-3 w-32 rounded bg-muted/20" />
+      {/* Ghost info */}
+      <div className="flex-1 min-w-0 text-left">
+        <div className="h-3 w-12 rounded bg-muted/25" />
+        <div className="h-4 w-20 rounded bg-muted/30 mt-1.5" />
+        <div className="h-2.5 w-24 rounded bg-muted/15 mt-1.5" />
+        <div className="h-2.5 w-16 rounded bg-muted/10 mt-1.5" />
+      </div>
     </div>
   );
 

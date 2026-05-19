@@ -1086,7 +1086,7 @@ function SultanOfWeekCoin({
   const hasPlayer = !!sultan.player;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex items-center gap-4 sm:gap-5">
       {hasPlayer ? (
         <button
           onClick={() => onPlayerClick({
@@ -1097,16 +1097,16 @@ function SultanOfWeekCoin({
             matches: 0,
             division,
           }, division)}
-          className="flex flex-col items-center w-full cursor-pointer group/sultan-coin"
+          className="flex items-center gap-4 sm:gap-5 w-full cursor-pointer group/sultan-coin"
         >
-          {/* 🪙 COIN Container — circular medallion with full-body avatar */}
-          <div className="relative flex items-center justify-center">
+          {/* 🪙 COIN Container — circular medallion with full-body avatar (LEFT) */}
+          <div className="relative flex items-center justify-center shrink-0">
             {/* Radial glow behind coin */}
             <div className="absolute inset-0 pointer-events-none"
               style={{ background: `radial-gradient(circle at 50% 45%, rgba(128,0,32,0.10), transparent 60%)` }} />
 
             {/* Outer ridge — embossed coin edge */}
-            <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-full p-[3px]"
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
               style={{
                 background: `conic-gradient(from 0deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
                 boxShadow: `0 0 24px ${hexToRgba(MAROON, 0.22)}, 0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.25)}`,
@@ -1118,7 +1118,7 @@ function SultanOfWeekCoin({
                   src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
                   alt={sultan.player!.gamertag}
                   fill
-                  sizes="(max-width: 640px) 144px, 192px"
+                  sizes="(max-width: 640px) 112px, 144px"
                   className="object-cover object-top group-hover/sultan-coin:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
@@ -1127,50 +1127,58 @@ function SultanOfWeekCoin({
 
             {/* Heart badge — top center (crown of coin) */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-lg border-2"
                 style={{
                   background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
                   borderColor: hexToRgba(MAROON_LIGHT, 0.5),
                   boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.35)}`,
                 }}>
-                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="white" />
               </div>
             </div>
           </div>
 
-          {/* Division label — below coin */}
-          <div className="flex items-center gap-1 mt-2">
-            <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
-            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
-              {divisionLabel}
-            </span>
-          </div>
+          {/* Info — RIGHT side */}
+          <div className="flex-1 min-w-0 text-left">
+            {/* Division label */}
+            <div className="flex items-center gap-1 mb-1">
+              <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
+                {divisionLabel}
+              </span>
+              <Badge className="text-[7px] font-bold border ml-1" style={{
+                color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1),
+                borderColor: hexToRgba(MAROON, 0.2) }}>
+                W{sultan.weekNumber}
+              </Badge>
+            </div>
 
-          {/* Name */}
-          <p className="text-sm sm:text-base font-black mt-1 group-hover/sultan-coin:text-idm-gold-warm transition-colors text-center truncate max-w-full">
-            {sultan.player!.gamertag}
-          </p>
-          <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
-          {(sultan.player!.city || sultan.player!.club) && (
-            <p className="text-[7px] text-muted-foreground/40 truncate mt-0.5 max-w-[140px]">
-              {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
+            {/* Name */}
+            <p className="text-sm sm:text-base font-black group-hover/sultan-coin:text-idm-gold-warm transition-colors truncate">
+              {sultan.player!.gamertag}
             </p>
-          )}
+            <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer</p>
+            {(sultan.player!.city || sultan.player!.club) && (
+              <p className="text-[7px] text-muted-foreground/40 truncate mt-0.5">
+                {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
+              </p>
+            )}
 
-          {/* Donation stats */}
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
-              style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
-              Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-            </span>
-            <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x</span>
+            {/* Donation stats */}
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
+                style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
+                Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+              </span>
+              <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+            </div>
           </div>
         </button>
       ) : (
         /* No player matched — show donor name only */
-        <div className="flex flex-col items-center">
-          <div className="relative flex items-center justify-center">
-            <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-full p-[3px]"
+        <div className="flex items-center gap-4 sm:gap-5">
+          <div className="relative flex items-center justify-center shrink-0">
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
               style={{
                 background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON_LIGHT, 0.25)}, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON_LIGHT, 0.25)}, ${hexToRgba(MAROON, 0.25)})`,
               }}>
@@ -1180,26 +1188,28 @@ function SultanOfWeekCoin({
               </div>
             </div>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-lg border-2"
                 style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`, borderColor: hexToRgba(MAROON_LIGHT, 0.5) }}>
-                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
+                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="white" />
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 mt-2">
-            <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
-            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
-              {divisionLabel}
-            </span>
-          </div>
-          <p className="text-sm font-bold mt-1 text-center">{sultan.donorName}</p>
-          <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
-              style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
-              Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-            </span>
-            <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x</span>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="flex items-center gap-1 mb-1">
+              <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
+                {divisionLabel}
+              </span>
+            </div>
+            <p className="text-sm font-bold truncate">{sultan.donorName}</p>
+            <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
+                style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
+                Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+              </span>
+              <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+            </div>
           </div>
         </div>
       )}
@@ -1215,34 +1225,36 @@ function GhostSultanOfWeekCoin({ division }: { division: 'male' | 'female' }) {
   const DivisionIcon = division === 'male' ? Music : Shield;
 
   return (
-    <div className="flex flex-col items-center opacity-45">
-      {/* Ghost COIN shape */}
-      <div className="relative flex items-center justify-center">
-        <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-full p-[3px]"
+    <div className="flex items-center gap-4 sm:gap-5 opacity-45">
+      {/* Ghost COIN shape — left */}
+      <div className="relative flex items-center justify-center shrink-0">
+        <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
           style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)})` }}>
           <div className="w-full h-full rounded-full flex items-center justify-center border-2"
             style={{ borderColor: hexToRgba(MAROON, 0.06), background: hexToRgba(MAROON, 0.02) }}>
-            <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: hexToRgba(MAROON, 0.12) }} />
+            <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: hexToRgba(MAROON, 0.12) }} />
           </div>
         </div>
         {/* Ghost heart badge */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2"
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center border-2"
             style={{ background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)})`, borderColor: hexToRgba(MAROON_LIGHT, 0.2) }}>
-            <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" />
+            <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/40" />
           </div>
         </div>
       </div>
-      {/* Ghost division label */}
-      <div className="flex items-center gap-1 mt-2">
-        <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: hexToRgba(divisionAccent, 0.4) }} />
-        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(divisionAccent, 0.4) }}>
-          {divisionLabel}
-        </span>
+      {/* Ghost info — right */}
+      <div className="flex-1 min-w-0 text-left">
+        <div className="flex items-center gap-1 mb-1">
+          <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: hexToRgba(divisionAccent, 0.4) }} />
+          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(divisionAccent, 0.4) }}>
+            {divisionLabel}
+          </span>
+        </div>
+        <div className="h-3.5 w-20 rounded bg-muted/25" />
+        <div className="h-2.5 w-28 rounded bg-muted/15 mt-1.5" />
+        <div className="h-2.5 w-16 rounded bg-muted/10 mt-1.5" />
       </div>
-      {/* Ghost name */}
-      <div className="h-3.5 w-20 rounded bg-muted/25 mt-2" />
-      <div className="h-2.5 w-28 rounded bg-muted/15 mt-1.5" />
     </div>
   );
 }
@@ -1282,9 +1294,9 @@ const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
           </span>
         </div>
 
-        {/* Body — dual COIN medallions */}
+        {/* Body — horizontal COIN + info cards */}
         <div className="p-3 sm:p-5">
-          <div className={`grid gap-4 sm:gap-6 ${showBoth ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+          <div className="space-y-3 sm:space-y-4">
             {showMale && (
               maleSultan ? (
                 <SultanOfWeekCoin sultan={maleSultan} division="male" onPlayerClick={onPlayerClick} />
