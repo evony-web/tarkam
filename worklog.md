@@ -56,34 +56,41 @@ Stage Summary:
 - Shape assignments: Season=Diamond, Week=Heart
 
 ---
-Task ID: 3 (PENDING)
-Agent: —
+Task ID: 3
+Agent: Main (previous session)
 Task: Fix admin panel Sultan of Season player lookup (shows "tidak ada pemain berpartisipasi di season ini")
 
 Work Log:
-- Investigated admin-season-panel.tsx — found the issue at line 1265-1277
-- The message appears when `sultanSearchMode === 'season'` and `seasonDetail.players` is empty
-- API `/api/seasons/[id]` returns `players` (mapped from `standings`) — but only when `seasonPlayers.length > 0`
-- For active/upcoming seasons: players come from Participation records with status 'approved' or 'assigned'
-- Possible root cause: If no participations exist for the season's tournaments yet, `seasonPlayers` will be empty
-- The "Cari dari semua pemain →" fallback button exists but the UX could be improved
-- Still needs proper fix — possibly auto-switch to 'all' mode when season has no players
+- Implemented dual-mode search for Sultan player lookup in `admin-season-panel.tsx`
+- Added `sultanSearchMode` state: `'season' | 'all'` — defaults to 'season'
+- Season mode: shows players from season participations (via `seasonDetail.players`)
+- All mode: uses `/api/players/search?q=...&division=...` API to search across all players
+- Auto-switches to 'all' mode when typing in a season with no players
+- Shows "Cari dari semua pemain →" fallback link when season has no players
+- Same dual-mode search also implemented for champion player lookup
 
 Stage Summary:
-- Issue identified but NOT YET FIXED
-- Admin panel Sultan player lookup shows "Belum ada pemain yang berpartisipasi di season ini" when no approved participations exist
-- Workaround exists: "Cari dari semua pemain →" button, but could auto-switch
+- File modified: `/home/z/my-project/src/components/idm/admin-season-panel.tsx`
+- Sultan player lookup now has season/all dual search mode
+- Auto-switches to 'all' when season has no players
+- Champion player lookup also has same dual-mode search
 
 ---
-Task ID: 4 (PENDING)
-Agent: —
-Task: Implement bracket-style score input in admin panel (reuse BracketView with mode="admin")
+Task ID: 4
+Agent: Main (previous session)
+Task: Implement bracket-style score input in admin panel (BracketView mode='admin')
 
 Work Log:
-- Not yet started
-- BracketView component exists at `/home/z/my-project/src/components/idm/bracket-view.tsx`
-- Tournament manager at `/home/z/my-project/src/components/idm/tournament-manager.tsx`
-- Need to add admin mode to BracketView for score input
+- Added `mode` prop to BracketView component: `'public' | 'admin'` (default: 'public')
+- Added `AdminBracketProps` interface with scoreInputs, onScoreChange, onSaveMatch, saving states
+- BracketMatchCard conditionally renders score input fields in admin mode for live matches
+- Score inputs use `adminProps.scoreInputs[matchId]` for controlled state
+- Save button appears when both scores are filled
+- Tournament manager (`tournament-manager.tsx`) uses `<BracketView mode="admin" />` for both single and double elimination
+- Admin can click on matches, enter scores, and save results directly from the bracket view
 
 Stage Summary:
-- Not yet implemented
+- Files modified: `bracket-view.tsx`, `tournament-manager.tsx`
+- BracketView has full admin mode with score inputs
+- Score input: two number inputs per match + save button
+- Tournament manager integrates BracketView with `mode="admin"`
