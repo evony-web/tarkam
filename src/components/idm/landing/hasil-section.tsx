@@ -108,10 +108,16 @@ function getRoundSortKey(bracket: string, round: number): number {
   }
 }
 
-/* ─── Helper: find index of first week with results ─── */
-function firstResultIdx(weeks: WeekResult[]): number {
-  return weeks.findIndex(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
+/* ─── Helper: find index of last week with results ─── */
+function lastResultIdx(weeks: WeekResult[]): number {
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    if (weeks[i].tournamentMatches.length > 0 || weeks[i].leagueMatches.length > 0) return i;
+  }
+  return -1;
 }
+
+/* ─── Max recent weeks shown before "show more" ─── */
+const RECENT_WEEKS_LIMIT = 4;
 
 /* ─── Match Row — Tournament (2-line) ─── */
 function TournamentMatchRow({ m, divStyle }: { m: WeekResult['tournamentMatches'][0]; divStyle: DivisionStyle }) {
@@ -370,6 +376,36 @@ function GhostWeekCard({ divStyle }: { divStyle: DivisionStyle }) {
   );
 }
 
+/* ─── Week List with "Show older weeks" ─── */
+function WeekList({ weeks, divStyle }: { weeks: WeekResult[]; divStyle: DivisionStyle }) {
+  const [showAll, setShowAll] = useState(false);
+
+  // Reverse so newest week is at the top
+  const reversedWeeks = useMemo(() => [...weeks].reverse(), [weeks]);
+  const expandIdx = lastResultIdx(reversedWeeks);
+
+  const visibleWeeks = showAll ? reversedWeeks : reversedWeeks.slice(0, RECENT_WEEKS_LIMIT);
+  const hiddenCount = reversedWeeks.length - visibleWeeks.length;
+
+  return (
+    <div className="space-y-3">
+      {visibleWeeks.map((w, idx) => (
+        <WeekCard key={w.weekNumber} week={w} divStyle={divStyle} defaultExpanded={idx === expandIdx} />
+      ))}
+      {!showAll && hiddenCount > 0 && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-border/40 bg-card/30 text-muted-foreground text-xs font-semibold transition-all hover:border-idm-gold-warm/25 hover:bg-idm-gold-warm/5 hover:text-idm-gold-warm cursor-pointer active:scale-[0.98]"
+        >
+          <Gamepad2 className="w-3.5 h-3.5" />
+          <span>Tampilkan {hiddenCount} minggu sebelumnya</span>
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Component ─── */
 export function HasilSection({ maleData, femaleData, isDataLoading }: {
   maleData: any;
@@ -490,31 +526,27 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
             {hasilDivision === 'all' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Male column */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-1">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm">{DIVISION_STYLE.male.emoji}</span>
                     <span className={`text-xs font-bold ${DIVISION_STYLE.male.text}`}>Cowo</span>
                     <Badge className={`${DIVISION_STYLE.male.bg} ${DIVISION_STYLE.male.text} text-[8px] border-0`}>{maleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
                   </div>
                   {hasMaleResults ? (
-                    maleWeeks.map((w, idx) => (
-                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === firstResultIdx(maleWeeks)} />
-                    ))
+                    <WeekList weeks={maleWeeks} divStyle={DIVISION_STYLE.male} />
                   ) : (
                     <GhostWeekCard divStyle={DIVISION_STYLE.male} />
                   )}
                 </div>
                 {/* Female column */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-1">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm">{DIVISION_STYLE.female.emoji}</span>
                     <span className={`text-xs font-bold ${DIVISION_STYLE.female.text}`}>Cewe</span>
                     <Badge className={`${DIVISION_STYLE.female.bg} ${DIVISION_STYLE.female.text} text-[8px] border-0`}>{femaleWeeks.filter(w => w.tournamentMatches.length > 0).length} Minggu</Badge>
                   </div>
                   {hasFemaleResults ? (
-                    femaleWeeks.map((w, idx) => (
-                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === firstResultIdx(femaleWeeks)} />
-                    ))
+                    <WeekList weeks={femaleWeeks} divStyle={DIVISION_STYLE.female} />
                   ) : (
                     <GhostWeekCard divStyle={DIVISION_STYLE.female} />
                   )}
@@ -524,11 +556,9 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
 
             {/* Male only */}
             {hasilDivision === 'male' && (
-              <div className="max-w-2xl space-y-3">
+              <div className="max-w-2xl">
                 {hasMaleResults ? (
-                  maleWeeks.map((w, idx) => (
-                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === firstResultIdx(maleWeeks)} />
-                  ))
+                  <WeekList weeks={maleWeeks} divStyle={DIVISION_STYLE.male} />
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.male} />
                 )}
@@ -537,11 +567,9 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
 
             {/* Female only */}
             {hasilDivision === 'female' && (
-              <div className="max-w-2xl space-y-3">
+              <div className="max-w-2xl">
                 {hasFemaleResults ? (
-                  femaleWeeks.map((w, idx) => (
-                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === firstResultIdx(femaleWeeks)} />
-                  ))
+                  <WeekList weeks={femaleWeeks} divStyle={DIVISION_STYLE.female} />
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.female} />
                 )}

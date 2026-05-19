@@ -284,3 +284,43 @@ Stage Summary:
 - Sponsor now appears ABOVE bracket tree (Sponsor → Format selector → BracketView)
 - Tab layout no longer crowded: title + tabs share one row, division chips on second row
 - Cleaner mobile experience with compact tab sizing
+---
+Task ID: 5
+Agent: main
+Task: Fix bracket-page.tsx tab layout — Hasil/Bracket tabs left, division chips right, same row
+
+Work Log:
+- User wanted: Title stays alone at top, Hasil/Bracket tabs and Semua/Cowo/Cewe chips in one row
+- Multiple iterations of layout changes:
+  - First: Title + tabs combined row, chips separate (wrong — title moved)
+  - Second: Division chips row, then title + tabs combined (wrong — title still combined)
+  - Third: Title alone + chips left + tabs right (wrong — tabs/chips swapped sides)
+  - Final: Title alone at top, Tabs (Hasil/Bracket) on LEFT, Chips (Semua/Cowo/Cewe) on RIGHT, same row with justify-between
+- Removed separator dot between chips and tabs
+- Added overflow-x-auto for mobile safety
+
+Stage Summary:
+- Layout: Row 1 = Title alone, Row 2 = [Hasil] [Bracket] ... [Semua] [Cowo] [Cewe]
+- Title never moves — stays in its own row at top
+- Tabs left, chips right, same row with justify-between
+---
+Task ID: 6
+Agent: main
+Task: Fix Hasil Section UX for late-season — reverse order, expand newest, "Tampilkan minggu sebelumnya"
+
+Work Log:
+- Identified problem: at week 9 of 10-week season, firstResultIdx() expanded Week 1 (oldest), leaving 8 collapsed weeks above — bad UX
+- Changed `firstResultIdx` → `lastResultIdx` — finds the LAST week with results (most recent)
+- Reversed week order: newest week first (Week 9 at top, Week 1 at bottom) — users see latest results immediately
+- Created `WeekList` component with "show more" logic:
+  - `RECENT_WEEKS_LIMIT = 4` — shows last 4 weeks by default
+  - Older weeks hidden behind "Tampilkan X minggu sebelumnya" button
+  - Clicking button reveals all weeks
+- Replaced all direct `maleWeeks.map()` / `femaleWeeks.map()` with `<WeekList>` component
+- Applied to all division filter modes: Semua, Cowo only, Cewe only
+
+Stage Summary:
+- At week 9: shows Week 9 (expanded), Week 8-6 (collapsed), then "Tampilkan 5 minggu sebelumnya" button
+- No more 8 collapsed cards — clean, focused on latest results
+- Newest-first order = natural "feed" pattern (like news/social media)
+- File modified: `/home/z/my-project/src/components/idm/landing/hasil-section.tsx`
