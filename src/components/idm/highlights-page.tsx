@@ -1455,7 +1455,10 @@ function GhostSultanOfWeekDivisionCard({ division }: { division: 'male' | 'femal
    Shows Sultan Cowo and Sultan Cewe as large coin medallions side by side
    ═══════════════════════════════════════════ */
 
-/** Sultan Week Division Card — MVP-style horizontal layout with maroon theme */
+/** ❤️ Heart clipPath — reusable polygon for heart shape */
+const HEART_CLIP = 'polygon(50% 18%, 61% 0%, 75% 0%, 89% 5%, 100% 18%, 100% 38%, 90% 55%, 75% 72%, 50% 100%, 25% 72%, 10% 55%, 0% 38%, 0% 18%, 11% 5%, 25% 0%, 39% 0%)';
+
+/** Sultan Week Division Card — ❤️ HEART avatar, MVP horizontal layout, maroon theme */
 function SultanWeekDivisionCard({
   sultan,
   division,
@@ -1471,9 +1474,6 @@ function SultanWeekDivisionCard({
   const DivisionIcon = division === 'male' ? Music : Shield;
   const genderSymbol = division === 'male' ? '♂' : '♀';
   const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
-  const divisionGradient = division === 'male'
-    ? 'from-idm-male/25 to-idm-male/5'
-    : 'from-idm-female/25 to-idm-female/5';
   const hasPlayer = !!sultan.player;
 
   const clubName = hasPlayer
@@ -1505,26 +1505,61 @@ function SultanWeekDivisionCard({
 
       {hasPlayer ? (
         <div className="flex gap-3 sm:gap-4 items-stretch">
-          {/* Avatar panel — LEFT */}
+          {/* ❤️ Heart avatar panel — LEFT */}
           <div
-            className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden"
-            style={{
-              aspectRatio: '3/4',
-              background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON, 0.05)})`,
-            }}
+            className="relative shrink-0 cursor-pointer group/sultan-week"
+            onClick={() => onPlayerClick({
+              ...sultan.player!,
+              name: sultan.player!.gamertag,
+              club: sultan.player!.club ?? undefined,
+              maxStreak: 0,
+              matches: 0,
+              division,
+            }, division)}
           >
-            <AvatarMedia
-              src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
-              alt={sultan.player!.gamertag}
-              width={128}
-              height={200}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-            {/* Heart badge — top right (maroon themed) */}
-            <div className="absolute top-2 right-2 z-10">
+            {/* Outer glow */}
+            <div className="absolute inset-0 scale-125"
+              style={{
+                clipPath: HEART_CLIP,
+                background: `conic-gradient(from 45deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, transparent, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
+                opacity: 0.2,
+                filter: 'blur(8px)',
+              }} />
+
+            {/* Maroon radial glow behind heart */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: `radial-gradient(circle at 50% 40%, rgba(128,0,32,0.12), transparent 60%)` }} />
+
+            {/* Heart frame — outer maroon border */}
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
+              style={{
+                clipPath: HEART_CLIP,
+                background: `linear-gradient(135deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
+                boxShadow: `0 0 25px ${hexToRgba(MAROON, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
+                padding: '4px',
+              }}>
+              {/* Inner heart — full-body avatar */}
+              <div className="relative w-full h-full overflow-hidden"
+                style={{ clipPath: HEART_CLIP }}>
+                <AvatarMedia
+                  src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
+                  alt={sultan.player!.gamertag}
+                  fill
+                  sizes="(max-width: 640px) 112px, 160px"
+                  className="object-cover object-top group-hover/sultan-week:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Light reflection overlay */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{
+                    clipPath: HEART_CLIP,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.04) 100%)',
+                  }} />
+              </div>
+            </div>
+
+            {/* Heart badge — top center (crown of heart) */}
+            <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
               <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
@@ -1532,18 +1567,6 @@ function SultanWeekDivisionCard({
                 }}>
                 <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" fill="white" />
               </div>
-            </div>
-            {/* Donation amount badge — bottom */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
-              <Badge className="text-[7px] lg:text-[8px] font-black border py-0 px-1.5 whitespace-nowrap"
-                style={{
-                  color: MAROON_LIGHT,
-                  backgroundColor: hexToRgba(MAROON, 0.15),
-                  borderColor: hexToRgba(MAROON, 0.3),
-                }}>
-                <Banknote className="w-2 h-2 mr-0.5" />
-                {formatRp(sultan.totalAmount)}
-              </Badge>
             </div>
           </div>
 
@@ -1617,39 +1640,44 @@ function SultanWeekDivisionCard({
           </div>
         </div>
       ) : (
-        /* No player matched — show donor name only (simpler MVP-style) */
+        /* No player matched — show donor name only */
         <div className="flex gap-3 sm:gap-4 items-stretch">
-          {/* Maroon gradient avatar panel */}
-          <div
-            className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden"
-            style={{
-              aspectRatio: '3/4',
-              background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.18)}, ${hexToRgba(MAROON, 0.04)})`,
-            }}
-          >
-            <Heart className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ color: MAROON_LIGHT }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
-            {/* Heart badge */}
-            <div className="absolute top-2 right-2 z-10">
-              <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
+          {/* ❤️ Heart avatar panel (no player) */}
+          <div className="relative shrink-0">
+            {/* Outer glow */}
+            <div className="absolute inset-0 scale-125"
+              style={{
+                clipPath: HEART_CLIP,
+                background: `conic-gradient(from 45deg, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.1)})`,
+                opacity: 0.3,
+                filter: 'blur(8px)',
+              }} />
+
+            {/* Heart frame — ghost */}
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
+              style={{
+                clipPath: HEART_CLIP,
+                background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.2)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.2)})`,
+                padding: '4px',
+              }}>
+              {/* Inner ghost heart */}
+              <div className="w-full h-full flex items-center justify-center"
                 style={{
-                  background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
-                  boxShadow: `0 0 12px ${hexToRgba(MAROON, 0.3)}`,
+                  clipPath: HEART_CLIP,
+                  background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.08)}, ${hexToRgba(MAROON, 0.03)})`,
                 }}>
-                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" fill="white" />
+                <Heart className="w-8 h-8 sm:w-10 sm:h-10 opacity-25" style={{ color: MAROON_LIGHT }} />
               </div>
             </div>
-            {/* Donation amount badge */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
-              <Badge className="text-[7px] lg:text-[8px] font-black border py-0 px-1.5 whitespace-nowrap"
+
+            {/* Heart badge */}
+            <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
+              <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
                 style={{
-                  color: MAROON_LIGHT,
-                  backgroundColor: hexToRgba(MAROON, 0.15),
-                  borderColor: hexToRgba(MAROON, 0.3),
+                  background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.4)}, ${hexToRgba(MAROON, 0.4)})`,
                 }}>
-                <Banknote className="w-2 h-2 mr-0.5" />
-                {formatRp(sultan.totalAmount)}
-              </Badge>
+                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
+              </div>
             </div>
           </div>
 
@@ -1714,7 +1742,7 @@ function SultanWeekDivisionCard({
 }
 
 
-/** Ghost Sultan Week Division Card — empty state matching MVP-style layout */
+/** Ghost Sultan Week Division Card — ❤️ HEART empty state, MVP horizontal layout */
 function GhostSultanWeekDivisionCard({
   division,
   bare = false,
@@ -1740,16 +1768,34 @@ function GhostSultanWeekDivisionCard({
       )}
 
       <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
-        {/* Ghost avatar panel */}
-        <div
-          className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden border"
-          style={{
-            aspectRatio: '3/4',
-            background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON, 0.03)})`,
-            borderColor: hexToRgba(MAROON, 0.1),
-          }}
-        >
-          <Heart className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ color: MAROON_LIGHT }} />
+        {/* Ghost heart avatar panel */}
+        <div className="relative shrink-0">
+          {/* Ghost heart frame */}
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
+            style={{
+              clipPath: HEART_CLIP,
+              background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.2)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.2)})`,
+              padding: '4px',
+            }}>
+            {/* Inner ghost heart */}
+            <div className="w-full h-full flex items-center justify-center"
+              style={{
+                clipPath: HEART_CLIP,
+                background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.08)}, ${hexToRgba(MAROON, 0.03)})`,
+              }}>
+              <Heart className="w-8 h-8 sm:w-10 sm:h-10 opacity-20" style={{ color: MAROON_LIGHT }} />
+            </div>
+          </div>
+
+          {/* Ghost heart badge */}
+          <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
+            <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.4)}, ${hexToRgba(MAROON, 0.4)})`,
+              }}>
+              <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
+            </div>
+          </div>
         </div>
 
         {/* Ghost stats panel */}
