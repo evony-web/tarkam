@@ -453,8 +453,8 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
         </span>
       </div>
 
-      {/* Card body - horizontal layout */}
-      <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
+      {/* Card body - diamond layout */}
+      <div className="flex flex-col items-center cursor-pointer py-4" onClick={() => {
         setSelectedPlayer({
           id: sultan.id,
           name: sultan.gamertag,
@@ -472,34 +472,62 @@ function SultanOfSeasonCard({ sultans, setSelectedPlayer }: {
           club: sultan.club?.name ?? undefined,
         });
       }}>
-        {/* Avatar */}
-        <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden border-2"
-          style={{ borderColor: SULTAN_EMERALD, boxShadow: `0 0 12px ${hexToRgba(SULTAN_EMERALD, 0.3)}` }}>
-          <AvatarMedia
-            src={getAvatarUrl(sultan.gamertag, sultan.division === 'female' ? 'female' : 'male', sultan.avatar)}
-            alt={sultan.gamertag}
-            width={64}
-            height={64}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          {/* Emerald glow overlay */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at 50% 80%, ${hexToRgba(SULTAN_EMERALD, 0.15)}, transparent 60%)` }} />
+        {/* Diamond avatar */}
+        <div className="relative">
+          {/* Outer glow / facet reflection */}
+          <div className="absolute inset-0 scale-110"
+            style={{
+              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              background: `conic-gradient(from 45deg, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD}, transparent, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
+              opacity: 0.3,
+              filter: 'blur(6px)',
+            }} />
+          {/* Diamond frame */}
+          <div className="relative w-28 h-28 sm:w-40 sm:h-40"
+            style={{
+              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              background: `linear-gradient(135deg, ${SULTAN_EMERALD}, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
+              boxShadow: `0 0 24px ${hexToRgba(SULTAN_EMERALD, 0.3)}, 0 4px 12px rgba(0,0,0,0.15)`,
+              padding: '3px',
+            }}>
+            <div className="relative w-full h-full overflow-hidden"
+              style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}>
+              <AvatarMedia
+                src={getAvatarUrl(sultan.gamertag, sultan.division === 'female' ? 'female' : 'male', sultan.avatar)}
+                alt={sultan.gamertag}
+                width={160}
+                height={160}
+                className="w-full h-full object-cover group-hover/sultan-season:scale-110 transition-transform duration-500"
+                loading="lazy"
+              />
+              {/* Facet overlay */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{
+                  clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)',
+                }} />
+            </div>
+          </div>
+          {/* Gem badge — top center */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
+              style={{
+                background: `linear-gradient(135deg, ${SULTAN_EMERALD_LIGHT}, ${SULTAN_EMERALD})`,
+                borderColor: hexToRgba(SULTAN_EMERALD_LIGHT, 0.5),
+                boxShadow: `0 2px 8px ${hexToRgba(SULTAN_EMERALD, 0.4)}`,
+              }}>
+              <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+            </div>
+          </div>
         </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
+        {/* Name and stats below diamond */}
+        <div className="flex flex-col items-center mt-3 text-center">
           <h3 className="text-sm font-black truncate" style={{ color: SULTAN_EMERALD_LIGHT }}>{sultan.gamertag}</h3>
           <p className="text-[9px] text-muted-foreground/70 mt-0.5">Top Penyawer Season {seasonNumber}</p>
           {sultan.club?.name && (
             <p className="text-[8px] text-muted-foreground/50 mt-0.5 truncate">{sultan.club.name}</p>
           )}
-        </div>
-
-        {/* Emerald gem icon */}
-        <div className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: hexToRgba(SULTAN_EMERALD, 0.1), border: `1px solid ${hexToRgba(SULTAN_EMERALD, 0.2)}` }}>
-          <span className="text-base">💵</span>
         </div>
       </div>
     </div>

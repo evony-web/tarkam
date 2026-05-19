@@ -1815,3 +1815,43 @@ Stage Summary:
 - Undo button for completed matches
 - Public bracket view completely unaffected (mode defaults to 'public')
 - Lint: no new errors (5 pre-existing errors in other files)
+
+---
+
+## Task 4 & 5: Sultan Card Shape Changes (COIN + DIAMOND)
+
+**Date:** 2025-03-04
+**Files modified:**
+- `/home/z/my-project/src/components/idm/landing/highlights-section.tsx`
+- `/home/z/my-project/src/components/idm/landing/season-champion-section.tsx`
+
+### Task 4: SultanCard → COIN shape (highlights-section.tsx)
+
+**Changes:**
+- Replaced the side-by-side layout (left 58% rectangle avatar + right info panel) with a **vertical layout** (circular coin medallion on top, info below)
+- Outer ridge uses `conic-gradient` with `maroon.nameDark` and `maroon.nameMid` for embossed coin edge effect
+- Inner coin body uses `rounded-full` with `overflow-hidden` and border
+- Avatar fills the circle with `object-cover` (width/height 144px, responsive w-28 sm:w-36)
+- Heart badge at top center of coin using `absolute -top-1 left-1/2 -translate-x-1/2`
+- 8 decorative dots around coin edge at 45° intervals using `rotate + translateY`
+- Stats shown as pill badges (`rounded-full`) below: Rp amount + sawer count
+- Tier and division badges remain below stats
+- All click handlers preserved
+- Same maroon theme colors via `useMaroon` hook
+
+### Task 5: SultanOfSeasonCard → DIAMOND shape (season-champion-section.tsx)
+
+**Changes:**
+- Replaced horizontal layout (small avatar + info + icon) with **vertical layout** (diamond shape centered, name/stats below)
+- Outer glow uses `conic-gradient` with emerald colors, `opacity: 0.3`, `filter: blur(6px)`
+- Diamond frame uses `clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'` with emerald gradient border + padding for frame effect
+- Inner content clipped with same diamond polygon, avatar fills with `object-cover`
+- Facet/prism overlay for light reflection: semi-transparent gradient overlay
+- Gem badge at top center of diamond using `absolute -top-1 left-1/2 -translate-x-1/2`
+- Name and stats displayed below diamond in centered text layout
+- All click handlers preserved
+- Same emerald theme colors (`SULTAN_EMERALD`, `SULTAN_EMERALD_LIGHT`, `SULTAN_EMERALD_DARK`)
+
+### Verification
+- Lint check passed (no new errors in modified files)
+- Dev server compiles successfully with no errors
