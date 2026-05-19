@@ -1539,3 +1539,63 @@ Task: Redesign elimination bracket component to MPL esports tournament bracket s
 ## Verification
 - `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx)
 - Dev server compiles successfully (no bracket-view.tsx errors)
+
+---
+
+Task ID: 14
+Agent: Main Agent
+Task: Fix Single Elimination Bracket Connectors & Add Visual Connectors to Upper Semi View
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/bracket-view.tsx`
+
+### Fix 1: Single Elimination Connector Algorithm — SOURCE→TARGET approach
+
+**Problem:** The old `calculateConnectors` function iterated over NEXT round matches and tried to find feeders in the CURRENT round using position-based lookup. When BYE matches meant some positions didn't exist as matches, the fallback to index-based pairing (`ni * 2`, `ni * 2 + 1`) connected WRONG matches.
+
+**Solution:** Rewrote `calculateConnectors` to iterate from SOURCE matches (round R) to find their TARGET match (round R+1). For each match M in round R with position P:
+- Target position = ceil(P / 2)
+- Find target match in next round by position
+- Group source matches by their target, then draw bracket connectors per group
+
+This guarantees every connector starts from an EXISTING match, avoiding the BYE fallback bug entirely.
+
+**Key algorithm change:**
+- OLD: For each target → find feeders at positions 2P-1, 2P → fallback to index pairing
+- NEW: For each source at position P → compute target position ceil(P/2) → group by target → draw
+
+### Fix 2: Upper Semi View with Visual Bracket Connectors
+
+**Problem:** The old `UpperSemiView` used simple text labels ("Yang kalah turun ke Lower Bracket") and stacked round layouts with NO SVG connector lines.
+
+**Solution:** Complete rewrite with:
+
+1. **New `BracketColumnView` component** — Reusable horizontal bracket layout with SVG connectors:
+   - Self-contained with own `containerRef`, `cardRefs`, `connector` state
+   - SOURCE→TARGET connector calculation (same algorithm as main bracket)
+   - Card alignment logic (position R2+ cards at vertical midpoint of feeders)
+   - Timing effects for layout settling and resize/scroll recalculation
+   - Renders with `ZoomableContainer` for pinch-zoom + drag-pan
+   - Configurable styling: strokeColor, borderColor, headerBg, headerText, matchLabelPrefix
+
+2. **New `UpperSemiView` layout:**
+   - **Upper Bracket** → `BracketColumnView` with division-themed colors and "U" match labels
+   - **Drop connector** → SVG red/orange arrow with glow (replacing text-only label)
+   - **Lower Bracket** → `BracketColumnView` with orange accent and "L" match labels
+   - **GF connector** → Gold SVG merge junction with glow (two paths merging into one)
+   - **Grand Final** → Gold-bordered section with gradient header and glow
+
+3. **New helper functions added:**
+   - `getBracketRound(groupLabel)` — extracts round number from "U1-2" → 1, "L2-1" → 2
+   - `matchHasWinner(m)` — checks if a match has a decided winner
+
+4. **Removed unused import:** `ArrowDown` (replaced with SVG drop arrows)
+
+### Files Modified
+- `/home/z/my-project/src/components/idm/bracket-view.tsx` only
+
+## Verification
+- `npx eslint src/components/idm/bracket-view.tsx` — ✅ No errors
+- `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx)
+- Dev server compiles successfully (no bracket-view.tsx errors)

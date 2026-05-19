@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
-import { Crown, Music, Trophy, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp, ArrowDown, Swords } from 'lucide-react';
+import { Crown, Music, Trophy, ZoomIn, ZoomOut, Maximize2, ChevronDown, ChevronUp, Swords } from 'lucide-react';
 
 /* ─── Match interface ─── */
 interface Match {
@@ -34,6 +34,20 @@ function getBracketPosition(groupLabel: string | undefined): number {
     'Final': 1, '3rd': 2,
   };
   return namedPositions[groupLabel] || 0;
+}
+
+/** Parse groupLabel (e.g., "U1-2", "L2-1") to get bracket round number.
+ *  Returns 0 if groupLabel doesn't match the expected format. */
+function getBracketRound(groupLabel: string | undefined): number {
+  if (!groupLabel) return 0;
+  const match = groupLabel.match(/^[UL](\d+)-/);
+  if (match) return parseInt(match[1]);
+  return 0;
+}
+
+/** Check if a match has a decided winner (scores exist and are different). */
+function matchHasWinner(m: Match): boolean {
+  return !!(m.score1 !== null && m.score2 !== null && m.score1 !== m.score2);
 }
 
 interface BracketViewProps {
@@ -1304,7 +1318,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
   );
 }
 
-/* ─── Upper Semi (Double Elimination) View — Vertical section layout ─── */
+/* ─── Upper Semi (Double Elimination) View — MPL Premium with SVG Connectors ─── */
 
 function getUpperSemiRoundLabel(round: number, bracket: string, allMatches: Match[]): string {
   const bracketMatches = allMatches.filter(m => m.bracket === bracket);
@@ -1326,6 +1340,284 @@ function getUpperSemiRoundLabel(round: number, bracket: string, allMatches: Matc
   }
   if (bracket === 'grand_final') return 'Grand Final';
   return `Ronde ${round}`;
+}
+
+/* ─── Reusable Bracket Column View — horizontal layout with SVG connectors ─── */
+interface BracketColumnViewProps {
+  roundsData: { round: number; label: string; matches: Match[] }[];
+  strokeColor: string;
+  sectionTitle: string;
+  titleIcon: React.ReactNode;
+  borderColor: string;
+  headerBg: string;
+  headerText: string;
+  matchLabelPrefix: string;
+}
+
+function BracketColumnView({
+  roundsData,
+  strokeColor,
+  sectionTitle,
+  titleIcon,
+  borderColor,
+  headerBg,
+  headerText,
+  matchLabelPrefix,
+}: BracketColumnViewProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [connectors, setConnectors] = useState<ConnectorPath[]>([]);
+
+  /* SOURCE→TARGET connector calculation — same algorithm as main bracket */
+  const calculateConnectors = useCallback(() => {
+    if (!containerRef.current || roundsData.length < 2) {
+      setConnectors([]);
+      return;
+    }
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newConnectors: ConnectorPath[] = [];
+
+    // Build position lookup for each round
+    const positionLookupByRound: Map<number, Map<number, Match>> = new Map();
+    for (let r = 0; r < roundsData.length; r++) {
+      const lookup = new Map<number, Match>();
+      for (const m of roundsData[r].matches) {
+        const pos = getBracketPosition(m.groupLabel);
+        if (pos > 0) lookup.set(pos, m);
+      }
+      positionLookupByRound.set(r, lookup);
+    }
+
+    for (let r = 0; r < roundsData.length - 1; r++) {
+      const sourceRound = roundsData[r];
+      const targetRoundIdx = r + 1;
+      const targetPositionLookup = positionLookupByRound.get(targetRoundIdx) || new Map();
+
+      // Group source matches by their target match ID
+      const targetGroups = new Map<string, { sources: Match[]; target: Match }>();
+      const hasPositions = sourceRound.matches.some(m => getBracketPosition(m.groupLabel) > 0);
+
+      if (hasPositions) {
+        for (const sourceMatch of sourceRound.matches) {
+          const sourcePos = getBracketPosition(sourceMatch.groupLabel);
+          if (sourcePos <= 0) continue;
+          const targetPos = Math.ceil(sourcePos / 2);
+          const targetMatch = targetPositionLookup.get(targetPos);
+          if (!targetMatch) continue;
+
+          const targetKey = targetMatch.id;
+          if (!targetGroups.has(targetKey)) {
+            targetGroups.set(targetKey, { sources: [], target: targetMatch });
+          }
+          targetGroups.get(targetKey)!.sources.push(sourceMatch);
+        }
+      } else {
+        const targetRound = roundsData[targetRoundIdx];
+        for (let ni = 0; ni < targetRound.matches.length; ni++) {
+          const targetMatch = targetRound.matches[ni];
+          const source1 = sourceRound.matches[ni * 2] || null;
+          const source2 = sourceRound.matches[ni * 2 + 1] || null;
+          const sources = [source1, source2].filter(Boolean) as Match[];
+          if (sources.length === 0) continue;
+          targetGroups.set(targetMatch.id, { sources, target: targetMatch });
+        }
+      }
+
+      // Draw connectors for each target group
+      for (const [targetKey, group] of targetGroups) {
+        const { sources, target: targetMatch } = group;
+        if (!targetMatch || sources.length === 0) continue;
+
+        const targetCardEl = cardRefs.current.get(`round-${targetRoundIdx}-match-${targetMatch.id}`);
+        if (!targetCardEl) continue;
+
+        const targetRect = targetCardEl.getBoundingClientRect();
+        const targetY = targetRect.top + targetRect.height / 2 - containerRect.top;
+        const targetX = targetRect.left - containerRect.left;
+
+        const sourcePoints = sources.map(s => {
+          const el = cardRefs.current.get(`round-${r}-match-${s.id}`);
+          if (!el) return null;
+          const rect = el.getBoundingClientRect();
+          return { x: rect.right - containerRect.left, y: rect.top + rect.height / 2 - containerRect.top, match: s };
+        }).filter(Boolean) as { x: number; y: number; match: Match }[];
+
+        if (sourcePoints.length === 0) continue;
+
+        const maxSourceX = Math.max(...sourcePoints.map(p => p.x));
+        const midX = (maxSourceX + targetX) / 2;
+
+        if (sourcePoints.length === 1) {
+          const p = sourcePoints[0];
+          newConnectors.push({ key: `conn-${r}-${targetKey}-arm1`, d: `M ${p.x} ${p.y} H ${midX} V ${targetY}`, color: strokeColor, isWinner: matchHasWinner(p.match) });
+        } else {
+          for (let i = 0; i < sourcePoints.length; i++) {
+            const p = sourcePoints[i];
+            newConnectors.push({ key: `conn-${r}-${targetKey}-arm${i}`, d: `M ${p.x} ${p.y} H ${midX}`, color: strokeColor, isWinner: matchHasWinner(p.match) });
+          }
+          const topY = Math.min(...sourcePoints.map(p => p.y));
+          const bottomY = Math.max(...sourcePoints.map(p => p.y));
+          newConnectors.push({ key: `conn-${r}-${targetKey}-rail`, d: `M ${midX} ${topY} V ${bottomY}`, color: strokeColor, isWinner: sourcePoints.some(p => matchHasWinner(p.match)) });
+        }
+
+        newConnectors.push({ key: `conn-${r}-${targetKey}-bridge`, d: `M ${midX} ${targetY} H ${targetX}`, color: strokeColor, isWinner: sourcePoints.some(p => matchHasWinner(p.match)) });
+        newConnectors.push({ key: `conn-${r}-${targetKey}-dot`, d: `M ${midX - 3} ${targetY} h 6`, color: strokeColor, isWinner: true });
+      }
+    }
+
+    setConnectors(newConnectors);
+  }, [roundsData, strokeColor]);
+
+  /* Card alignment — position R2+ cards at vertical midpoint of feeders */
+  const alignBracketCards = useCallback(() => {
+    if (!containerRef.current || roundsData.length < 2) return;
+
+    const r0HasPositions = roundsData[0].matches.some(m => getBracketPosition(m.groupLabel) > 0);
+    if (!r0HasPositions) {
+      for (let r = 1; r < roundsData.length; r++) {
+        const gapMultiplier = Math.pow(2, r);
+        const roundCols = containerRef.current.querySelectorAll(`[data-round="${r}"]`);
+        roundCols.forEach((col) => {
+          const cards = col.children;
+          for (let i = 0; i < cards.length; i++) {
+            const card = cards[i] as HTMLElement;
+            card.style.marginTop = i === 0 ? `${(gapMultiplier - 1) * 20}px` : `${gapMultiplier * 24 + 16}px`;
+          }
+        });
+      }
+      return;
+    }
+
+    const cardElMap = new Map<string, HTMLDivElement>();
+    for (const [key, el] of cardRefs.current.entries()) {
+      cardElMap.set(key, el);
+    }
+
+    for (let r = 1; r < roundsData.length; r++) {
+      const currentRound = roundsData[r];
+      const prevRound = roundsData[r - 1];
+      const prevPosMap = new Map<number, HTMLDivElement>();
+      for (const pm of prevRound.matches) {
+        const pos = getBracketPosition(pm.groupLabel);
+        const el = cardElMap.get(`round-${r - 1}-match-${pm.id}`);
+        if (pos > 0 && el) prevPosMap.set(pos, el);
+      }
+
+      for (const m of currentRound.matches) {
+        const bracketPos = getBracketPosition(m.groupLabel);
+        const el = cardElMap.get(`round-${r}-match-${m.id}`);
+        if (!el || bracketPos <= 0) continue;
+
+        const feederPos1 = bracketPos * 2 - 1;
+        const feederPos2 = bracketPos * 2;
+        const feederEl1 = prevPosMap.get(feederPos1);
+        const feederEl2 = prevPosMap.get(feederPos2);
+        const currentMarginTop = parseFloat(el.style.marginTop) || 0;
+
+        if (feederEl1 && feederEl2) {
+          const f1Rect = feederEl1.getBoundingClientRect();
+          const f2Rect = feederEl2.getBoundingClientRect();
+          const cardRect = el.getBoundingClientRect();
+          const cRect = containerRef.current.getBoundingClientRect();
+          const targetCenterY = (f1Rect.top + f1Rect.height / 2 - cRect.top + f2Rect.top + f2Rect.height / 2 - cRect.top) / 2;
+          const currentCenterY = cardRect.top + cardRect.height / 2 - cRect.top;
+          el.style.marginTop = `${targetCenterY - (currentCenterY - currentMarginTop)}px`;
+        } else if (feederEl1 || feederEl2) {
+          const feederEl = feederEl1 || feederEl2!;
+          const fRect = feederEl.getBoundingClientRect();
+          const cardRect = el.getBoundingClientRect();
+          const cRect = containerRef.current.getBoundingClientRect();
+          const fCenterY = fRect.top + fRect.height / 2 - cRect.top;
+          const currentCenterY = cardRect.top + cardRect.height / 2 - cRect.top;
+          el.style.marginTop = `${fCenterY - (currentCenterY - currentMarginTop)}px`;
+        }
+      }
+    }
+  }, [roundsData]);
+
+  // Timing effects for alignment and connector calculation
+  useEffect(() => {
+    const timers = [100, 300, 600, 1200].map(delay => setTimeout(alignBracketCards, delay));
+    return () => timers.forEach(clearTimeout);
+  }, [alignBracketCards]);
+
+  useEffect(() => {
+    const attempts = [80, 150, 350, 700, 1300];
+    const timers = attempts.map(delay => setTimeout(calculateConnectors, delay));
+    const handleResize = () => { alignBracketCards(); setTimeout(calculateConnectors, 50); };
+    const scrollContainer = containerRef.current?.parentElement;
+    const handleScroll = () => calculateConnectors();
+    window.addEventListener('resize', handleResize);
+    scrollContainer?.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', handleResize);
+      scrollContainer?.removeEventListener('scroll', handleScroll);
+    };
+  }, [calculateConnectors, alignBracketCards]);
+
+  const setCardRef = useCallback((key: string, el: HTMLDivElement | null) => {
+    if (el) cardRefs.current.set(key, el);
+    else cardRefs.current.delete(key);
+  }, []);
+
+  const isFinalRound = (roundIdx: number) => roundIdx === roundsData.length - 1;
+
+  return (
+    <div className={`rounded-2xl overflow-hidden border ${borderColor}`}>
+      {/* Section Header */}
+      <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b ${borderColor} ${headerBg}`}>
+        {titleIcon}
+        <h3 className={`text-sm font-bold uppercase tracking-wider ${headerText}`}>{sectionTitle}</h3>
+        <span className="text-[10px] text-muted-foreground ml-auto">
+          {roundsData.reduce((sum, r) => sum + r.matches.length, 0)} pertandingan
+        </span>
+      </div>
+      <div className="p-2">
+        <ZoomableContainer>
+          <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
+            <div className="relative min-w-max px-2" ref={containerRef}>
+              {connectors.length > 0 && <BracketConnectors paths={connectors} />}
+              <div className="flex gap-12">
+                {roundsData.map((round, roundIdx) => {
+                  const isGF = isFinalRound(roundIdx);
+                  return (
+                    <div key={round.round} className="flex flex-col" style={{ minWidth: isGF ? '220px' : '200px' }}>
+                      <div className="text-center mb-4">
+                        <div className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl ${headerBg} ${headerText} text-sm font-bold uppercase tracking-wider border ${borderColor}`}>
+                          <Swords className="w-3.5 h-3.5 opacity-60" />
+                          {round.label}
+                        </div>
+                      </div>
+                      <div
+                        className="flex-1 flex flex-col"
+                        data-round={roundIdx}
+                        style={{ gap: roundIdx === 0 ? '20px' : '0px' }}
+                      >
+                        {round.matches.map((m, mi) => (
+                          <div
+                            key={m.id}
+                            ref={(el) => setCardRef(`round-${roundIdx}-match-${m.id}`, el)}
+                          >
+                            <BracketMatchCard
+                              match={m}
+                              isGrandFinal={isGF}
+                              matchLabel={`${matchLabelPrefix}${mi + 1}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </ZoomableContainer>
+      </div>
+    </div>
+  );
 }
 
 function UpperSemiView({ matches }: { matches: Match[] }) {
@@ -1374,57 +1666,49 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
   const hasLower = lowerRounds.length > 0;
   const hasGF = gfMatches.length > 0;
 
+  // Division accent colors
+  const divisionColor = dt.division === 'male' ? 'rgb(var(--idm-male-raw, 59 130 246))' : 'rgb(var(--idm-female-raw, 236 72 153))';
+
   return (
     <div className="space-y-5">
       {/* ── UPPER BRACKET Section ── */}
       {hasUpper && (
-        <div className={`rounded-2xl overflow-hidden border ${dt.border}`}>
-          {/* Section Header */}
-          <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b ${dt.borderSubtle}`}>
+        <BracketColumnView
+          roundsData={upperRounds}
+          strokeColor={divisionColor}
+          sectionTitle="⬆️ Upper Bracket"
+          titleIcon={
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Swords className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider">⬆️ Upper Bracket</h3>
-            <span className="text-[10px] text-muted-foreground ml-auto">{upperMatches.length} pertandingan</span>
-          </div>
-          <div className="p-4 space-y-4">
-            {upperRounds.map((roundData) => (
-              <div key={`ub-r${roundData.round}`}>
-                {/* Round label */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider`}>
-                    {roundData.label}
-                  </div>
-                  <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-xs text-muted-foreground">{roundData.matches.length} match</span>
-                </div>
-                {/* Match cards grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {roundData.matches.map((m) => (
-                    <BracketMatchCard key={m.id} match={m} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          }
+          borderColor={dt.border.replace('border-', '')}
+          headerBg={dt.bg}
+          headerText={dt.text}
+          matchLabelPrefix="U"
+        />
       )}
 
-      {/* ── Connector: UB → LB ── */}
+      {/* ── Connector: UB → LB (Drop connector with red/orange accent) ── */}
       {hasUpper && hasLower && (
-        <div className="flex items-center justify-center gap-2 py-1">
+        <div className="flex items-center justify-center gap-3 py-2">
           <div className="flex-1 flex items-center justify-end">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
-              <div className="h-px w-6 bg-red-400/20" />
+              <div className="h-px w-8 bg-red-400/25" />
             </div>
           </div>
           <div className="flex flex-col items-center gap-0.5">
-            <ArrowDown className="w-4 h-4 text-red-400/60" />
+            {/* SVG drop arrow with glow */}
+            <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="opacity-70">
+              <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="2" strokeLinecap="round" />
+              <path d="M6 14 L12 22 L18 14" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="6" strokeLinecap="round" opacity="0.15" />
+            </svg>
           </div>
           <div className="flex-1 flex items-center">
-            <div className="flex items-center gap-1">
-              <div className="h-px w-6 bg-red-400/20" />
+            <div className="flex items-center gap-1.5">
+              <div className="h-px w-8 bg-red-400/25" />
               <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">turun ke Lower Bracket</span>
             </div>
           </div>
@@ -1433,58 +1717,52 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
 
       {/* ── LOWER BRACKET Section ── */}
       {hasLower && (
-        <div className={`rounded-2xl overflow-hidden border border-orange-500/20`}>
-          {/* Section Header */}
-          <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b border-orange-500/10`}>
+        <BracketColumnView
+          roundsData={lowerRounds}
+          strokeColor="#f97316"
+          sectionTitle="↘️ Lower Bracket"
+          titleIcon={
             <div className="w-5 h-5 rounded bg-orange-500/15 flex items-center justify-center shrink-0">
               <Swords className="w-3 h-3 text-orange-400" />
             </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-orange-400">↘️ Lower Bracket</h3>
-            <span className="text-[10px] text-muted-foreground ml-auto">{lowerMatches.length} pertandingan</span>
-          </div>
-          <div className="p-4 space-y-4">
-            {lowerRounds.map((roundData) => (
-              <div key={`lb-r${roundData.round}`}>
-                {/* Round label */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-bold uppercase tracking-wider">
-                    {roundData.label}
-                  </div>
-                  <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-xs text-muted-foreground">{roundData.matches.length} match</span>
-                </div>
-                {/* Match cards grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {roundData.matches.map((m) => (
-                    <BracketMatchCard key={m.id} match={m} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          }
+          borderColor="border-orange-500/20"
+          headerBg="bg-orange-500/5"
+          headerText="text-orange-400"
+          matchLabelPrefix="L"
+        />
       )}
 
-      {/* ── Connector: LB → GF ── */}
+      {/* ── Connector: Winners → GF (Gold accent) ── */}
       {(hasLower || hasUpper) && hasGF && (
-        <div className="flex items-center justify-center gap-2 py-1">
+        <div className="flex items-center justify-center gap-3 py-2">
           <div className="flex-1 flex items-center justify-end">
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang Lower Bracket</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">
+                {hasUpper ? '🏆 Pemenang UB' : '🏆 Pemenang'}
+              </span>
               <div className="h-px w-8 bg-idm-gold-warm/30" />
             </div>
           </div>
           <div className="flex flex-col items-center gap-0.5">
-            <div className="w-px h-3 bg-idm-gold-warm/20" />
-            <div className="w-3 h-3 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
-              <Crown className="w-2 h-2 text-idm-gold-warm" />
-            </div>
-            <ArrowDown className="w-3 h-3 text-idm-gold-warm/60" />
+            {/* Gold merge junction */}
+            <svg width="28" height="32" viewBox="0 0 28 32" fill="none">
+              <path d="M8 4 L14 16" stroke="rgba(239,249,35,0.5)" strokeWidth="2" strokeLinecap="round" />
+              <path d="M20 4 L14 16" stroke="rgba(239,249,35,0.5)" strokeWidth="2" strokeLinecap="round" />
+              <path d="M14 16 L14 28" stroke="rgba(239,249,35,0.5)" strokeWidth="2" strokeLinecap="round" />
+              <path d="M8 4 L14 16" stroke="rgba(239,249,35,0.15)" strokeWidth="6" strokeLinecap="round" />
+              <path d="M20 4 L14 16" stroke="rgba(239,249,35,0.15)" strokeWidth="6" strokeLinecap="round" />
+              <path d="M14 16 L14 28" stroke="rgba(239,249,35,0.15)" strokeWidth="6" strokeLinecap="round" />
+              <circle cx="14" cy="16" r="4" fill="rgba(239,249,35,0.15)" />
+              <circle cx="14" cy="16" r="2" fill="rgba(239,249,35,0.5)" />
+            </svg>
           </div>
           <div className="flex-1 flex items-center">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <div className="h-px w-8 bg-idm-gold-warm/30" />
-              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">→ Grand Final</span>
+              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">
+                {hasLower ? 'Pemenang LB →' : '→ Grand Final'}
+              </span>
             </div>
           </div>
         </div>
@@ -1492,21 +1770,20 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
 
       {/* ── GRAND FINAL Section ── */}
       {hasGF && (
-        <div className="rounded-2xl overflow-hidden border border-idm-gold-warm/40 shadow-[0_0_12px_rgba(239,249,35,0.15)]">
-          {/* Section Header — Gold accent */}
-          <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-idm-gold-warm/20 bg-idm-gold-warm/5">
-            <div className="w-5 h-5 rounded bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-              <Trophy className="w-3 h-3 text-idm-gold-warm" />
+        <div className="rounded-2xl overflow-hidden border border-idm-gold-warm/40 shadow-[0_0_16px_rgba(239,249,35,0.2)]">
+          {/* Section Header — Gold accent with glow */}
+          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-idm-gold-warm/20 bg-gradient-to-r from-idm-gold-warm/10 via-idm-gold-warm/5 to-idm-gold-warm/10">
+            <div className="w-6 h-6 rounded-lg bg-idm-gold-warm/20 flex items-center justify-center shrink-0 shadow-[0_0_8px_rgba(239,249,35,0.3)]">
+              <Trophy className="w-3.5 h-3.5 text-idm-gold-warm" />
             </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-idm-gold-warm">🏆 Grand Final</h3>
-            <span className="text-[10px] text-idm-gold-warm/60 ml-auto">UB Winner vs LB Winner</span>
+            <h3 className="text-sm font-black uppercase tracking-wider text-idm-gold-warm">🏆 Grand Final</h3>
+            <span className="text-[10px] text-idm-gold-warm/60 ml-auto font-semibold">UB Winner vs LB Winner</span>
           </div>
           <div className="p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {gfMatches.map((m) => (
                 <div key={m.id} className="relative">
-                  {/* Gold glow ring around GF card */}
-                  <BracketMatchCard match={m} />
+                  <BracketMatchCard match={m} isGrandFinal matchLabel="Grand Final" />
                 </div>
               ))}
             </div>
@@ -1584,16 +1861,18 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
     return sortedRounds;
   }, [matches, bracketType]);
 
-  /* Calculate SVG connector paths after layout — Clean MPL Style
+  /* Calculate SVG connector paths after layout — SOURCE→TARGET approach
      Bracket connector pattern:
-     [Feeder 1] ──────┐
-                        ├────── [Next Match]
-     [Feeder 2] ──────┘
-     Segments: 1) Horizontal arms  2) Vertical rail  3) Horizontal to next  4) Junction dot
+     [Source 1] ──────┐
+                        ├────── [Target Match]
+     [Source 2] ──────┘
+     Segments: 1) Horizontal arms  2) Vertical rail  3) Horizontal bridge  4) Junction dot
 
-     IMPORTANT: Uses bracket position (from groupLabel) to determine feeder relationships,
-     NOT simple array index. This handles BYE matches correctly where R1 has fewer matches
-     than expected (e.g., 6 teams → 2 R1 matches, 2 R2 matches with 2 bye teams).
+     NEW APPROACH: Iterate from SOURCE matches (round R) to find their TARGET match (round R+1).
+     For each match M in round R with position P:
+       - Target position in round R+1 = ceil(P / 2)
+     This guarantees every connector starts from an EXISTING match, avoiding the old bug
+     where BYE positions (no match) caused wrong index-based fallback pairing.
   */
   const calculateConnectors = useCallback(() => {
     if (!containerRef.current || roundsData.length < 2) {
@@ -1606,7 +1885,6 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
     const strokeColor = dt.color;
 
     // Build position lookup for each round: position → match
-    // Position is derived from groupLabel (e.g., "U1-2" → position 2)
     const positionLookupByRound: Map<number, Map<number, Match>> = new Map();
     for (let r = 0; r < roundsData.length; r++) {
       const lookup = new Map<number, Match>();
@@ -1618,134 +1896,121 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
     }
 
     for (let r = 0; r < roundsData.length - 1; r++) {
-      const currentRound = roundsData[r];
-      const nextRound = roundsData[r + 1];
-      const currentPositionLookup = positionLookupByRound.get(r) || new Map();
-      const hasPositions = currentPositionLookup.size > 0;
+      const sourceRound = roundsData[r];
+      const targetRoundIdx = r + 1;
+      const targetPositionLookup = positionLookupByRound.get(targetRoundIdx) || new Map();
 
-      for (let ni = 0; ni < nextRound.matches.length; ni++) {
-        const nextMatch = nextRound.matches[ni];
-        const nextCardEl = cardRefs.current.get(`round-${r + 1}-match-${nextMatch.id}`);
-        if (!nextCardEl) continue;
+      // Group source matches by their target match ID
+      const targetGroups = new Map<string, { sources: Match[]; target: Match }>();
 
-        const nextRect = nextCardEl.getBoundingClientRect();
-        const nextY = nextRect.top + nextRect.height / 2 - containerRect.top;
-        const nextX = nextRect.left - containerRect.left;
+      const hasPositions = sourceRound.matches.some(m => getBracketPosition(m.groupLabel) > 0);
 
-        // ── Determine feeder matches using bracket position ──
-        // In a standard bracket, next match at position P is fed by:
-        //   Feeder 1: position (2P - 1) in the previous round
-        //   Feeder 2: position (2P) in the previous round
-        // Example: P=1 → feeders at positions 1,2; P=2 → feeders at positions 3,4
-        let feederMatch1: Match | null = null;
-        let feederMatch2: Match | null = null;
+      if (hasPositions) {
+        // SOURCE→TARGET: For each source match, compute its target position
+        for (const sourceMatch of sourceRound.matches) {
+          const sourcePos = getBracketPosition(sourceMatch.groupLabel);
+          if (sourcePos <= 0) continue; // Skip matches without position
 
-        if (hasPositions) {
-          // Use groupLabel-based position mapping (handles BYE matches correctly)
-          const nextPos = getBracketPosition(nextMatch.groupLabel);
-          if (nextPos > 0) {
-            const feederPos1 = nextPos * 2 - 1; // e.g., nextPos=1 → 1; nextPos=2 → 3
-            const feederPos2 = nextPos * 2;       // e.g., nextPos=1 → 2; nextPos=2 → 4
-            feederMatch1 = currentPositionLookup.get(feederPos1) || null;
-            feederMatch2 = currentPositionLookup.get(feederPos2) || null;
+          // Target position = ceil(sourcePos / 2)
+          // Example: sourcePos=1→target=1, sourcePos=2→target=1, sourcePos=3→target=2
+          const targetPos = Math.ceil(sourcePos / 2);
+          const targetMatch = targetPositionLookup.get(targetPos);
+          if (!targetMatch) continue;
+
+          const targetKey = targetMatch.id;
+          if (!targetGroups.has(targetKey)) {
+            targetGroups.set(targetKey, { sources: [], target: targetMatch });
           }
+          targetGroups.get(targetKey)!.sources.push(sourceMatch);
         }
-
-        // Fallback: simple index-based pairing (for matches without groupLabel)
-        if (!feederMatch1 && !feederMatch2) {
-          const feederIdx1 = ni * 2;
-          const feederIdx2 = ni * 2 + 1;
-          feederMatch1 = currentRound.matches[feederIdx1] || null;
-          feederMatch2 = currentRound.matches[feederIdx2] || null;
+      } else {
+        // Fallback: simple index-based pairing for rounds without groupLabel positions
+        const targetRound = roundsData[targetRoundIdx];
+        for (let ni = 0; ni < targetRound.matches.length; ni++) {
+          const targetMatch = targetRound.matches[ni];
+          const source1 = sourceRound.matches[ni * 2] || null;
+          const source2 = sourceRound.matches[ni * 2 + 1] || null;
+          const sources = [source1, source2].filter(Boolean) as Match[];
+          if (sources.length === 0) continue;
+          targetGroups.set(targetMatch.id, { sources, target: targetMatch });
         }
+      }
 
-        if (!feederMatch1 && !feederMatch2) continue;
+      // Draw connectors for each target group
+      for (const [targetKey, group] of targetGroups) {
+        const { sources, target: targetMatch } = group;
+        if (!targetMatch || sources.length === 0) continue;
 
-        const feederEl1 = feederMatch1 ? cardRefs.current.get(`round-${r}-match-${feederMatch1.id}`) : null;
-        const feederEl2 = feederMatch2 ? cardRefs.current.get(`round-${r}-match-${feederMatch2.id}`) : null;
+        const targetCardEl = cardRefs.current.get(`round-${targetRoundIdx}-match-${targetMatch.id}`);
+        if (!targetCardEl) continue;
 
-        if (!feederEl1 && !feederEl2) continue;
+        const targetRect = targetCardEl.getBoundingClientRect();
+        const targetY = targetRect.top + targetRect.height / 2 - containerRect.top;
+        const targetX = targetRect.left - containerRect.left;
 
-        const getCenter = (el: HTMLDivElement | null | undefined) => {
-          if (!el) return { x: nextX, y: nextY };
+        // Get source card positions
+        const sourcePoints = sources.map(s => {
+          const el = cardRefs.current.get(`round-${r}-match-${s.id}`);
+          if (!el) return null;
           const rect = el.getBoundingClientRect();
           return {
             x: rect.right - containerRect.left,
             y: rect.top + rect.height / 2 - containerRect.top,
+            match: s,
           };
-        };
+        }).filter(Boolean) as { x: number; y: number; match: Match }[];
 
-        const p1 = getCenter(feederEl1);
-        const p2 = getCenter(feederEl2);
+        if (sourcePoints.length === 0) continue;
 
-        // Midpoint X between feeder and next match (the vertical rail position)
-        const midX = nextX - (nextX - Math.max(p1.x, p2.x)) / 2;
+        // Midpoint X between sources and target (vertical rail position)
+        const maxSourceX = Math.max(...sourcePoints.map(p => p.x));
+        const midX = (maxSourceX + targetX) / 2;
 
-        // Check if feeder match has a winner (for highlighting)
-        const f1HasWinner = !!(feederMatch1 && feederMatch1.score1 !== null && feederMatch1.score2 !== null &&
-          feederMatch1.score1 !== feederMatch1.score2);
-        const f2HasWinner = !!(feederMatch2 && feederMatch2.score1 !== null && feederMatch2.score2 !== null &&
-          feederMatch2.score1 !== feederMatch2.score2);
-
-        // ── Segment 1: Horizontal arm from Feeder 1 to midX ──
-        if (feederEl1) {
+        if (sourcePoints.length === 1) {
+          // Single source — L-shaped connector
+          const p = sourcePoints[0];
           newConnectors.push({
-            key: `conn-${r}-${ni}-arm1`,
-            d: `M ${p1.x} ${p1.y} H ${midX}`,
+            key: `conn-${r}-${targetKey}-arm1`,
+            d: `M ${p.x} ${p.y} H ${midX} V ${targetY}`,
             color: strokeColor,
-            isWinner: f1HasWinner,
+            isWinner: matchHasWinner(p.match),
           });
-        }
+        } else {
+          // Multiple sources — bracket connector with arms + rail
+          // Horizontal arms
+          for (let i = 0; i < sourcePoints.length; i++) {
+            const p = sourcePoints[i];
+            newConnectors.push({
+              key: `conn-${r}-${targetKey}-arm${i}`,
+              d: `M ${p.x} ${p.y} H ${midX}`,
+              color: strokeColor,
+              isWinner: matchHasWinner(p.match),
+            });
+          }
 
-        // ── Segment 2: Horizontal arm from Feeder 2 to midX ──
-        if (feederEl2) {
+          // Vertical rail
+          const topY = Math.min(...sourcePoints.map(p => p.y));
+          const bottomY = Math.max(...sourcePoints.map(p => p.y));
           newConnectors.push({
-            key: `conn-${r}-${ni}-arm2`,
-            d: `M ${p2.x} ${p2.y} H ${midX}`,
-            color: strokeColor,
-            isWinner: f2HasWinner,
-          });
-        }
-
-        // ── Segment 3: Vertical rail at midX connecting both feeders ──
-        if (feederEl1 && feederEl2) {
-          const topY = Math.min(p1.y, p2.y);
-          const bottomY = Math.max(p1.y, p2.y);
-          newConnectors.push({
-            key: `conn-${r}-${ni}-rail`,
+            key: `conn-${r}-${targetKey}-rail`,
             d: `M ${midX} ${topY} V ${bottomY}`,
             color: strokeColor,
-            isWinner: f1HasWinner || f2HasWinner,
-          });
-        } else if (feederEl1 && !feederEl2) {
-          // Single feeder — vertical rail from feeder to nextY level
-          newConnectors.push({
-            key: `conn-${r}-${ni}-rail`,
-            d: `M ${midX} ${p1.y} V ${nextY}`,
-            color: strokeColor,
-            isWinner: f1HasWinner,
-          });
-        } else if (feederEl2 && !feederEl1) {
-          newConnectors.push({
-            key: `conn-${r}-${ni}-rail`,
-            d: `M ${midX} ${p2.y} V ${nextY}`,
-            color: strokeColor,
-            isWinner: f2HasWinner,
+            isWinner: sourcePoints.some(p => matchHasWinner(p.match)),
           });
         }
 
-        // ── Segment 4: Horizontal from midX at nextY to next match ──
+        // Bridge from midpoint at targetY to target
         newConnectors.push({
-          key: `conn-${r}-${ni}-bridge`,
-          d: `M ${midX} ${nextY} H ${nextX}`,
+          key: `conn-${r}-${targetKey}-bridge`,
+          d: `M ${midX} ${targetY} H ${targetX}`,
           color: strokeColor,
-          isWinner: f1HasWinner || f2HasWinner,
+          isWinner: sourcePoints.some(p => matchHasWinner(p.match)),
         });
 
-        // ── Segment 5: Junction dot at merge point ──
+        // Junction dot at merge point
         newConnectors.push({
-          key: `conn-${r}-${ni}-dot`,
-          d: `M ${midX - 3} ${nextY} h 6`,
+          key: `conn-${r}-${targetKey}-dot`,
+          d: `M ${midX - 3} ${targetY} h 6`,
           color: strokeColor,
           isWinner: true,
         });
