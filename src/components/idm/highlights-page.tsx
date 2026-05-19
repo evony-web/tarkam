@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem, Zap, Banknote, Calendar } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown, Trophy, Users, Gem, Zap, Banknote, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData, TopPlayer, SeasonChampionPlayer, SultanOfWeekly, SultanPlayer } from '@/types/stats';
@@ -701,7 +701,7 @@ function SultanOfWeekCard({
         <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
           <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
             style={{ backgroundColor: hexToRgba(MAROON, 0.15), border: `1px solid ${hexToRgba(MAROON, 0.25)}` }}>
-            <Heart className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
+            <Gem className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
           </div>
           <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: MAROON_LIGHT }}>
             Sultan of the Week
@@ -760,7 +760,7 @@ function SultanOfWeekCard({
                   </div>
                 </div>
 
-                {/* Heart badge — top center (crown of coin) */}
+                {/* Gem badge — top center (crown of coin) */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                     style={{
@@ -768,7 +768,7 @@ function SultanOfWeekCard({
                       borderColor: hexToRgba(MAROON_LIGHT, 0.5),
                       boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.4)}`,
                     }}>
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
+                    <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                 </div>
 
@@ -813,13 +813,13 @@ function SultanOfWeekCard({
                   }}>
                   <div className="w-full h-full rounded-full flex items-center justify-center border-2"
                     style={{ borderColor: hexToRgba(MAROON, 0.2), background: hexToRgba(MAROON, 0.06) }}>
-                    <Heart className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.4) }} />
+                    <Gem className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.4) }} />
                   </div>
                 </div>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
                     style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`, borderColor: hexToRgba(MAROON_LIGHT, 0.5) }}>
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="white" />
+                    <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                 </div>
               </div>
@@ -856,7 +856,7 @@ function GhostSultanOfWeekCard() {
         <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
           <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
             style={{ backgroundColor: hexToRgba(MAROON, 0.08), border: `1px solid ${hexToRgba(MAROON, 0.12)}` }}>
-            <Heart className="w-3 h-3" style={{ color: hexToRgba(MAROON_LIGHT, 0.3) }} />
+            <Gem className="w-3 h-3" style={{ color: hexToRgba(MAROON_LIGHT, 0.3) }} />
           </div>
           <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: hexToRgba(MAROON_LIGHT, 0.4) }}>
             Sultan of the Week
@@ -870,7 +870,7 @@ function GhostSultanOfWeekCard() {
             style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.15)})` }}>
             <div className="w-full h-full rounded-full flex items-center justify-center border-2"
               style={{ borderColor: hexToRgba(MAROON, 0.08), background: hexToRgba(MAROON, 0.03) }}>
-              <Heart className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.15) }} />
+              <Gem className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(MAROON, 0.15) }} />
             </div>
           </div>
           <div className="h-4 w-24 rounded bg-muted/30 mt-4 mb-1.5" />
@@ -1368,10 +1368,10 @@ function SultanOfWeekDivisionCard({
                 loading="lazy"
               />
             </div>
-            {/* Heart badge */}
+            {/* Gem badge */}
             <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
               style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})` }}>
-              <Heart className="w-2 h-2 text-white" />
+              <Gem className="w-2 h-2 text-white" />
             </div>
           </div>
 
@@ -1400,7 +1400,7 @@ function SultanOfWeekDivisionCard({
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border-2"
             style={{ borderColor: hexToRgba(MAROON, 0.15), background: hexToRgba(MAROON, 0.04) }}>
-            <Heart className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.3) }} />
+            <Gem className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.3) }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold truncate">{sultan.donorName}</p>
@@ -1438,7 +1438,7 @@ function GhostSultanOfWeekDivisionCard({ division }: { division: 'male' | 'femal
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border-2"
           style={{ borderColor: hexToRgba(MAROON, 0.08), background: hexToRgba(MAROON, 0.02) }}>
-          <Heart className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.12) }} />
+          <Gem className="w-4 h-4" style={{ color: hexToRgba(MAROON, 0.12) }} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="h-4 w-20 rounded bg-muted/30 mb-1.5" />
@@ -1455,10 +1455,10 @@ function GhostSultanOfWeekDivisionCard({ division }: { division: 'male' | 'femal
    Shows Sultan Cowo and Sultan Cewe as large coin medallions side by side
    ═══════════════════════════════════════════ */
 
-/** ❤️ Heart clipPath — reusable polygon for heart shape */
-const HEART_CLIP = 'polygon(50% 18%, 61% 0%, 75% 0%, 89% 5%, 100% 18%, 100% 38%, 90% 55%, 75% 72%, 50% 100%, 25% 72%, 10% 55%, 0% 38%, 0% 18%, 11% 5%, 25% 0%, 39% 0%)';
+/** 💎 Diamond clipPath — reusable polygon for diamond shape */
+const DIAMOND_CLIP = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
 
-/** Sultan Week Division Card — ❤️ HEART avatar, MVP horizontal layout, maroon theme */
+/** Sultan Week Division Card — 💎 DIAMOND avatar, MVP horizontal layout, maroon theme */
 function SultanWeekDivisionCard({
   sultan,
   division,
@@ -1505,7 +1505,7 @@ function SultanWeekDivisionCard({
 
       {hasPlayer ? (
         <div className="flex gap-3 sm:gap-4 items-stretch">
-          {/* ❤️ Heart avatar panel — LEFT */}
+          {/* 💎 Diamond avatar panel — LEFT */}
           <div
             className="relative shrink-0 cursor-pointer group/sultan-week"
             onClick={() => onPlayerClick({
@@ -1517,30 +1517,30 @@ function SultanWeekDivisionCard({
               division,
             }, division)}
           >
-            {/* Outer glow */}
+            {/* Outer glow / facet reflection */}
             <div className="absolute inset-0 scale-125"
               style={{
-                clipPath: HEART_CLIP,
+                clipPath: DIAMOND_CLIP,
                 background: `conic-gradient(from 45deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, transparent, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
-                opacity: 0.2,
+                opacity: 0.25,
                 filter: 'blur(8px)',
               }} />
 
-            {/* Maroon radial glow behind heart */}
+            {/* Maroon radial glow behind diamond */}
             <div className="absolute inset-0 pointer-events-none"
-              style={{ background: `radial-gradient(circle at 50% 40%, rgba(128,0,32,0.12), transparent 60%)` }} />
+              style={{ background: `radial-gradient(circle at 50% 50%, rgba(128,0,32,0.15), transparent 60%)` }} />
 
-            {/* Heart frame — outer maroon border */}
+            {/* Diamond frame — outer faceted border */}
             <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
               style={{
-                clipPath: HEART_CLIP,
+                clipPath: DIAMOND_CLIP,
                 background: `linear-gradient(135deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
-                boxShadow: `0 0 25px ${hexToRgba(MAROON, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
+                boxShadow: `0 0 30px ${hexToRgba(MAROON, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
                 padding: '4px',
               }}>
-              {/* Inner heart — full-body avatar */}
+              {/* Inner diamond — full-body avatar */}
               <div className="relative w-full h-full overflow-hidden"
-                style={{ clipPath: HEART_CLIP }}>
+                style={{ clipPath: DIAMOND_CLIP }}>
                 <AvatarMedia
                   src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
                   alt={sultan.player!.gamertag}
@@ -1549,23 +1549,23 @@ function SultanWeekDivisionCard({
                   className="object-cover object-top group-hover/sultan-week:scale-110 transition-transform duration-500"
                   loading="lazy"
                 />
-                {/* Light reflection overlay */}
+                {/* Facet overlay — prism/light reflection effect */}
                 <div className="absolute inset-0 pointer-events-none"
                   style={{
-                    clipPath: HEART_CLIP,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.04) 100%)',
+                    clipPath: DIAMOND_CLIP,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)',
                   }} />
               </div>
             </div>
 
-            {/* Heart badge — top center (crown of heart) */}
+            {/* Gem badge — top center (crown of diamond) */}
             <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
               <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
                   boxShadow: `0 0 12px ${hexToRgba(MAROON, 0.4)}`,
                 }}>
-                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" fill="white" />
+                <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" />
               </div>
             </div>
           </div>
@@ -1591,7 +1591,7 @@ function SultanWeekDivisionCard({
                     backgroundColor: hexToRgba(MAROON, 0.08),
                     borderColor: hexToRgba(MAROON, 0.15),
                   }}>
-                  <Heart className="w-2 h-2 mr-0.5" style={{ color: MAROON_LIGHT }} />
+                  <Gem className="w-2 h-2 mr-0.5" style={{ color: MAROON_LIGHT }} />
                   {sultan.player!.tier}
                 </Badge>
               )}
@@ -1642,41 +1642,41 @@ function SultanWeekDivisionCard({
       ) : (
         /* No player matched — show donor name only */
         <div className="flex gap-3 sm:gap-4 items-stretch">
-          {/* ❤️ Heart avatar panel (no player) */}
+          {/* 💎 Diamond avatar panel (no player) */}
           <div className="relative shrink-0">
             {/* Outer glow */}
             <div className="absolute inset-0 scale-125"
               style={{
-                clipPath: HEART_CLIP,
+                clipPath: DIAMOND_CLIP,
                 background: `conic-gradient(from 45deg, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.1)})`,
                 opacity: 0.3,
                 filter: 'blur(8px)',
               }} />
 
-            {/* Heart frame — ghost */}
+            {/* Diamond frame — ghost */}
             <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
               style={{
-                clipPath: HEART_CLIP,
+                clipPath: DIAMOND_CLIP,
                 background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.2)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.2)})`,
                 padding: '4px',
               }}>
-              {/* Inner ghost heart */}
+              {/* Inner ghost diamond */}
               <div className="w-full h-full flex items-center justify-center"
                 style={{
-                  clipPath: HEART_CLIP,
+                  clipPath: DIAMOND_CLIP,
                   background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.08)}, ${hexToRgba(MAROON, 0.03)})`,
                 }}>
-                <Heart className="w-8 h-8 sm:w-10 sm:h-10 opacity-25" style={{ color: MAROON_LIGHT }} />
+                <Gem className="w-10 h-10 sm:w-12 sm:h-12 opacity-20" style={{ color: MAROON_LIGHT }} />
               </div>
             </div>
 
-            {/* Heart badge */}
+            {/* Gem badge */}
             <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
               <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.4)}, ${hexToRgba(MAROON, 0.4)})`,
                 }}>
-                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
+                <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
               </div>
             </div>
           </div>
@@ -1720,7 +1720,7 @@ function SultanWeekDivisionCard({
                 color: hexToRgba(MAROON_LIGHT, 0.6),
                 backgroundColor: hexToRgba(MAROON, 0.04),
               }}>
-              <Heart className="w-2.5 h-2.5" />
+              <Gem className="w-2.5 h-2.5" />
               Donor
             </div>
           </div>
@@ -1742,7 +1742,7 @@ function SultanWeekDivisionCard({
 }
 
 
-/** Ghost Sultan Week Division Card — ❤️ HEART empty state, MVP horizontal layout */
+/** Ghost Sultan Week Division Card — 💎 DIAMOND empty state, MVP horizontal layout */
 function GhostSultanWeekDivisionCard({
   division,
   bare = false,
@@ -1768,32 +1768,32 @@ function GhostSultanWeekDivisionCard({
       )}
 
       <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
-        {/* Ghost heart avatar panel */}
+        {/* Ghost diamond avatar panel */}
         <div className="relative shrink-0">
-          {/* Ghost heart frame */}
+          {/* Ghost diamond frame */}
           <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
             style={{
-              clipPath: HEART_CLIP,
+              clipPath: DIAMOND_CLIP,
               background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.2)}, ${hexToRgba(MAROON_LIGHT, 0.15)}, ${hexToRgba(MAROON, 0.2)})`,
               padding: '4px',
             }}>
-            {/* Inner ghost heart */}
+            {/* Inner ghost diamond */}
             <div className="w-full h-full flex items-center justify-center"
               style={{
-                clipPath: HEART_CLIP,
+                clipPath: DIAMOND_CLIP,
                 background: `linear-gradient(135deg, ${hexToRgba(MAROON, 0.08)}, ${hexToRgba(MAROON, 0.03)})`,
               }}>
-              <Heart className="w-8 h-8 sm:w-10 sm:h-10 opacity-20" style={{ color: MAROON_LIGHT }} />
+              <Gem className="w-10 h-10 sm:w-12 sm:h-12 opacity-20" style={{ color: MAROON_LIGHT }} />
             </div>
           </div>
 
-          {/* Ghost heart badge */}
+          {/* Ghost gem badge */}
           <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
             <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.4)}, ${hexToRgba(MAROON, 0.4)})`,
               }}>
-              <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
+              <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
             </div>
           </div>
         </div>
@@ -1868,7 +1868,7 @@ const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
         <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
           <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
             style={{ backgroundColor: hexToRgba(MAROON, 0.15), border: `1px solid ${hexToRgba(MAROON, 0.25)}` }}>
-            <Heart className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
+            <Gem className="w-3 h-3" style={{ color: MAROON_LIGHT }} />
           </div>
           <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: MAROON_LIGHT }}>
             Sultan of the Week
