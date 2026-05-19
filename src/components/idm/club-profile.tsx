@@ -330,7 +330,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
       aria-label={`Profil Club ${club.name}`}
     >
       <div
-        className="modal-container modal-container-md modal-container-gold modal-enter-slide overflow-y-auto custom-scrollbar"
+        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] overflow-y-auto custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
           {/* ── Header Banner ── */}

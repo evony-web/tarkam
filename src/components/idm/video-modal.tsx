@@ -121,7 +121,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
             <button
               type="button"
               onClick={onClose}
-              className="modal-close-dark"
+              className="modal-close-dark absolute top-3 right-3 z-50"
               aria-label="Close video"
             >
               <X className="w-5 h-5" />

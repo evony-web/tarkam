@@ -119,7 +119,7 @@ export function MarketplaceDetailModal({ open, onClose, item }: MarketplaceDetai
             {/* Close button */}
             <button
               onClick={onClose}
-              className="modal-close-dark"
+              className="modal-close-dark absolute top-3 right-3 z-20"
             >
               <X className="w-4 h-4" />
             </button>

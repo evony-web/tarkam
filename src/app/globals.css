@@ -11698,7 +11698,7 @@ img[alt] {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 1rem;
   border: 1px solid var(--border);
   background: var(--background);
@@ -11774,6 +11774,7 @@ img[alt] {
 
 /* Gradient header — for donation, payment, premium modals */
 .modal-header-gradient {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -12095,10 +12096,9 @@ img[alt] {
 
 /* ─── 8. Scrollable Body ─── */
 
-/* Scrollable modal body with custom scrollbar and max-height */
+/* Scrollable modal body with custom scrollbar — NO max-height (parent sets it) */
 .modal-scroll {
   overflow-y: auto;
-  max-height: calc(90vh - 8rem);
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;

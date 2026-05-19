@@ -328,7 +328,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           <button
             onClick={handleClose}
             aria-label="Tutup"
-            className="modal-close-dark"
+            className="modal-close-dark absolute top-3 right-3 z-50"
           >
             <X className="w-4 h-4 text-white" />
           </button>

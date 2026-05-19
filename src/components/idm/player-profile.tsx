@@ -445,7 +445,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
           })()}
 
           {/* Inner scrollable content container — sits above the chase border */}
-          <div className="relative z-10 bg-background overflow-hidden sm:rounded-[20px] min-h-0 flex-1 modal-scroll">
+          <div className="relative z-10 bg-background sm:rounded-[20px] min-h-0 flex-1 overflow-y-auto custom-scrollbar">
 
           {/* ═══ HERO BANNER — Full Avatar Card Style ═══ */}
             <div className={`relative h-[280px] sm:h-[380px] md:h-[440px] overflow-hidden cinema-hero cinema-flare ${playerDivision === 'male' ? 'cinema-flare-male' : 'cinema-flare-female'} cinema-grade`}>

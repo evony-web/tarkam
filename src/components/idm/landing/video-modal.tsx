@@ -55,7 +55,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
         {/* Custom close button */}
         <button
           onClick={onClose}
-          className="modal-close"
+          className="modal-close absolute top-3 right-3 z-50"
           aria-label="Close video"
         >
           <X className="w-4 h-4" />
