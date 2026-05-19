@@ -1970,3 +1970,150 @@ Stage Summary:
 - COIN medallion keeps its distinctive circular embossed design on the left
 - Info (name, stats, badges) neatly aligned on the right
 - Lint passes clean, dev server running
+
+---
+Task ID: 4
+Agent: Subagent
+Task: Redesign SultanCard to use MVP-style horizontal full-bleed avatar card layout
+
+Work Log:
+
+### Problem
+The SultanCard component used a COIN circular medallion layout (circular avatar on left + info on right), which was visually inconsistent with the MvpCard's full-bleed avatar card style used on the same landing page.
+
+### Changes Applied — `/home/z/my-project/src/components/idm/landing/highlights-section.tsx`
+
+**SultanCard component (lines ~851-1140) — Complete rewrite of the card body**
+
+1. **Removed** COIN circular medallion layout (`conic-gradient`, circular `rounded-full` avatar, horizontal `flex items-center gap-4` layout with left medallion + right info panel)
+
+2. **Added** MvpCard-style full-bleed avatar card for `hasPlayer` case:
+   - Full-body avatar filling the card (`minHeight: '280px'`, `AvatarMedia` with `fill` and `object-cover object-top`)
+   - Bottom gradient overlay: `linear-gradient(to top, var(--bg-mid) 0%, color-mix(...) 25%, transparent 55%)`
+   - Maroon + division accent glow at bottom: `radial-gradient(ellipse at 50% 90%, rgba(maroon.rgb,0.08), rgba(divisionRgb,0.08), transparent 60%)`
+   - Heart badge top-right: Maroon gradient circle (`linear-gradient(135deg, maroon.nameLight, maroon.nameDark)`) with Heart icon (white, filled)
+   - Division + Week label badge top-left: `❤️ {divisionLabel} W{weekNumber}` with maroon-styled pill (`rgba(maroon.rgb,0.15)` bg, `backdropFilter: blur(8px)`)
+   - Player info at bottom: Gamertag in maroon color with glow text-shadow, stats row with donation amount (maroon pill), donation count, city/club badge
+
+3. **Added** ghost/empty state for `!hasPlayer` case matching the filled card structure:
+   - Same card dimensions (`minHeight: '280px'`) and gradient background
+   - Ghost heart badge top-right (muted maroon, 50% opacity)
+   - Ghost division + week label top-left (muted colors)
+   - Large centered Heart icon (dashed circle border, 40% opacity)
+   - Bottom info shows donor name + donation stats (same style as filled card)
+   - Replaces the old horizontal layout with circular heart icon + donor name
+
+4. **Simplified header**: Removed the separate week badge (`W{weekNumber}`) from the header since it's now shown in the avatar card's top-left label. Kept only the division label badge in the header.
+
+5. **Cleaned up unused variables**: Removed `divisionAccent` and `DivisionIcon` since the avatar card no longer uses `React.createElement(divisionIcon, ...)` or the direct `divisionAccent` reference.
+
+### Preserved Behaviors
+- Outer card structure: Maroon gradient background, maroon accent bar, Sultan header (Heart icon + "SULTAN OF THE WEEK" + "TOP PENYAWER")
+- Click handler on filled card: Opens player profile via `setSelectedPlayer`
+- `hasPlayer` fallback: Shows donor name when no player is matched
+- Maroon theme colors (maroon.nameMid, maroon.nameLight, maroon.rgb) throughout
+- Theme-aware light/dark mode via `useMaroon(isLight)` hook
+
+### Verification
+- `bun run lint` — No new errors (all 10 errors are pre-existing in other files)
+- Dev server running without compilation errors
+
+---
+
+Task ID: 3
+Agent: Subagent
+Task: Redesign SultanOfWeekSection to use MVP-style horizontal layout (avatar panel left + stats panel right), matching MvpDivisionCard style
+
+Work Log:
+- Completely rewrote `SultanOfWeekSection` component in `/home/z/my-project/src/components/idm/community-dashboard/community-champions.tsx`
+- **Old layout**: COIN circular medallion (w-24 h-24 / sm:w-32 sm:h-32) on LEFT, info on RIGHT
+- **New layout**: MVP-style horizontal layout with two panels
+
+### Avatar panel (LEFT):
+- Relative container with `w-28 sm:w-36 lg:w-40`, `aspectRatio: '3/4'`, `rounded-2xl overflow-hidden`
+- Division gradient background: `from-idm-male/25 to-idm-male/5` (male) / `from-idm-female/25 to-idm-female/5` (female)
+- Full-body avatar with `AvatarMedia` (fill mode, `object-cover object-top`)
+- Gradient overlay at bottom: `bg-gradient-to-t from-background/60 via-transparent to-transparent`
+- Heart badge at top-right (maroon themed: gradient from MAROON_LIGHT to MAROON with shadow)
+- Donation badge at bottom center showing formatted amount (maroon gradient badge)
+- Anonymous donor fallback: Heart icon with maroon tint when no player matched
+
+### Stats panel (RIGHT):
+- `flex-1 min-w-0 flex flex-col justify-between py-0.5`
+- Division label (COWO/CEWE in accent color) + Cross-division badge + Week badge (W{n} in maroon)
+- Player name (`text-sm lg:text-base font-black truncate`)
+- City/Club info (`text-muted-foreground/70`)
+- Stats grid (2x2) with `rounded-2xl` stat cells:
+  - Total Saweran (Heart icon, MAROON_LIGHT color)
+  - Jumlah Sawer (Zap icon, MAROON_LIGHT color)
+  - Week number (Calendar icon, division accent color)
+  - Tier/Rank (Gem icon, division accent color, or "—" placeholder)
+- Tier badge below stats grid (if available)
+
+### Ghost/empty state:
+- Same 3/4 aspect ratio avatar panel with Heart icon placeholder
+- Ghost stats panel with skeleton bars (division label, name, city/club placeholders)
+- Ghost 2x2 stats grid with skeleton cells matching MvpDivisionCard ghost pattern
+- Ghost tier badge placeholder
+
+### Import changes:
+- Added: `Calendar`, `Zap` from lucide-react
+- Removed: `Banknote` (no longer used after removing COIN layout)
+
+### Preserved:
+- MAROON = '#800020', MAROON_LIGHT = '#d4576a' constants
+- `formatCurrencyShort` helper
+- Outer Card wrapper with casinoBar, header (Heart icon + "Sultan of the Week" + "MINGGU INI" badge)
+- Decorative blur orb
+- React.memo wrapper on component
+- Cross-division detection logic
+
+### Verification
+- `bun run lint` — No new errors (6 pre-existing errors in other files)
+- Dev server compiles successfully (✓ Compiled in 906ms)
+
+---
+Task ID: 1-2
+Agent: Main Agent
+Task: Redesign ReigningChampionPlaque and SultanOfWeekSection card components to use MVP-style horizontal layout
+
+Work Log:
+
+### Changes to `/home/z/my-project/src/components/idm/highlights-page.tsx`
+
+#### 1. Added imports
+- Added `Banknote` and `Calendar` to lucide-react imports
+
+#### 2. Replaced ChampionBadge + GhostChampionBadge with ChampionDivisionCard + GhostChampionDivisionCard
+- **ChampionDivisionCard**: MVP-style horizontal layout with:
+  - Avatar panel (LEFT): 3/4 aspect ratio, full-body avatar with division gradient, gradient overlay, Crown badge at top-right, Division badge at bottom
+  - Stats panel (RIGHT): Player name, club name, division badge, stats grid (Points/Trophy/gold, Wins/Crown/green, Season/Calendar/accent), "Lihat Profil" CTA button
+  - `bare` prop: When true, wraps in own card with division label; when false, renders just content for use inside outer card
+- **GhostChampionDivisionCard**: Matching skeleton layout for empty state with:
+  - Ghost avatar panel with Crown icon placeholder
+  - Ghost stats grid with skeleton placeholders
+  - Ghost CTA button
+
+#### 3. Updated ReigningChampionPlaque
+- When `selectedDivision === 'all'`: Uses grid-cols-1 lg:grid-cols-2 layout with bare ChampionDivisionCards side-by-side on desktop, stacked on mobile (matches MvpSpotlight pattern)
+- When specific division: Single ChampionDivisionCard without bare wrapper
+- Removed old `showBothDivisions` grid-cols-2 logic
+- Removed `p-3 sm:p-6` padding wrapper (cards now self-pad)
+
+#### 4. Replaced SultanOfWeekCoin + GhostSultanOfWeekCoin with SultanWeekDivisionCard + GhostSultanWeekDivisionCard
+- **SultanWeekDivisionCard**: MVP-style horizontal layout with maroon theme:
+  - Avatar panel (LEFT): 3/4 aspect ratio, full-body avatar with maroon gradient, gradient overlay, Heart badge at top-right (maroon themed), donation amount badge at bottom
+  - Stats panel (RIGHT): Player name, city/club info, division badge, tier badge (maroon themed), stats grid (Total Sawer/Banknote/maroon, Jumlah Sawer/Zap/maroon-light, Week/Calendar/accent), "Lihat Profil" CTA button
+  - When no player matched: Shows donor name with simpler MVP-style layout and "Donor" badge instead of CTA
+  - `bare` prop: Same pattern as ChampionDivisionCard
+- **GhostSultanWeekDivisionCard**: Matching skeleton layout for empty state with maroon theme
+
+#### 5. Updated SultanOfWeekSection
+- When `selectedDivision === 'all'`: Uses grid-cols-1 lg:grid-cols-2 layout with bare SultanWeekDivisionCards side-by-side on desktop, stacked on mobile
+- When specific division: Single SultanWeekDivisionCard without bare wrapper
+- Removed old `space-y-3 sm:space-y-4` stacking and `p-3 sm:p-5` padding wrapper
+
+### Verification
+- `bun run lint` — No new errors (6 pre-existing errors in hero-section.tsx, shared.tsx, tournament-manager.tsx)
+- No lint errors in highlights-page.tsx
+- Dev server compiles successfully (✓ Compiled)

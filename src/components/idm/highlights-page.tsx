@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, startTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem, Zap } from 'lucide-react';
+import { Crown, Music, Shield, ChevronDown, Trophy, Users, Heart, Gem, Zap, Banknote, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData, TopPlayer, SeasonChampionPlayer, SultanOfWeekly, SultanPlayer } from '@/types/stats';
@@ -78,104 +78,233 @@ const ChampionsMvpHeader = React.memo(function ChampionsMvpHeader({
 });
 
 
-/* ─── Champion Badge — Single champion compact plaque ─── */
-const ChampionBadge = React.memo(function ChampionBadge({
+/* ═══════════════════════════════════════════
+   Champion Division Card — MVP-style horizontal layout
+   Avatar panel LEFT + Stats panel RIGHT
+   ═══════════════════════════════════════════ */
+const ChampionDivisionCard = React.memo(function ChampionDivisionCard({
   champion,
   seasonNumber,
   division,
-  onClick,
+  onPlayerClick,
+  bare = false,
 }: {
   champion: SeasonChampionPlayer;
   seasonNumber: number;
   division: 'male' | 'female';
-  onClick: () => void;
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+  bare?: boolean;
 }) {
   const dt = getDivisionTheme(division);
-  const avatarUrl = getAvatarUrl(champion.gamertag, division, champion.avatar);
+  const emoji = division === 'male' ? '🕺' : '💃';
   const DivisionIcon = division === 'male' ? Music : Shield;
   const genderSymbol = division === 'male' ? '♂' : '♀';
   const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionGradient = division === 'male'
+    ? 'from-idm-male/25 to-idm-male/5'
+    : 'from-idm-female/25 to-idm-female/5';
 
-  return (
-    <button
-      onClick={onClick}
-      className={`group relative flex items-center gap-3 p-4 sm:p-5 rounded-2xl border ${dt.bgSubtle} ${dt.borderSubtle} hover:${dt.border} transition-all cursor-pointer text-left w-full`}
-    >
-      {/* Avatar */}
-      <div className="relative shrink-0">
-        <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-2xl overflow-hidden border-2 shadow-lg" style={{ borderColor: accentColor + '40' }}>
-          <AvatarMedia src={avatarUrl} alt={champion.gamertag} width={48} height={48} className="w-full h-full object-cover" />
-        </div>
-        {/* Crown overlay */}
-        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg border border-yellow-400/30">
-          <Crown className="w-2.5 h-2.5 text-white" />
-        </div>
-      </div>
+  const clubName = clubToString(champion.club as Parameters<typeof clubToString>[0]);
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: accentColor }} />
-          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+  const stats = [
+    { label: 'Points', value: champion.points, icon: Trophy, color: 'text-idm-gold-warm' },
+    { label: 'Wins', value: champion.totalWins, icon: Crown, color: 'text-green-400' },
+    { label: 'Season', value: `S${seasonNumber}`, icon: Calendar, color: 'text-idm-gold-warm/80' },
+  ];
+
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
             {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
           </span>
         </div>
-        <p className="text-sm font-bold truncate text-foreground group-hover:text-idm-gold-warm transition-colors">
-          {champion.gamertag}
-        </p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] font-bold text-idm-gold-warm tabular-nums">{champion.points}pts</span>
-          <span className="text-[10px] text-muted-foreground/70">{champion.totalWins}W</span>
-        </div>
-      </div>
+      )}
 
-      {/* Arrow hint */}
-      <ChevronDown className="w-4 h-4 text-muted-foreground/30 -rotate-90 shrink-0 group-hover:text-idm-gold-warm/60 transition-colors" />
-    </button>
-  );
-});
-
-
-/* ─── Ghost Champion Badge — Empty state matching ChampionBadge layout ─── */
-const GhostChampionBadge = React.memo(function GhostChampionBadge({ division }: { division: 'male' | 'female' }) {
-  const dt = getDivisionTheme(division);
-  const DivisionIcon = division === 'male' ? Music : Shield;
-  const genderSymbol = division === 'male' ? '♂' : '♀';
-  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
-
-  return (
-    <div className={`flex items-center gap-3 p-4 sm:p-5 rounded-2xl border ${dt.bgSubtle} ${dt.borderSubtle} opacity-55`}>
-      {/* Ghost avatar */}
-      <div className="relative shrink-0">
+      <div className="flex gap-3 sm:gap-4 items-stretch">
+        {/* Avatar panel — LEFT */}
         <div
-          className="w-11 h-11 lg:w-12 lg:h-12 rounded-2xl overflow-hidden border-2 flex items-center justify-center"
-          style={{ borderColor: accentColor + '25', background: `linear-gradient(135deg, ${accentColor}18, ${accentColor}08)` }}
+          className={`relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br ${divisionGradient}`}
+          style={{ aspectRatio: '3/4' }}
         >
-          <Crown className="w-4 h-4 opacity-40" style={{ color: accentColor }} />
+          <AvatarMedia
+            src={getAvatarUrl(champion.gamertag, division, champion.avatar)}
+            alt={champion.gamertag}
+            width={128}
+            height={200}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+          {/* Crown badge — top right */}
+          <div className="absolute top-2 right-2 z-10">
+            <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full bg-idm-gold-warm flex items-center justify-center shadow-[0_0_12px_rgba(239,249,35,0.4)]">
+              <Crown className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-background" />
+            </div>
+          </div>
+          {/* Division badge — bottom */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+            <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5 whitespace-nowrap`}>
+              {emoji} {division === 'male' ? 'Cowo' : 'Cewe'}
+            </Badge>
+          </div>
         </div>
-      </div>
 
-      {/* Ghost info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: accentColor }} />
-          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
-            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
-          </span>
-        </div>
-        <div className="h-4 w-20 rounded bg-muted/35 mb-1.5" />
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-8 rounded bg-muted/25" />
-          <div className="h-3 w-10 rounded bg-muted/25" />
+        {/* Stats panel — RIGHT */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          {/* Player name + badges */}
+          <div>
+            <h3 className="text-sm lg:text-base font-black truncate">{champion.gamertag}</h3>
+            <div className="flex items-center gap-1.5 mb-3">
+              {clubName && (
+                <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{clubName}</span>
+              )}
+              <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5`}>
+                {emoji} {division === 'male' ? 'Cowo' : 'Cewe'}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}
+              >
+                <stat.icon className={`w-3 h-3 shrink-0 ${stat.color}`} />
+                <div className="min-w-0">
+                  <p className={`text-[10px] sm:text-xs font-black tabular-nums ${stat.color} leading-tight`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA button */}
+          <button
+            onClick={() => onPlayerClick({
+              ...champion,
+              name: champion.gamertag,
+              club: champion.club ?? undefined,
+              division,
+            }, division)}
+            className={`w-full py-1.5 rounded-lg bg-gradient-to-r ${
+              division === 'male'
+                ? 'from-idm-male/20 to-idm-male-light/10 border-idm-male/20'
+                : 'from-idm-female/20 to-idm-female-light/10 border-idm-female/20'
+            } border text-[9px] sm:text-[10px] font-bold ${dt.text} hover:brightness-110 transition-all flex items-center justify-center gap-1 cursor-pointer`}
+          >
+            <Zap className="w-2.5 h-2.5" />
+            Lihat Profil
+          </button>
         </div>
       </div>
     </div>
   );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} dashboard-card-glow overflow-hidden`}>
+        {content}
+      </div>
+    );
+  }
+
+  return content;
+});
+
+
+/* ─── Ghost Champion Division Card — Empty state matching MVP-style layout ─── */
+const GhostChampionDivisionCard = React.memo(function GhostChampionDivisionCard({
+  division,
+  bare = false,
+}: {
+  division: 'male' | 'female';
+  bare?: boolean;
+}) {
+  const dt = getDivisionTheme(division);
+  const DivisionIcon = division === 'male' ? Music : Shield;
+  const genderSymbol = division === 'male' ? '♂' : '♀';
+  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionGradient = division === 'male'
+    ? 'from-idm-male/20 to-idm-male/5'
+    : 'from-idm-female/20 to-idm-female/5';
+
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
+          </span>
+        </div>
+      )}
+
+      <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
+        {/* Ghost avatar panel — same 3/4 aspect ratio */}
+        <div
+          className={`relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden bg-gradient-to-br ${divisionGradient} border`}
+          style={{ borderColor: accentColor + '20', aspectRatio: '3/4' }}
+        >
+          <Crown className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ color: accentColor }} />
+        </div>
+
+        {/* Ghost stats panel */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          <div>
+            <div className="h-5 w-24 rounded bg-muted/35 mb-2" />
+            <div className="h-3 w-16 rounded bg-muted/25 mb-4" />
+          </div>
+
+          {/* Ghost stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {[
+              { color: 'bg-idm-gold-warm/20' },
+              { color: 'bg-green-400/20' },
+              { color: 'bg-idm-gold-warm/15' },
+            ].map((stat, idx) => (
+              <div key={idx} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className={`w-3 h-3 rounded ${stat.color} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="h-3 w-6 rounded bg-muted/30 mb-0.5" />
+                  <div className="h-2 w-8 rounded bg-muted/20" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ghost CTA button */}
+          <div className="w-full h-7 rounded-lg bg-muted/20 border border-border/10" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} overflow-hidden opacity-55`}>
+        {content}
+      </div>
+    );
+  }
+
+  return <div className="opacity-55">{content}</div>;
 });
 
 
 /* ═══════════════════════════════════════════
-   Reigning Champion Plaque — Compact trophy badge
+   Reigning Champion Plaque — MVP-style horizontal layout
    Shows the most recent completed season's champions.
    ═══════════════════════════════════════════ */
 const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
@@ -209,9 +338,6 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
     ? Math.max(latestMale.number, latestFemale.number)
     : hasMale ? latestMale.number : hasFemale ? latestFemale.number : 0;
 
-  // Determine grid layout
-  const showBothDivisions = showMale && showFemale;
-
   return (
     <div className="animate-fade-enter-sm">
       <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}>
@@ -242,48 +368,70 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
           )}
         </div>
 
-        {/* Plaque Content — duo or single */}
-        <div className="p-3 sm:p-6">
-          <div className={`grid gap-3 ${showBothDivisions ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            {/* Male Champion */}
+        {/* Content — MVP-style division cards */}
+        {selectedDivision === 'all' ? (
+          /* Unified "all" mode: male/female side-by-side on desktop, stacked on mobile */
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {showMale && (
+              <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
+                {hasMale && latestMale?.championPlayer ? (
+                  <ChampionDivisionCard
+                    champion={latestMale.championPlayer}
+                    seasonNumber={latestMale.number}
+                    division="male"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostChampionDivisionCard division="male" bare />
+                )}
+              </div>
+            )}
+            {showFemale && (
+              <div>
+                {hasFemale && latestFemale?.championPlayer ? (
+                  <ChampionDivisionCard
+                    champion={latestFemale.championPlayer}
+                    seasonNumber={latestFemale.number}
+                    division="female"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostChampionDivisionCard division="female" bare />
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Specific division mode — single card */
+          <div>
             {showMale && (
               hasMale && latestMale?.championPlayer ? (
-                <ChampionBadge
+                <ChampionDivisionCard
                   champion={latestMale.championPlayer}
                   seasonNumber={latestMale.number}
                   division="male"
-                  onClick={() => onPlayerClick({
-                    ...latestMale.championPlayer!,
-                    name: latestMale.championPlayer!.gamertag,
-                    club: latestMale.championPlayer!.club ?? undefined,
-                    division: 'male',
-                  }, 'male')}
+                  onPlayerClick={onPlayerClick}
                 />
               ) : (
-                <GhostChampionBadge division="male" />
+                <GhostChampionDivisionCard division="male" />
               )
             )}
-
-            {/* Female Champion */}
             {showFemale && (
               hasFemale && latestFemale?.championPlayer ? (
-                <ChampionBadge
+                <ChampionDivisionCard
                   champion={latestFemale.championPlayer}
                   seasonNumber={latestFemale.number}
                   division="female"
-                  onClick={() => onPlayerClick({
-                    ...latestFemale.championPlayer!,
-                    name: latestFemale.championPlayer!.gamertag,
-                    club: latestFemale.championPlayer!.club ?? undefined,
-                    division: 'female',
-                  }, 'female')}
+                  onPlayerClick={onPlayerClick}
                 />
               ) : (
-                <GhostChampionBadge division="female" />
+                <GhostChampionDivisionCard division="female" />
               )
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1070,193 +1218,344 @@ function GhostSultanOfWeekDivisionCard({ division }: { division: 'male' | 'femal
    Shows Sultan Cowo and Sultan Cewe as large coin medallions side by side
    ═══════════════════════════════════════════ */
 
-/** Single division COIN medallion — rendered inside SultanOfWeekSection */
-function SultanOfWeekCoin({
+/** Sultan Week Division Card — MVP-style horizontal layout with maroon theme */
+function SultanWeekDivisionCard({
   sultan,
   division,
   onPlayerClick,
+  bare = false,
 }: {
   sultan: SultanOfWeekly;
   division: 'male' | 'female';
   onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+  bare?: boolean;
 }) {
-  const divisionAccent = division === 'male' ? '#2E9FFF' : '#FF2D78';
-  const divisionLabel = division === 'male' ? 'COWO' : 'CEWE';
+  const dt = getDivisionTheme(division);
   const DivisionIcon = division === 'male' ? Music : Shield;
+  const genderSymbol = division === 'male' ? '♂' : '♀';
+  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
+  const divisionGradient = division === 'male'
+    ? 'from-idm-male/25 to-idm-male/5'
+    : 'from-idm-female/25 to-idm-female/5';
   const hasPlayer = !!sultan.player;
 
-  return (
-    <div className="flex items-center gap-4 sm:gap-5">
+  const clubName = hasPlayer
+    ? clubToString(sultan.player!.club as Parameters<typeof clubToString>[0])
+    : undefined;
+  const cityInfo = hasPlayer ? sultan.player!.city : undefined;
+  const locationText = [cityInfo, clubName].filter(Boolean).join(' · ');
+
+  const formatRp = (amount: number) =>
+    amount >= 1000 ? `Rp ${(amount / 1000).toFixed(0)}K` : `Rp ${amount}`;
+
+  const stats = [
+    { label: 'Total Sawer', value: formatRp(sultan.totalAmount), icon: Banknote, color: 'text-[#d4576a]' },
+    { label: 'Jumlah Sawer', value: `${sultan.donationCount}x`, icon: Zap, color: 'text-[#d4576a]/80' },
+    { label: 'Week', value: `W${sultan.weekNumber}`, icon: Calendar, color: 'text-idm-gold-warm/80' },
+  ];
+
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
+          </span>
+        </div>
+      )}
+
       {hasPlayer ? (
-        <button
-          onClick={() => onPlayerClick({
-            ...sultan.player!,
-            name: sultan.player!.gamertag,
-            club: sultan.player!.club ?? undefined,
-            maxStreak: 0,
-            matches: 0,
-            division,
-          }, division)}
-          className="flex items-center gap-4 sm:gap-5 w-full cursor-pointer group/sultan-coin"
-        >
-          {/* 🪙 COIN Container — circular medallion with full-body avatar (LEFT) */}
-          <div className="relative flex items-center justify-center shrink-0">
-            {/* Radial glow behind coin */}
-            <div className="absolute inset-0 pointer-events-none"
-              style={{ background: `radial-gradient(circle at 50% 45%, rgba(128,0,32,0.10), transparent 60%)` }} />
-
-            {/* Outer ridge — embossed coin edge */}
-            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
-              style={{
-                background: `conic-gradient(from 0deg, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON}, ${MAROON_LIGHT}, ${MAROON})`,
-                boxShadow: `0 0 24px ${hexToRgba(MAROON, 0.22)}, 0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 ${hexToRgba(MAROON_LIGHT, 0.25)}`,
-              }}>
-              {/* Inner coin body — full-body avatar */}
-              <div className="w-full h-full rounded-full overflow-hidden border-2"
-                style={{ borderColor: hexToRgba(MAROON_LIGHT, 0.4) }}>
-                <AvatarMedia
-                  src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
-                  alt={sultan.player!.gamertag}
-                  fill
-                  sizes="(max-width: 640px) 112px, 144px"
-                  className="object-cover object-top group-hover/sultan-coin:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-
-            {/* Heart badge — top center (crown of coin) */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-lg border-2"
+        <div className="flex gap-3 sm:gap-4 items-stretch">
+          {/* Avatar panel — LEFT */}
+          <div
+            className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden"
+            style={{
+              aspectRatio: '3/4',
+              background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON, 0.05)})`,
+            }}
+          >
+            <AvatarMedia
+              src={getAvatarUrl(sultan.player!.gamertag, division, sultan.player!.avatar)}
+              alt={sultan.player!.gamertag}
+              width={128}
+              height={200}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+            {/* Heart badge — top right (maroon themed) */}
+            <div className="absolute top-2 right-2 z-10">
+              <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
-                  borderColor: hexToRgba(MAROON_LIGHT, 0.5),
-                  boxShadow: `0 2px 8px ${hexToRgba(MAROON, 0.35)}`,
+                  boxShadow: `0 0 12px ${hexToRgba(MAROON, 0.4)}`,
                 }}>
-                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="white" />
+                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" fill="white" />
               </div>
             </div>
-          </div>
-
-          {/* Info — RIGHT side */}
-          <div className="flex-1 min-w-0 text-left">
-            {/* Division label */}
-            <div className="flex items-center gap-1 mb-1">
-              <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
-              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
-                {divisionLabel}
-              </span>
-              <Badge className="text-[7px] font-bold border ml-1" style={{
-                color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1),
-                borderColor: hexToRgba(MAROON, 0.2) }}>
-                W{sultan.weekNumber}
+            {/* Donation amount badge — bottom */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+              <Badge className="text-[7px] lg:text-[8px] font-black border py-0 px-1.5 whitespace-nowrap"
+                style={{
+                  color: MAROON_LIGHT,
+                  backgroundColor: hexToRgba(MAROON, 0.15),
+                  borderColor: hexToRgba(MAROON, 0.3),
+                }}>
+                <Banknote className="w-2 h-2 mr-0.5" />
+                {formatRp(sultan.totalAmount)}
               </Badge>
             </div>
-
-            {/* Name */}
-            <p className="text-sm sm:text-base font-black group-hover/sultan-coin:text-idm-gold-warm transition-colors truncate">
-              {sultan.player!.gamertag}
-            </p>
-            <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer</p>
-            {(sultan.player!.city || sultan.player!.club) && (
-              <p className="text-[7px] text-muted-foreground/40 truncate mt-0.5">
-                {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
-              </p>
-            )}
-
-            {/* Donation stats */}
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
-                style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
-                Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-              </span>
-              <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
-            </div>
           </div>
-        </button>
-      ) : (
-        /* No player matched — show donor name only */
-        <div className="flex items-center gap-4 sm:gap-5">
-          <div className="relative flex items-center justify-center shrink-0">
-            <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
+
+          {/* Stats panel — RIGHT */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+            {/* Player name + location */}
+            <div>
+              <h3 className="text-sm lg:text-base font-black truncate">{sultan.player!.gamertag}</h3>
+              <div className="flex items-center gap-1.5 mb-1">
+                {locationText && (
+                  <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{locationText}</span>
+                )}
+                <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5`}>
+                  {division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
+                </Badge>
+              </div>
+              {/* Tier badge */}
+              {sultan.player!.tier && (
+                <Badge className="text-[7px] font-bold border py-0 px-1.5 mb-2"
+                  style={{
+                    color: MAROON_LIGHT,
+                    backgroundColor: hexToRgba(MAROON, 0.08),
+                    borderColor: hexToRgba(MAROON, 0.15),
+                  }}>
+                  <Heart className="w-2 h-2 mr-0.5" style={{ color: MAROON_LIGHT }} />
+                  {sultan.player!.tier}
+                </Badge>
+              )}
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}
+                >
+                  <stat.icon className={`w-3 h-3 shrink-0 ${stat.color}`} />
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-black tabular-nums ${stat.color} leading-tight`}>
+                      {stat.value}
+                    </p>
+                    <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA button */}
+            <button
+              onClick={() => onPlayerClick({
+                ...sultan.player!,
+                name: sultan.player!.gamertag,
+                club: sultan.player!.club ?? undefined,
+                maxStreak: 0,
+                matches: 0,
+                division,
+              }, division)}
+              className="w-full py-1.5 rounded-lg border text-[9px] sm:text-[10px] font-bold hover:brightness-110 transition-all flex items-center justify-center gap-1 cursor-pointer"
               style={{
-                background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON_LIGHT, 0.25)}, ${hexToRgba(MAROON, 0.25)}, ${hexToRgba(MAROON_LIGHT, 0.25)}, ${hexToRgba(MAROON, 0.25)})`,
-              }}>
-              <div className="w-full h-full rounded-full flex items-center justify-center border-2"
-                style={{ borderColor: hexToRgba(MAROON, 0.15), background: hexToRgba(MAROON, 0.04) }}>
-                <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: hexToRgba(MAROON, 0.35) }} />
+                background: `linear-gradient(to right, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON_LIGHT, 0.08)})`,
+                borderColor: hexToRgba(MAROON, 0.2),
+                color: MAROON_LIGHT,
+              }}
+            >
+              <Zap className="w-2.5 h-2.5" />
+              Lihat Profil
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* No player matched — show donor name only (simpler MVP-style) */
+        <div className="flex gap-3 sm:gap-4 items-stretch">
+          {/* Maroon gradient avatar panel */}
+          <div
+            className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden"
+            style={{
+              aspectRatio: '3/4',
+              background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.18)}, ${hexToRgba(MAROON, 0.04)})`,
+            }}
+          >
+            <Heart className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-25" style={{ color: MAROON_LIGHT }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+            {/* Heart badge */}
+            <div className="absolute top-2 right-2 z-10">
+              <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`,
+                  boxShadow: `0 0 12px ${hexToRgba(MAROON, 0.3)}`,
+                }}>
+                <Heart className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" fill="white" />
               </div>
             </div>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shadow-lg border-2"
-                style={{ background: `linear-gradient(135deg, ${MAROON_LIGHT}, ${MAROON})`, borderColor: hexToRgba(MAROON_LIGHT, 0.5) }}>
-                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="white" />
-              </div>
+            {/* Donation amount badge */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+              <Badge className="text-[7px] lg:text-[8px] font-black border py-0 px-1.5 whitespace-nowrap"
+                style={{
+                  color: MAROON_LIGHT,
+                  backgroundColor: hexToRgba(MAROON, 0.15),
+                  borderColor: hexToRgba(MAROON, 0.3),
+                }}>
+                <Banknote className="w-2 h-2 mr-0.5" />
+                {formatRp(sultan.totalAmount)}
+              </Badge>
             </div>
           </div>
-          <div className="flex-1 min-w-0 text-left">
-            <div className="flex items-center gap-1 mb-1">
-              <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: divisionAccent }} />
-              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccent }}>
-                {divisionLabel}
-              </span>
+
+          {/* Donor info panel */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+            <div>
+              <h3 className="text-sm lg:text-base font-black truncate">{sultan.donorName}</h3>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[9px] text-muted-foreground/60">Top Penyawer</span>
+                <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5`}>
+                  {division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
+                </Badge>
+              </div>
             </div>
-            <p className="text-sm font-bold truncate">{sultan.donorName}</p>
-            <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[9px] font-black tabular-nums px-2 py-0.5 rounded-full"
-                style={{ color: MAROON_LIGHT, backgroundColor: hexToRgba(MAROON, 0.1), border: `1px solid ${hexToRgba(MAROON, 0.2)}` }}>
-                Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
-              </span>
-              <span className="text-[8px] text-muted-foreground/50 tabular-nums">{sultan.donationCount}x sawer</span>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}
+                >
+                  <stat.icon className={`w-3 h-3 shrink-0 ${stat.color}`} />
+                  <div className="min-w-0">
+                    <p className={`text-[10px] sm:text-xs font-black tabular-nums ${stat.color} leading-tight`}>
+                      {stat.value}
+                    </p>
+                    <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">
+                      {stat.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* No profile CTA — show "Donor Only" badge */}
+            <div className="w-full py-1.5 rounded-lg border text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-1"
+              style={{
+                borderColor: hexToRgba(MAROON, 0.15),
+                color: hexToRgba(MAROON_LIGHT, 0.6),
+                backgroundColor: hexToRgba(MAROON, 0.04),
+              }}>
+              <Heart className="w-2.5 h-2.5" />
+              Donor
             </div>
           </div>
         </div>
       )}
     </div>
   );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} dashboard-card-glow overflow-hidden`}
+        style={{ borderColor: hexToRgba(MAROON, 0.15) }}>
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 }
 
 
-/** Ghost COIN — empty state for a division with no sultan data */
-function GhostSultanOfWeekCoin({ division }: { division: 'male' | 'female' }) {
-  const divisionAccent = division === 'male' ? '#2E9FFF' : '#FF2D78';
-  const divisionLabel = division === 'male' ? 'COWO' : 'CEWE';
+/** Ghost Sultan Week Division Card — empty state matching MVP-style layout */
+function GhostSultanWeekDivisionCard({
+  division,
+  bare = false,
+}: {
+  division: 'male' | 'female';
+  bare?: boolean;
+}) {
+  const dt = getDivisionTheme(division);
   const DivisionIcon = division === 'male' ? Music : Shield;
+  const genderSymbol = division === 'male' ? '♂' : '♀';
+  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
 
-  return (
-    <div className="flex items-center gap-4 sm:gap-5 opacity-45">
-      {/* Ghost COIN shape — left */}
-      <div className="relative flex items-center justify-center shrink-0">
-        <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-[3px]"
-          style={{ background: `conic-gradient(from 0deg, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)}, ${hexToRgba(MAROON_LIGHT, 0.12)}, ${hexToRgba(MAROON, 0.12)})` }}>
-          <div className="w-full h-full rounded-full flex items-center justify-center border-2"
-            style={{ borderColor: hexToRgba(MAROON, 0.06), background: hexToRgba(MAROON, 0.02) }}>
-            <Heart className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: hexToRgba(MAROON, 0.12) }} />
-          </div>
-        </div>
-        {/* Ghost heart badge */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center border-2"
-            style={{ background: `linear-gradient(135deg, ${hexToRgba(MAROON_LIGHT, 0.3)}, ${hexToRgba(MAROON, 0.3)})`, borderColor: hexToRgba(MAROON_LIGHT, 0.2) }}>
-            <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/40" />
-          </div>
-        </div>
-      </div>
-      {/* Ghost info — right */}
-      <div className="flex-1 min-w-0 text-left">
-        <div className="flex items-center gap-1 mb-1">
-          <DivisionIcon className="w-3 h-3 shrink-0" style={{ color: hexToRgba(divisionAccent, 0.4) }} />
-          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(divisionAccent, 0.4) }}>
-            {divisionLabel}
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: hexToRgba(accentColor, 0.4) }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(accentColor, 0.4) }}>
+            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
           </span>
         </div>
-        <div className="h-3.5 w-20 rounded bg-muted/25" />
-        <div className="h-2.5 w-28 rounded bg-muted/15 mt-1.5" />
-        <div className="h-2.5 w-16 rounded bg-muted/10 mt-1.5" />
+      )}
+
+      <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
+        {/* Ghost avatar panel */}
+        <div
+          className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden border"
+          style={{
+            aspectRatio: '3/4',
+            background: `linear-gradient(to bottom right, ${hexToRgba(MAROON, 0.15)}, ${hexToRgba(MAROON, 0.03)})`,
+            borderColor: hexToRgba(MAROON, 0.1),
+          }}
+        >
+          <Heart className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ color: MAROON_LIGHT }} />
+        </div>
+
+        {/* Ghost stats panel */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          <div>
+            <div className="h-5 w-24 rounded bg-muted/35 mb-2" />
+            <div className="h-3 w-16 rounded bg-muted/25 mb-4" />
+          </div>
+
+          {/* Ghost stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {[
+              { color: 'bg-[#d4576a]/20' },
+              { color: 'bg-[#d4576a]/15' },
+              { color: 'bg-idm-gold-warm/15' },
+            ].map((stat, idx) => (
+              <div key={idx} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className={`w-3 h-3 rounded ${stat.color} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="h-3 w-6 rounded bg-muted/30 mb-0.5" />
+                  <div className="h-2 w-8 rounded bg-muted/20" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ghost CTA button */}
+          <div className="w-full h-7 rounded-lg bg-muted/20 border border-border/10" />
+        </div>
       </div>
     </div>
   );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} overflow-hidden opacity-55`}
+        style={{ borderColor: hexToRgba(MAROON, 0.08) }}>
+        {content}
+      </div>
+    );
+  }
+
+  return <div className="opacity-55">{content}</div>;
 }
 
 
@@ -1274,7 +1573,6 @@ const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
   const ct = useCommunityTheme();
   const showMale = selectedDivision === 'all' || selectedDivision === 'male';
   const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
-  const showBoth = showMale && showFemale;
 
   return (
     <div className="animate-fade-enter-sm">
@@ -1294,25 +1592,66 @@ const SultanOfWeekSection = React.memo(function SultanOfWeekSection({
           </span>
         </div>
 
-        {/* Body — horizontal COIN + info cards */}
-        <div className="p-3 sm:p-5">
-          <div className="space-y-3 sm:space-y-4">
+        {/* Content — MVP-style division cards */}
+        {selectedDivision === 'all' ? (
+          /* Unified "all" mode: male/female side-by-side on desktop, stacked on mobile */
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {showMale && (
+              <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
+                {maleSultan ? (
+                  <SultanWeekDivisionCard
+                    sultan={maleSultan}
+                    division="male"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostSultanWeekDivisionCard division="male" bare />
+                )}
+              </div>
+            )}
+            {showFemale && (
+              <div>
+                {femaleSultan ? (
+                  <SultanWeekDivisionCard
+                    sultan={femaleSultan}
+                    division="female"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostSultanWeekDivisionCard division="female" bare />
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Specific division mode — single card */
+          <div>
             {showMale && (
               maleSultan ? (
-                <SultanOfWeekCoin sultan={maleSultan} division="male" onPlayerClick={onPlayerClick} />
+                <SultanWeekDivisionCard
+                  sultan={maleSultan}
+                  division="male"
+                  onPlayerClick={onPlayerClick}
+                />
               ) : (
-                <GhostSultanOfWeekCoin division="male" />
+                <GhostSultanWeekDivisionCard division="male" />
               )
             )}
             {showFemale && (
               femaleSultan ? (
-                <SultanOfWeekCoin sultan={femaleSultan} division="female" onPlayerClick={onPlayerClick} />
+                <SultanWeekDivisionCard
+                  sultan={femaleSultan}
+                  division="female"
+                  onPlayerClick={onPlayerClick}
+                />
               ) : (
-                <GhostSultanOfWeekCoin division="female" />
+                <GhostSultanWeekDivisionCard division="female" />
               )
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

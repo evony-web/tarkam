@@ -858,10 +858,8 @@ function SultanCard({
   const sultanDivision = sultan.tournamentDivision as 'male' | 'female';
   const isLight = useIsLightMode();
   const maroon = useMaroon(isLight);
-  const divisionAccent = sultanDivision === 'male' ? COLORS.maleAccent : COLORS.femaleAccent;
   const divisionAccentLight = sultanDivision === 'male' ? COLORS.maleAccentLight : COLORS.femaleAccentLight;
   const divisionLabel = sultanDivision === 'male' ? 'COWO' : 'CEWE';
-  const divisionIcon = sultanDivision === 'male' ? Music : Shield;
   const divisionRgb = sultanDivision === 'male' ? '46,159,255' : '255,45,120';
   const hasPlayer = !!sultan.player;
 
@@ -909,40 +907,29 @@ function SultanCard({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className="text-[8px] font-semibold px-1.5 py-0.5 rounded-md"
-              style={{
-                backgroundColor: `rgba(${divisionRgb},0.1)`,
-                color: divisionAccentLight,
-                border: `1px solid rgba(${divisionRgb},0.2)`,
-              }}
-            >
-              {divisionLabel}
-            </span>
-            <span
-              className="text-[8px] font-semibold px-1.5 py-0.5 rounded-md"
-              style={{
-                backgroundColor: `rgba(${maroon.rgb},0.1)`,
-                color: maroon.nameMid,
-                border: `1px solid rgba(${maroon.rgb},0.2)`,
-              }}
-            >
-              W{sultan.weekNumber}
-            </span>
-          </div>
+          <span
+            className="text-[8px] font-semibold px-1.5 py-0.5 rounded-md"
+            style={{
+              backgroundColor: `rgba(${divisionRgb},0.1)`,
+              color: divisionAccentLight,
+              border: `1px solid rgba(${divisionRgb},0.2)`,
+            }}
+          >
+            {divisionLabel}
+          </span>
         </div>
 
         {hasPlayer ? (
-          /* ═══ COIN layout: Circular Medallion (left) + Info (right) ═══ */
+          /* ═══ Full-bleed avatar card — same style as MvpCard ═══ */
           <div
             className="relative rounded-2xl overflow-hidden cursor-pointer group/sultan transition-all duration-300 hover:shadow-lg"
             style={{
+              minHeight: '280px',
               border: `1px solid rgba(${maroon.rgb},0.15)`,
               boxShadow: isLight
                 ? `0 4px 16px rgba(${maroon.rgb},0.06), 0 4px 12px rgba(${divisionRgb},0.04), inset 0 1px 0 rgba(255,255,255,0.5)`
                 : `0 4px 16px rgba(${maroon.rgb},0.08), 0 4px 12px rgba(${divisionRgb},0.06), inset 0 1px 0 rgba(255,255,255,0.03)`,
-              background: `linear-gradient(165deg, rgba(${maroon.rgb},0.08) 0%, var(--bg-mid) 40%, rgba(${divisionRgb},0.02) 100%)`,
+              background: `linear-gradient(165deg, rgba(${maroon.rgb},0.06) 0%, var(--bg-mid) 40%, rgba(${divisionRgb},0.02) 100%)`,
             }}
             onClick={() => {
               if (sultan.player) {
@@ -962,154 +949,185 @@ function SultanCard({
               }
             }}
           >
-            <div className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6">
-              {/* ─── COIN: Circular Medallion with full-body avatar (LEFT) ─── */}
-              <div className="relative flex items-center justify-center shrink-0">
-                {/* Radial glow behind coin */}
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{ background: `radial-gradient(circle at 50% 45%, rgba(${maroon.rgb},0.15), transparent 60%)` }} />
+            {/* Full-body avatar */}
+            <div className="relative w-full" style={{ minHeight: '280px' }}>
+              <AvatarMedia
+                src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
+                alt={sultan.player!.gamertag}
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover object-top transition-transform duration-500 group-hover/sultan:scale-105"
+                loading="lazy"
+              />
+              {/* Bottom gradient overlay */}
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, var(--bg-mid) 0%, color-mix(in srgb, var(--bg-mid) 60%, transparent) 25%, transparent 55%)' }} />
+              {/* Maroon + division accent glow at bottom */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 90%, rgba(${maroon.rgb},0.08), rgba(${divisionRgb},0.08), transparent 60%)` }} />
+            </div>
 
-                {/* Outer ridge — embossed coin edge */}
-                <div className="relative w-32 h-32 sm:w-44 sm:h-44 rounded-full p-[3px]"
-                  style={{
-                    background: `conic-gradient(from 0deg, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark}, ${maroon.nameMid}, ${maroon.nameDark})`,
-                    boxShadow: `0 0 24px ${hexToRgba(maroon.nameDark, 0.25)}, 0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 ${hexToRgba(maroon.nameMid, 0.3)}`,
-                  }}>
-                  {/* Inner coin body — full-body avatar */}
-                  <div className="w-full h-full rounded-full overflow-hidden border-2"
-                    style={{ borderColor: hexToRgba(maroon.nameMid, 0.4) }}>
-                    <AvatarMedia
-                      src={getAvatarUrl(sultan.player!.gamertag, sultanDivision, sultan.player!.avatar)}
-                      alt={sultan.player!.gamertag}
-                      fill
-                      sizes="(max-width: 640px) 128px, 176px"
-                      className="object-cover object-top group-hover/sultan:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
-
-                {/* Heart badge — top center (crown of coin) */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg border-2"
-                    style={{
-                      background: `linear-gradient(135deg, ${maroon.nameMid}, ${maroon.nameDark})`,
-                      borderColor: hexToRgba(maroon.nameMid, 0.5),
-                      boxShadow: `0 2px 8px ${hexToRgba(maroon.nameDark, 0.4)}`,
-                    }}>
-                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="white" />
-                  </div>
-                </div>
+            {/* Heart badge top-right */}
+            <div className="absolute top-2.5 right-2.5 z-20">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+                style={{
+                  background: `linear-gradient(135deg, ${maroon.nameLight}, ${maroon.nameDark})`,
+                  boxShadow: `0 2px 10px ${maroon.glow}, 0 0 20px ${maroon.glow}`,
+                }}
+              >
+                <Heart className="w-4 h-4 text-white" fill="white" />
               </div>
+            </div>
 
-              {/* ─── Info RIGHT side ─── */}
-              <div className="flex-1 min-w-0 text-left">
-                {/* Division + Week label */}
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  {React.createElement(divisionIcon, { className: 'w-3 h-3 shrink-0', style: { color: divisionAccent } })}
-                  <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: divisionAccentLight }}>
-                    {divisionLabel}
-                  </span>
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-md"
-                    style={{ color: maroon.nameMid, backgroundColor: `rgba(${maroon.rgb},0.1)`, border: `1px solid rgba(${maroon.rgb},0.2)` }}>
-                    W{sultan.weekNumber}
-                  </span>
-                </div>
+            {/* Division + Week label badge top-left */}
+            <div className="absolute top-2.5 left-2.5 z-20">
+              <span
+                className="text-[8px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
+                style={{
+                  backgroundColor: `rgba(${maroon.rgb},0.15)`,
+                  color: maroon.nameLight,
+                  border: `1px solid rgba(${maroon.rgb},0.3)`,
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                ❤️ {divisionLabel} W{sultan.weekNumber}
+              </span>
+            </div>
 
-                {/* Gamertag */}
-                <p
-                  className="text-lg sm:text-xl font-black leading-tight"
+            {/* Player info at bottom */}
+            <div className="absolute bottom-0 inset-x-0 px-3 pb-3 pt-10 z-10">
+              {/* Gamertag */}
+              <p
+                className="text-base sm:text-lg font-black truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                style={{
+                  color: maroon.nameMid,
+                  textShadow: isLight ? 'none' : `0 0 6px ${maroon.glow}, 0 0 16px ${maroon.glow}`,
+                }}
+              >
+                {sultan.player!.gamertag}
+              </p>
+
+              {/* Stats row */}
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {/* Donation amount — maroon pill */}
+                <span
+                  className="text-[8px] font-bold px-1.5 py-0.5 rounded"
                   style={{
+                    backgroundColor: `rgba(${maroon.rgb},0.08)`,
                     color: maroon.nameLight,
-                    textShadow: isLight ? 'none' : `0 0 8px ${maroon.glow}`,
+                    border: `1px solid rgba(${maroon.rgb},0.12)`,
                   }}
                 >
-                  {sultan.player!.gamertag}
-                </p>
-
-                {/* City / Club subtitle */}
+                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                </span>
+                {/* Donation count */}
+                <span
+                  className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                  style={{
+                    backgroundColor: `rgba(${maroon.rgb},0.06)`,
+                    color: maroon.nameMid,
+                    border: `1px solid rgba(${maroon.rgb},0.1)`,
+                  }}
+                >
+                  {sultan.donationCount}x sawer
+                </span>
+                {/* City / Club if available */}
                 {(sultan.player!.city || sultan.player!.club) && (
-                  <p className="text-[10px] font-medium mt-0.5 truncate" style={{ color: COLORS.secondaryText }}>
+                  <span
+                    className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                    style={{ backgroundColor: 'rgba(249,115,22,0.12)', color: '#fb923c' }}
+                  >
                     {[sultan.player!.city, typeof sultan.player!.club === 'string' ? sultan.player!.club : sultan.player!.club?.name].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-
-                {/* Stats pill badges */}
-                <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                  <span
-                    className="text-[9px] font-bold px-2.5 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `rgba(${maroon.rgb},0.15)`,
-                      color: maroon.nameLight,
-                      border: `1px solid rgba(${maroon.rgb},0.3)`,
-                    }}
-                  >
-                    Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
                   </span>
-                  <span
-                    className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                    style={{
-                      backgroundColor: `rgba(${maroon.rgb},0.12)`,
-                      color: maroon.nameMid,
-                      border: `1px solid rgba(${maroon.rgb},0.2)`,
-                    }}
-                  >
-                    {sultan.donationCount}x sawer
-                  </span>
-                </div>
-
-                {/* Tier badge */}
-                {sultan.player!.tier && (
-                  <div className="mt-2">
-                    <span
-                      className="text-[8px] font-bold px-2 py-0.5 rounded"
-                      style={{ backgroundColor: isLight ? 'rgba(146,120,12,0.1)' : 'rgba(239,249,35,0.12)', color: COLORS.gold, border: isLight ? '1px solid rgba(146,120,12,0.2)' : '1px solid rgba(239,249,35,0.2)' }}
-                    >
-                      Tier {sultan.player!.tier}
-                    </span>
-                  </div>
                 )}
               </div>
             </div>
           </div>
         ) : (
-          /* No player matched — show donor name only (horizontal) */
+          /* No player matched — ghost layout matching filled card structure */
           <div
-            className="flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-2xl"
+            className="relative rounded-2xl overflow-hidden"
             style={{
-              backgroundColor: `rgba(${maroon.rgb},0.05)`,
-              border: `1px solid rgba(${maroon.rgb},0.15)`,
+              minHeight: '280px',
+              border: `1px solid rgba(${maroon.rgb},0.1)`,
+              background: `linear-gradient(165deg, rgba(${maroon.rgb},0.04) 0%, var(--bg-mid) 40%, rgba(${divisionRgb},0.01) 100%)`,
             }}
           >
-            <div className="relative flex items-center justify-center shrink-0">
-              <div
-                className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center"
-                style={{
-                  background: `linear-gradient(135deg, ${maroon.nameLight}, ${maroon.nameDark})`,
-                  boxShadow: `0 2px 10px ${maroon.glow}`,
-                }}
-              >
-                <Heart className="w-8 h-8 sm:w-10 sm:h-10" style={{ color: isLight ? '#800020' : 'white' }} />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-bold" style={{ color: maroon.nameLight }}>
-                {sultan.donorName}
-              </p>
-              <p className="text-[8px] text-muted-foreground/60 mt-0.5">Top Penyawer W{sultan.weekNumber}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span
-                  className="text-[9px] font-bold px-2 py-0.5 rounded"
+            {/* Placeholder avatar area */}
+            <div className="relative w-full flex items-center justify-center" style={{ minHeight: '280px' }}>
+              {/* Subtle radial glow */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 90%, rgba(${maroon.rgb},0.04), rgba(${divisionRgb},0.04), transparent 60%)` }} />
+
+              {/* Ghost heart badge top-right */}
+              <div className="absolute top-2.5 right-2.5 z-20">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
                   style={{
-                    backgroundColor: `rgba(${maroon.rgb},0.12)`,
-                    color: maroon.nameLight,
+                    background: `linear-gradient(135deg, rgba(${maroon.rgb},0.15), rgba(${maroon.rgb},0.08))`,
+                    border: `1px solid rgba(${maroon.rgb},0.2)`,
                   }}
                 >
-                  Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                  <Heart className="w-4 h-4" style={{ color: maroon.nameMid, opacity: 0.5 }} />
+                </div>
+              </div>
+
+              {/* Ghost division + week label top-left */}
+              <div className="absolute top-2.5 left-2.5 z-20">
+                <span
+                  className="text-[8px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
+                  style={{
+                    backgroundColor: `rgba(${maroon.rgb},0.08)`,
+                    color: maroon.nameMid,
+                    border: `1px solid rgba(${maroon.rgb},0.15)`,
+                  }}
+                >
+                  ❤️ {divisionLabel} W{sultan.weekNumber}
                 </span>
-                <span className="text-[9px]" style={{ color: COLORS.secondaryText }}>
-                  {sultan.donationCount}x sawer
-                </span>
+              </div>
+
+              {/* Large centered heart icon */}
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, rgba(${maroon.rgb},0.1), rgba(${maroon.rgb},0.03))`,
+                  border: `2px dashed rgba(${maroon.rgb},0.2)`,
+                }}
+              >
+                <Heart className="w-10 h-10" style={{ color: maroon.nameMid, opacity: 0.4 }} />
+              </div>
+
+              {/* Bottom info — donor name only */}
+              <div className="absolute bottom-0 inset-x-0 px-3 pb-3 pt-10 z-10">
+                <p
+                  className="text-base sm:text-lg font-black truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                  style={{
+                    color: maroon.nameMid,
+                    textShadow: isLight ? 'none' : `0 0 6px ${maroon.glow}`,
+                  }}
+                >
+                  {sultan.donorName}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span
+                    className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: `rgba(${maroon.rgb},0.08)`,
+                      color: maroon.nameLight,
+                      border: `1px solid rgba(${maroon.rgb},0.12)`,
+                    }}
+                  >
+                    Rp {sultan.totalAmount >= 1000 ? `${(sultan.totalAmount / 1000).toFixed(0)}K` : sultan.totalAmount}
+                  </span>
+                  <span
+                    className="text-[8px] font-bold px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: `rgba(${maroon.rgb},0.06)`,
+                      color: maroon.nameMid,
+                      border: `1px solid rgba(${maroon.rgb},0.1)`,
+                    }}
+                  >
+                    {sultan.donationCount}x sawer
+                  </span>
+                </div>
               </div>
             </div>
           </div>
