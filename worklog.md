@@ -94,3 +94,28 @@ Stage Summary:
 - BracketView has full admin mode with score inputs
 - Score input: two number inputs per match + save button
 - Tournament manager integrates BracketView with `mode="admin"`
+
+---
+Task ID: 5
+Agent: Main
+Task: Redesign Match History in Player Profile Modal — richer, grouped by week, with scores & MVP
+
+Work Log:
+- Investigated player-profile.tsx — match history already existed but was very basic (plain text, no scores for tournament matches, no MVP, no grouping)
+- Updated API `/api/players/[id]/matches/route.ts` — added `bracket` field to tournament matches response
+- Completely redesigned match history section in player-profile.tsx:
+  - Combined league + tournament matches into unified list
+  - Grouped by week (newest first) with week headers showing W/L summary
+  - Player's team highlighted (bold on win), opponent shown separately
+  - Scores displayed: `[PlayerScore] - [OpponentScore]` with green/red coloring
+  - MVP indicator ⭐ shown when player was MVP of that match
+  - Bracket/round labels: Grand Final (gold), Semi Final, Quarter Final, Lower R#, Swiss, Liga
+  - Win/Loss summary badges at header: `3W 2L 5`
+  - Default shows 3 weeks, "Lihat Semua (N minggu lagi)" toggle
+  - Empty state preserved
+- Removed old separate Tarkam/Turnamen sections
+
+Stage Summary:
+- Files modified: `player-profile.tsx`, `/api/players/[id]/matches/route.ts`
+- Match history now grouped by week, shows scores, MVP, bracket labels
+- Design: card-style rows with color-coded results, week headers with W/L summary

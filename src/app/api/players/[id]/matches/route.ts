@@ -125,6 +125,7 @@ export async function GET(
       score2: number | null;
       status: string;
       format: string;
+      bracket: string;
       tournamentName: string;
       weekNumber: number;
       team1: { id: string; name: string };
@@ -193,6 +194,7 @@ export async function GET(
             score2: m.score2,
             status: m.status,
             format: m.format,
+            bracket: m.bracket || 'upper',
             tournamentName: m.tournament.name,
             weekNumber: m.tournament.weekNumber,
             team1: { id: m.team1!.id, name: m.team1!.name },

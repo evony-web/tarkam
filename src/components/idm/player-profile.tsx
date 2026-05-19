@@ -799,90 +799,213 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
               </div>
             )}
 
-            {/* ═══ Match History (Riwayat Match) ═══ */}
-            {hasMatchHistory && matchHistoryData && (
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2.5">
-                  <Swords className={`w-4 h-4 ${dt.text}`} />
-                  <h3 className="text-sm font-semibold">Riwayat Match</h3>
-                  <Badge className={`${dt.casinoBadge} text-[8px] ml-auto`}>
-                    {(matchHistoryData.leagueMatches?.length || 0) + (matchHistoryData.tournamentMatches?.length || 0)} DIMAINKAN
-                  </Badge>
-                </div>
-                <div className={`p-4 sm:p-5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle} space-y-3`}>
-                  {/* Tarkam Matches */}
-                  {matchHistoryData.leagueMatches?.length > 0 && (
-                    <div>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider ${dt.text} mb-1.5`}>Tarkam</p>
-                      <div className="space-y-1.5">
-                        {(showAllMatches ? matchHistoryData.leagueMatches : matchHistoryData.leagueMatches.slice(0, MATCH_LIMIT)).map((m: { id: string; week: number; score1: number | null; score2: number | null; status: string; isHome: boolean; club1: { name: string }; club2: { name: string }; result: string }) => (
-                          <div key={m.id} className="flex items-center gap-2 text-xs">
-                            <span className={`w-8 shrink-0 text-[9px] font-bold ${dt.neonText}`}>W{m.week}</span>
-                            <span className="flex-1 min-w-0 truncate text-muted-foreground">
-                              {m.isHome ? (
-                                <>{m.club1.name} <span className="text-foreground font-semibold">{m.score1 ?? '-'}-{m.score2 ?? '-'}</span> {m.club2.name}</>
-                              ) : (
-                                <>{m.club2.name} <span className="text-foreground font-semibold">{m.score2 ?? '-'}-{m.score1 ?? '-'}</span> {m.club1.name}</>
-                              )}
-                            </span>
-                            {m.result === 'win' ? (
-                              <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 px-1.5 py-0 shrink-0">✅ Menang</Badge>
-                            ) : m.result === 'loss' ? (
-                              <Badge className="bg-red-500/10 text-red-500 text-[9px] border-0 px-1.5 py-0 shrink-0">❌ Kalah</Badge>
-                            ) : (
-                              <Badge className="bg-muted/30 text-muted-foreground text-[9px] border-0 px-1.5 py-0 shrink-0">Akan Datang</Badge>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+            {/* ═══ Match History (Riwayat Match) — Redesigned ═══ */}
+            {hasMatchHistory && matchHistoryData && (() => {
+              // Combine & sort all matches by week (newest first), group by week
+              const allMatches: Array<{
+                id: string;
+                week: number;
+                weekLabel: string;
+                type: 'tournament' | 'league';
+                score1: number | null;
+                score2: number | null;
+                status: string;
+                format: string;
+                bracket?: string;
+                round?: number;
+                playerTeamName: string;
+                opponentName: string;
+                playerScore: number | null;
+                opponentScore: number | null;
+                isMvp: boolean;
+                result: 'win' | 'loss' | 'upcoming' | null;
+              }> = [];
+
+              for (const m of (matchHistoryData.tournamentMatches || [])) {
+                const isTeam1 = m.playerTeamId === m.team1?.id;
+                allMatches.push({
+                  id: m.id,
+                  week: m.weekNumber,
+                  weekLabel: `W${m.weekNumber}`,
+                  type: 'tournament',
+                  score1: m.score1,
+                  score2: m.score2,
+                  status: m.status,
+                  format: m.format || 'BO1',
+                  bracket: m.bracket,
+                  round: m.round,
+                  playerTeamName: isTeam1 ? m.team1.name : (m.team2?.name || 'TBD'),
+                  opponentName: isTeam1 ? (m.team2?.name || 'TBD') : m.team1.name,
+                  playerScore: isTeam1 ? m.score1 : m.score2,
+                  opponentScore: isTeam1 ? m.score2 : m.score1,
+                  isMvp: m.mvpPlayer?.id === player.id,
+                  result: m.result,
+                });
+              }
+
+              for (const m of (matchHistoryData.leagueMatches || [])) {
+                allMatches.push({
+                  id: m.id,
+                  week: m.week,
+                  weekLabel: `W${m.week}`,
+                  type: 'league',
+                  score1: m.score1,
+                  score2: m.score2,
+                  status: m.status,
+                  format: m.format || 'BO3',
+                  playerTeamName: m.isHome ? m.club1.name : m.club2.name,
+                  opponentName: m.isHome ? m.club2.name : m.club1.name,
+                  playerScore: m.isHome ? m.score1 : m.score2,
+                  opponentScore: m.isHome ? m.score2 : m.score1,
+                  isMvp: false,
+                  result: m.result,
+                });
+              }
+
+              // Sort newest week first
+              allMatches.sort((a, b) => b.week - a.week);
+
+              // Group by week
+              const weekGroups = new Map<number, typeof allMatches>();
+              for (const m of allMatches) {
+                if (!weekGroups.has(m.week)) weekGroups.set(m.week, []);
+                weekGroups.get(m.week)!.push(m);
+              }
+              const sortedWeeks = Array.from(weekGroups.keys()).sort((a, b) => b - a);
+
+              const totalMatches = allMatches.length;
+              const totalWins = allMatches.filter(m => m.result === 'win').length;
+              const totalLosses = allMatches.filter(m => m.result === 'loss').length;
+              const displayWeeks = showAllMatches ? sortedWeeks : sortedWeeks.slice(0, 3);
+
+              // Bracket label helper
+              const getBracketLabel = (bracket?: string, round?: number) => {
+                if (bracket === 'grand_final') return 'Grand Final';
+                if (bracket === 'lower') return `Lower R${round ?? 1}`;
+                if (bracket === 'swiss') return `Swiss R${round ?? 1}`;
+                if (bracket === 'group') return `Group R${round ?? 1}`;
+                // Upper bracket — show round label
+                if (round === 1) return 'Final';
+                if (round === 2) return 'Semi Final';
+                if (round === 3) return 'Quarter Final';
+                return `R${round ?? 1}`;
+              };
+
+              return (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Swords className={`w-4 h-4 ${dt.text}`} />
+                    <h3 className="text-sm font-semibold">Riwayat Match</h3>
+                    {/* Win/Loss summary pill */}
+                    <div className="ml-auto flex items-center gap-1.5">
+                      <Badge className="bg-green-500/10 text-green-500 text-[8px] border-0 px-1.5 py-0">{totalWins}W</Badge>
+                      <Badge className="bg-red-500/10 text-red-500 text-[8px] border-0 px-1.5 py-0">{totalLosses}L</Badge>
+                      <Badge className={`${dt.casinoBadge} text-[8px] border-0 px-1.5 py-0`}>{totalMatches}</Badge>
                     </div>
-                  )}
-
-                  {/* Tournament Matches */}
-                  {matchHistoryData.tournamentMatches?.length > 0 && (
-                    <div>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider ${dt.text} mb-1.5`}>Turnamen</p>
-                      <div className="space-y-1.5">
-                        {(showAllMatches ? matchHistoryData.tournamentMatches : matchHistoryData.tournamentMatches.slice(0, Math.max(0, MATCH_LIMIT - (matchHistoryData.leagueMatches?.length || 0)))).map((m: { id: string; round: number; score1: number | null; score2: number | null; status: string; tournamentName: string; weekNumber: number; team1: { name: string }; team2: { name: string } | null; result: string }) => (
-                          <div key={m.id} className="flex items-center gap-2 text-xs">
-                            <span className={`w-8 shrink-0 text-[9px] font-bold ${dt.neonText}`}>W{m.weekNumber}</span>
-                            <span className="flex-1 min-w-0 truncate text-muted-foreground">
-                              {m.team1.name} vs {m.team2?.name || 'TBD'}
+                  </div>
+                  <div className={`rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle} overflow-hidden`}>
+                    {/* Week groups */}
+                    {displayWeeks.map((week) => {
+                      const weekMatches = weekGroups.get(week)!;
+                      return (
+                        <div key={week} className="border-b border-border/10 last:border-b-0">
+                          {/* Week header */}
+                          <div className={`flex items-center gap-2 px-4 py-2 ${playerDivision === 'male' ? 'bg-idm-male/[0.04]' : 'bg-idm-female/[0.04]'}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-wider ${dt.neonText}`}>Week {week}</span>
+                            <span className="text-[9px] text-muted-foreground">
+                              {weekMatches.filter(m => m.result === 'win').length}W / {weekMatches.filter(m => m.result === 'loss').length}L
                             </span>
-                            {m.result === 'win' ? (
-                              <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0 px-1.5 py-0 shrink-0">✅ Menang</Badge>
-                            ) : m.result === 'loss' ? (
-                              <Badge className="bg-red-500/10 text-red-500 text-[9px] border-0 px-1.5 py-0 shrink-0">❌ Kalah</Badge>
-                            ) : (
-                              <Badge className="bg-muted/30 text-muted-foreground text-[9px] border-0 px-1.5 py-0 shrink-0">Akan Datang</Badge>
-                            )}
                           </div>
-                        ))}
+                          {/* Match rows */}
+                          <div className="divide-y divide-border/5">
+                            {weekMatches.map((m) => (
+                              <div key={m.id} className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-muted/5 transition-colors">
+                                {/* Round/bracket label */}
+                                <span className="w-[52px] sm:w-[68px] shrink-0">
+                                  <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                                    m.type === 'tournament'
+                                      ? m.bracket === 'grand_final'
+                                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm'
+                                        : m.bracket === 'lower'
+                                          ? 'bg-orange-500/10 text-orange-400'
+                                          : `${dt.bgSubtle} ${dt.neonText}`
+                                      : 'bg-muted/20 text-muted-foreground'
+                                  }`}>
+                                    {m.type === 'tournament' ? getBracketLabel(m.bracket, m.round) : 'Liga'}
+                                  </span>
+                                </span>
+                                {/* Match content: PlayerTeam Score - Score Opponent */}
+                                <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs">
+                                  {/* Player's team */}
+                                  <span className={`font-semibold truncate max-w-[40%] ${m.result === 'win' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                    {m.playerTeamName}
+                                  </span>
+                                  {/* Score box */}
+                                  <span className="shrink-0 flex items-center gap-1">
+                                    {m.status === 'completed' && m.playerScore !== null && m.opponentScore !== null ? (
+                                      <>
+                                        <span className={`font-black tabular-nums ${m.result === 'win' ? 'text-green-500' : 'text-muted-foreground'}`}>
+                                          {m.playerScore}
+                                        </span>
+                                        <span className="text-muted-foreground/50 text-[10px]">-</span>
+                                        <span className={`font-black tabular-nums ${m.result === 'loss' ? 'text-red-400' : 'text-muted-foreground'}`}>
+                                          {m.opponentScore}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-muted-foreground/50 text-[10px]">vs</span>
+                                    )}
+                                  </span>
+                                  {/* Opponent team */}
+                                  <span className={`truncate max-w-[40%] ${m.result === 'loss' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                    {m.opponentName}
+                                  </span>
+                                </div>
+                                {/* MVP + Result badges */}
+                                <div className="shrink-0 flex items-center gap-1">
+                                  {m.isMvp && (
+                                    <span className="text-idm-gold-warm" title="MVP">⭐</span>
+                                  )}
+                                  {m.result === 'win' ? (
+                                    <Badge className="bg-green-500/10 text-green-500 text-[8px] border-0 px-1.5 py-0">W</Badge>
+                                  ) : m.result === 'loss' ? (
+                                    <Badge className="bg-red-500/10 text-red-400 text-[8px] border-0 px-1.5 py-0">L</Badge>
+                                  ) : (
+                                    <Badge className="bg-muted/20 text-muted-foreground text-[8px] border-0 px-1.5 py-0">TBD</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Empty state */}
+                    {totalMatches === 0 && (
+                      <div className="p-4 text-center">
+                        <Calendar className={`w-5 h-5 ${dt.text} mx-auto mb-1.5 opacity-40`} />
+                        <p className="text-xs text-muted-foreground">Belum ada riwayat match</p>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Empty state for match history */}
-                  {(!matchHistoryData.leagueMatches?.length && !matchHistoryData.tournamentMatches?.length) && (
-                    <p className="text-xs text-muted-foreground text-center py-2">Belum ada riwayat match</p>
-                  )}
-
-                  {/* Show More / Show Less toggle */}
-                  {(matchHistoryData.leagueMatches?.length || 0) + (matchHistoryData.tournamentMatches?.length || 0) > MATCH_LIMIT && (
-                    <button
-                      onClick={() => setShowAllMatches(!showAllMatches)}
-                      className={`flex items-center gap-1 text-[10px] font-semibold ${dt.text} mx-auto hover:opacity-80 transition-opacity`}
-                    >
-                      {showAllMatches ? (
-                        <>Lihat Lebih Sedikit <ChevronUp className="w-3 h-3" /></>
-                      ) : (
-                        <>Lihat Semua <ChevronDown className="w-3 h-3" /></>
-                      )}
-                    </button>
-                  )}
+                    {/* Show More / Show Less toggle */}
+                    {sortedWeeks.length > 3 && (
+                      <button
+                        onClick={() => setShowAllMatches(!showAllMatches)}
+                        className={`flex items-center gap-1 text-[10px] font-semibold ${dt.text} mx-auto py-2.5 hover:opacity-80 transition-opacity`}
+                      >
+                        {showAllMatches ? (
+                          <>Lihat Lebih Sedikit <ChevronUp className="w-3 h-3" /></>
+                        ) : (
+                          <>Lihat Semua ({sortedWeeks.length - 3} minggu lagi) <ChevronDown className="w-3 h-3" /></>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* ═══ Season History ═══ */}
             <PlayerSeasonHistory
