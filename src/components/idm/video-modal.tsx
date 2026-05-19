@@ -101,7 +101,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
     <>
     {isOpen && (
       <div
-        className="animate-fade-enter-sm fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+        className="modal-backdrop-heavy modal-backdrop-enter z-[60] p-4 sm:p-6"
       >
         {/* Backdrop */}
         <div
@@ -112,7 +112,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
 
         {/* Content */}
         <div
-          className="animate-fade-enter relative z-10 w-full max-w-4xl"
+          className="modal-container modal-container-lg modal-enter-slide"
           role="dialog"
           aria-modal="true"
           aria-label={title ?? 'Video player'}
@@ -121,7 +121,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
             <button
               type="button"
               onClick={onClose}
-              className="absolute -top-10 right-0 sm:-top-12 sm:-right-12 flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors z-20"
+              className="modal-close-dark"
               aria-label="Close video"
             >
               <X className="w-5 h-5" />

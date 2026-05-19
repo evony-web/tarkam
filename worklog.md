@@ -659,3 +659,588 @@ Stage Summary:
 - TypeScript compilation: clean (no errors)
 - Dev server: running, all routes respond 200
 - Key performance wins: eliminated CSS re-parsing from inline style, reduced bundle by 2KB, GPU savings on scroll past hero, better CDN caching
+
+---
+Task ID: 2-b
+Agent: frontend-styling-expert
+Task: Redesign ClubProfile modal to use new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/club-profile.tsx`
+
+### 1. Backdrop
+- **Old**: `animate-fade-enter-sm fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-3 sm:p-4 overflow-hidden`
+- **New**: `modal-backdrop-heavy modal-backdrop-enter z-[9999] overflow-hidden`
+- `modal-backdrop-heavy` provides: `fixed inset-0 display:flex align-items:center justify-content:center bg-black/80 backdrop-blur(12px)` — upgraded from bg-black/75 to bg-black/80 with stronger 12px blur (appropriate for profile/media modals)
+- `modal-backdrop-enter` provides: fade-in animation 150ms — replaces `animate-fade-enter-sm`
+- Kept `z-[9999]` to override default z-index:50 (needed for portal stacking above other UI)
+- Kept `overflow-hidden` to prevent background scroll bleed
+- Removed `p-3 sm:p-4` since `modal-container` provides its own responsive width with `calc(100% - 2rem/3rem)` margin
+
+### 2. Container
+- **Old**: `animate-fade-enter bg-background w-full sm:max-w-md sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar`
+- **New**: `modal-container modal-container-md modal-container-gold modal-enter-slide modal-scroll`
+- `modal-container` provides: `position:relative, width:calc(100%-2rem), max-height:90vh, display:flex, flex-direction:column, overflow:hidden, border-radius, border, background:var(--card), box-shadow` — replaces multiple individual utilities
+- `modal-container-md` sets max-width:28rem — replaces `sm:max-w-md`
+- `modal-container-gold` adds gold accent border + glow — new visual enhancement for club/league theme
+- `modal-enter-slide` provides: slide-up + fade animation 250ms — replaces `animate-fade-enter`
+- `modal-scroll` provides: `overflow-y:auto, custom-scrollbar, overscroll-behavior:contain` — replaces `overflow-y-auto custom-scrollbar` and overrides container's `overflow:hidden` for y-axis
+
+### 3. Close/Back button ("Kembali")
+- **Old**: `absolute top-3 left-3 z-20 flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-black/60 backdrop-blur-sm text-white/90 hover:bg-black/70 active:scale-95 transition-all border border-white/10 shadow-lg`
+- **New**: `absolute top-3 left-3 z-20 modal-close-dark w-auto! h-auto! rounded-2xl! flex items-center gap-1.5 px-3 py-2 border border-white/10 shadow-lg backdrop-blur-sm`
+- `modal-close-dark` provides: dark theme styling (bg-black/30, white text, hover:bg-black/50, active:scale-0.95, hover:scale(1.08), transition) — replaces manual bg/hover/active/transition classes
+- `w-auto! h-auto! rounded-2xl!` override `modal-close-dark`'s fixed circle dimensions (2.25rem × 2.25rem, border-radius:9999px) to maintain the pill shape with "Kembali" text
+- Kept `gap-1.5 px-3 py-2 border border-white/10 shadow-lg backdrop-blur-sm` for additional styling not in `modal-close-dark`
+
+### 4. Content section (body below banner)
+- **Old**: `px-4 pt-16 pb-6`
+- **New**: `modal-body-compact pt-16! overflow-visible!`
+- `modal-body-compact` provides: `padding:1rem/1.25rem, flex:1, > * + * { margin-top: 0.75rem }` — consistent spacing between child sections
+- `pt-16!` overrides `modal-body-compact`'s padding-top to 4rem — critical for the floating club logo overlap
+- `overflow-visible!` overrides `modal-body-compact`'s `overflow-y:auto` — prevents nested scroll context (scrolling is handled by `modal-scroll` on the container)
+
+## What was NOT changed
+- Banner image, SVG patterns, decorative overlays — untouched
+- ClubLogo component, BannerPattern component — untouched
+- Data fetching (useQuery), state management, event handlers — untouched
+- Member roster rendering, stats calculations, achievements badges — untouched
+- SharePopup, Rank Badge, and all conditional rendering — untouched
+- All ARIA attributes and accessibility props — untouched
+
+## Verification
+- `npx tsc --noEmit` — ✅ No errors
+- `npx eslint src/components/idm/club-profile.tsx` — ✅ No errors
+- Pre-existing lint errors in hero-section.tsx and shared.tsx — unchanged, not related
+
+---
+Task ID: 2-a
+Agent: frontend-styling-expert
+Task: Redesign PlayerProfile modal to use new Modal Design System CSS classes
+
+## Date: 2026-03-06
+
+## Changes Applied to `/home/z/my-project/src/components/idm/player-profile.tsx`
+
+### Findings
+The file had already been partially migrated to the Modal Design System classes (likely during a prior related task). Three of the four target elements were already using the correct design system classes:
+
+1. **Container (line 306)** — Already correct: `modal-container modal-container-lg modal-enter-slide ${playerDivision === 'male' ? 'modal-container-male' : 'modal-container-female'}` ✅
+2. **Close button (line 314)** — Already correct: `modal-close-dark modal-close-lg absolute top-3 right-3 z-[60]` ✅
+3. **Scrollable inner div (line 448)** — Already correct: `modal-scroll` ✅
+
+### Change Made
+
+#### 1. Backdrop (line 299) — Added missing `overflow-hidden`
+- **Before**: `modal-backdrop-heavy modal-backdrop-enter z-[9999]`
+- **After**: `modal-backdrop-heavy modal-backdrop-enter z-[9999] overflow-hidden`
+- The `overflow-hidden` class was in the spec but was missing from the backdrop. This prevents any content from bleeding outside the viewport when the modal is open.
+- `modal-backdrop-heavy` provides: `fixed inset-0 display:flex align-items:center justify-content:center bg-black/80 backdrop-blur(12px)` — appropriate for profile/media modals
+- `modal-backdrop-enter` provides: fade-in animation 150ms
+
+### Elements NOT Changed (already correct or protected)
+- **Avatar banner / hero section** — untouched ✅
+- **Skin effects** (shimmer overlay, border glow, corner sparkles, traveling edge lights) — untouched ✅
+- **framer-motion animations** — untouched ✅
+- **Data/state management** — untouched ✅
+- **"Kembali" close button** (aria-label) — only CSS class update, logic preserved ✅
+- **Division-themed container** — already dynamically applying `modal-container-male` / `modal-container-female` based on `playerDivision` ✅
+
+## Verification
+- No TypeScript or logic changes — CSS-only edit
+- All 4 spec targets now match:
+  1. Backdrop: `modal-backdrop-heavy modal-backdrop-enter z-[9999] overflow-hidden` ✅
+  2. Container: `modal-container modal-container-lg modal-enter-slide` + dynamic division class ✅
+  3. Scrollable div: `modal-scroll` ✅
+  4. Close button: `modal-close-dark modal-close-lg` ✅
+
+---
+Task ID: 2-d
+Agent: frontend-styling-expert
+Task: Redesign PaymentModal to use new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/payment-modal.tsx`
+
+### 1. Backdrop — Consolidated two layers into one
+- **Old outer wrapper**: `fixed inset-0 z-[9999] flex items-center justify-center p-4` (no backdrop styling, no click handler)
+- **Old backdrop div**: `absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]` (separate sibling with onClick={onClose})
+- **New unified backdrop**: `modal-backdrop modal-backdrop-enter z-[9999] p-4` with `onClick={onClose}`
+- `modal-backdrop` provides: `fixed inset-0 display:flex align-items:center justify-content:center bg-black/70 backdrop-blur(4px)` — upgraded from bg-black/60 + blur-sm to bg-black/70 + blur(4px)
+- `modal-backdrop-enter` provides: fade-in animation 150ms (replaces inline `animate-[fadeIn_200ms_ease-out]`)
+- Removed separate `<div className="absolute inset-0 bg-black/60..." />` backdrop sibling — merged into parent
+- Added `onClick={onClose}` to the backdrop wrapper for close-on-backdrop-click behavior
+
+### 2. Container — Modal Design System + division theming
+- **Old**: `relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-border/50 bg-background shadow-2xl shadow-black/40 animate-[slideUp_300ms_ease-out]`
+- **New**: `modal-container modal-container-md modal-enter-slide` + dynamic division class (`modal-container-male` or `modal-container-female`)
+- `modal-container` provides: `rounded-2xl/3xl, max-h-[90vh], glass shadow, bg-background`
+- `modal-container-md` provides: `max-w-[28rem]` (≈ max-w-md)
+- `modal-enter-slide` provides: slide-up + fade 250ms animation (replaces `animate-[slideUp_300ms_ease-out]`)
+- `modal-container-male` provides: blue accent border + glow (when division='male')
+- `modal-container-female` provides: pink accent border + glow (when division='female')
+- Added `onClick={(e) => e.stopPropagation()}` to prevent backdrop close when clicking inside the modal (necessary because container is now a child of the backdrop div instead of a sibling)
+
+### 3. Header gradient — Modal Design System base
+- **Old**: `relative h-32 bg-gradient-to-br ${divConfig.gradient} overflow-hidden rounded-t-3xl`
+- **New**: `modal-header-gradient relative h-32 bg-gradient-to-br ${divConfig.gradient} overflow-hidden`
+- `modal-header-gradient` provides: gradient background base styling for headers
+- Removed `rounded-t-3xl` — container's own border-radius from `modal-container` clips the header corners
+
+### 4. Close button — Dark theme variant
+- **Old**: `absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer` + `<X className="w-4 h-4 text-white" />`
+- **New**: `modal-close-dark absolute top-3 right-3 z-50` + `<X className="w-4 h-4" />`
+- `modal-close-dark` provides: `bg-black/30, white icon, hover states, sizing, rounded-full, flex center`
+- Removed explicit `text-white` from X icon — `modal-close-dark` handles icon color
+
+### 5. Body — Modal Design System padding + scrolling
+- **Old**: `p-5 space-y-4`
+- **New**: `modal-body modal-scroll space-y-4`
+- `modal-body` provides: `p-5 (sm:p-6)` — responsive padding
+- `modal-scroll` provides: `overflow-y auto, custom thin scrollbar` — proper scrollable content area
+
+## Elements NOT Changed (functionality preserved)
+- All payment method logic, CMS settings fetching, copy handlers ✅
+- QR code display and phone number display ✅
+- Payment method tabs and selection ✅
+- WhatsApp link button ✅
+- Escape key handler and body scroll lock ✅
+- Portal rendering to document.body ✅
+- Division color config and gradient ✅
+
+## Verification
+- `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx unchanged)
+- All changes are CSS-only — no logic or data flow modifications
+
+---
+Task ID: 2-c
+Agent: frontend-styling-expert
+Task: Redesign RegistrationModal to use new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/registration-modal.tsx`
+
+### 1. Backdrop
+- **Old**: `animate-fade-enter-sm fixed inset-0 z-[9999] bg-black/80`
+- **New**: `modal-backdrop modal-backdrop-enter z-[9999]`
+- `modal-backdrop` provides: `fixed inset-0 display:flex align-items:center justify-content:center bg-black/70 backdrop-blur(4px)`
+- `modal-backdrop-enter` provides: fade-in animation 150ms
+
+### 2. Container
+- **Old**: `animate-fade-enter w-full sm:max-w-lg relative flex flex-col max-h-[90vh] ${dt.casinoCard} border border-idm-gold-warm/20 rounded-2xl`
+- **New**: `modal-container modal-container-md modal-enter-slide ${division === 'male' ? 'modal-container-male' : 'modal-container-female'}`
+- `modal-container` provides: `width:calc(100%-2rem), max-height:90vh, rounded-2xl/3xl, bg-card, glass shadow, border, flex-col`
+- `modal-container-md` provides: `max-width:28rem` (replaces `sm:max-w-lg`)
+- `modal-enter-slide` provides: slide-up + fade animation 250ms (replaces `animate-fade-enter`)
+- Dynamic division class adds blue/pink accent border + glow based on selected division
+- Removed the redundant centering wrapper `<div className="flex items-center justify-center h-dvh p-3 sm:p-4">` since `modal-backdrop` handles centering
+
+### 3. Header
+- **Old**: `shrink-0 bg-background border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10 rounded-t-2xl`
+- **New**: `modal-header ${step === 'form' ? (division === 'male' ? 'modal-header-male' : 'modal-header-female') : ''}`
+- `modal-header` provides: `flex items-center justify-between, px-5 py-4 (sm:py-5), border-bottom`
+- `modal-header-male`/`modal-header-female` adds division-themed gradient background and border color (applied only when step='form', neutral during division pick)
+
+### 4. Title
+- **Old**: `text-lg font-bold text-gradient-fury`
+- **New**: `modal-header-title text-gradient-fury`
+- `modal-header-title` provides: `font-size:1.125rem, font-weight:600` (replaces `text-lg font-bold`)
+- Kept `text-gradient-fury` for the gradient text effect
+
+### 5. Subtitle
+- **Old**: `text-[10px] text-muted-foreground`
+- **New**: `modal-header-subtitle`
+- `modal-header-subtitle` provides: `font-size:0.8125rem, color:var(--muted-foreground)` (13px vs old 10px, follows design system)
+
+### 6. Back Button (step='form')
+- **Old**: `w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors`
+- **New**: `modal-close`
+- `modal-close` provides: `2rem round button, bg-muted, hover:bg-accent, active:scale(0.95), focus-visible ring`
+- Adjusted icon from `w-5 h-5` to `w-4 h-4` to match the smaller button
+
+### 7. Close Button
+- **Old**: `w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors`
+- **New**: `modal-close`
+- Same as back button — consistent design system close button
+- Adjusted icon from `w-5 h-5` to `w-4 h-4`
+
+### 8. Division Picker Body
+- **Old**: `p-5 space-y-5`
+- **New**: `modal-body`
+- `modal-body` provides: `padding:1.25rem (sm:1.5rem), flex:1, min-height:0` with built-in `> * + *` spacing
+
+### 9. Form Body
+- **Old**: `p-5 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar`
+- **New**: `modal-body modal-scroll`
+- `modal-body` provides padding, flex, min-height
+- `modal-scroll` provides: `overflow-y:auto, custom thin scrollbar, max-height:calc(90vh - 8rem)` with styled scrollbar thumbs
+
+### 10. Cleanup
+- Removed unused `useDivisionTheme` import and `dt` variable (was only used for `dt.casinoCard` which is now replaced by `modal-container`)
+
+## Verification
+- `npx tsc --noEmit` — ✅ Zero TypeScript errors
+- `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx unchanged)
+- All changes are CSS-only — no logic or data flow modifications
+- Multi-step form (pick → form), validation, division picker, warning dialogs, account creation — all preserved
+
+---
+Task ID: 3-a
+Agent: frontend-styling-expert
+Task: Redesign DonationModal to use new Modal Design System CSS classes
+
+## Date: 2026-03-06
+
+## Changes Applied to `/home/z/my-project/src/components/idm/donation-modal.tsx`
+
+### 1. DialogContent wrapper (line 284)
+- **Old**: `className="sm:max-w-md p-0 overflow-hidden border-border/50 bg-background"`
+- **New**: `className={\`modal-container modal-container-md modal-enter-slide ${effectiveDivision === 'female' ? 'modal-container-female' : 'modal-container-male'} sm:max-w-md p-0 overflow-hidden border-border/50 bg-background\`}`
+- Added `modal-container` (base container styling), `modal-container-md` (medium size), `modal-enter-slide` (slide entrance animation)
+- Added dynamic division class: `modal-container-female` or `modal-container-male` based on `effectiveDivision`
+
+### 2. Header section (line 291)
+- **Old**: `className={\`relative h-28 bg-gradient-to-br ${...gradient} overflow-hidden\`}`
+- **New**: `className={\`modal-header-gradient bg-gradient-to-br ${...gradient}\`}`
+- Replaced `relative h-28 ... overflow-hidden` with `modal-header-gradient` (provides base header gradient styling: positioning, sizing, overflow)
+- Kept dynamic gradient logic (division step vs typeConfig gradient)
+
+### 3. Header title (line 311)
+- **Old**: `className="text-lg font-black text-white drop-shadow-sm"`
+- **New**: `className="modal-header-title text-lg font-black text-white drop-shadow-sm"`
+- Added `modal-header-title` for design system title styling
+
+### 4. Header subtitle (line 318)
+- **Old**: `className="text-[11px] text-white/80 max-w-[220px]"`
+- **New**: `className="modal-header-subtitle text-[11px] text-white/80 max-w-[220px]"`
+- Added `modal-header-subtitle` for design system subtitle styling
+
+### 5. Close button (line 331)
+- **Old**: `className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"`
+- **New**: `className="modal-close-dark"`
+- Replaced all inline positioning/sizing/styling with `modal-close-dark` design system class
+
+### 6. Body content (line 337)
+- **Old**: `className="p-5 space-y-4"`
+- **New**: `className="modal-body"`
+- Replaced manual padding/spacing with `modal-body` design system class
+
+### 7. Scrollable donor list (line 388)
+- **Old**: `className="max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]"`
+- **New**: `className="modal-scroll max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]"`
+- Added `modal-scroll` for consistent scrollable section styling
+
+### 8. Accessibility (preserved)
+- `<DialogHeader className="sr-only">`, `<DialogTitle>`, `<DialogDescription>` remain untouched at lines 286-289
+
+## What was NOT changed
+- All logic, state management, and data flow preserved (multi-step donation flow, division picker, form validation, payment result)
+- Dialog/DialogContent/DialogHeader/DialogTitle/DialogDescription structural components kept
+- All conditional rendering (step === 'form' | 'division' | 'result') unchanged
+- Payment method display, copy functionality, QR code rendering unchanged
+- Type toggle (Sawer/Donasi) and form validation unchanged
+
+## Verification
+- `npx tsc --noEmit` — ✅ Zero TypeScript errors
+- All changes are CSS class additions/replacements only — no logic or data flow modifications
+- Multi-step donation flow (form → division picker → result) fully preserved
+
+---
+Task ID: 3-b
+Agent: frontend-styling-expert
+Task: Redesign MatchDetailModal using Modal Design System CSS classes
+
+## Date: 2026-03-06
+
+## Changes Applied to `/home/z/my-project/src/components/idm/match-detail-modal.tsx`
+
+### 1. DialogContent — Container classes
+- **Old**: `className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-background border-border"`
+- **New**: `className={`modal-container modal-container-lg modal-enter-slide p-0 gap-0 overflow-hidden ${dt.division === 'male' ? 'modal-container-male' : dt.division === 'female' ? 'modal-container-female' : ''}`}`
+- `modal-container` provides: `relative width overflow-hidden border-radius border background box-shadow` — replaces ad-hoc `bg-background border-border sm:max-w-lg`
+- `modal-container-lg` provides: `max-width: 36rem` — wider than previous `sm:max-w-lg` (32rem) for better score display
+- `modal-enter-slide` provides: slide-up entrance animation (`translateY(24px) → 0, 250ms cubic-bezier`)
+- Dynamic division class: `modal-container-male` (blue accent border+shadow) or `modal-container-female` (pink accent border+shadow), empty string for "semua"
+- Kept `p-0 gap-0 overflow-hidden` to override DialogContent defaults (p-6 gap-4)
+
+### 2. Header section (Kembali + Badges)
+- **Old**: `className={`px-4 pt-4 pb-3 border-b ${dt.borderSubtle}`}`
+- **New**: `className={`modal-header ${dt.division === 'male' ? 'modal-header-male' : dt.division === 'female' ? 'modal-header-female' : ''}`}`
+- `modal-header` provides: `flex items-center gap-0.75rem padding border-bottom flex-shrink-0` — replaces manual padding and border classes
+- `modal-header-male` provides: division-colored gradient background + blue-tinted border-bottom
+- `modal-header-female` provides: division-colored gradient background + pink-tinted border-bottom
+
+### 3. Score display section
+- **Old**: `className={`px-4 py-4 border-b ${dt.borderSubtle}`}`
+- **New**: `className="px-5 py-4 border-b border-border"`
+- Updated horizontal padding from `px-4` to `px-5` to align with `modal-header` sm breakpoint padding (1.5rem)
+- Replaced dynamic `${dt.borderSubtle}` with design system standard `border-border`
+
+### 4. MVP section margin
+- **Old**: `className={`mx-4 mt-3 ...`}`
+- **New**: `className="mx-5 mt-3 ..."`
+- Updated horizontal margin from `mx-4` to `mx-5` to match new body padding alignment
+
+### 5. Rosters scrollable section
+- **Old**: `className="px-4 py-3 space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar"`
+- **New**: `className="modal-body-compact modal-scroll space-y-4"`
+- `modal-body-compact` provides: `padding: 1rem (1.25rem sm); flex: 1; overflow-y: auto` — replaces manual `px-4 py-3`
+- `modal-scroll` provides: `max-height: calc(90vh - 8rem); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; custom scrollbar (5px width, thin track, themed thumb)` — replaces `max-h-[50vh] overflow-y-auto custom-scrollbar` with better responsive max-height and native-feel scrolling
+- Kept `space-y-4` for vertical spacing between roster groups
+
+### Preserved (no changes)
+- All Badge components (Week, Format, Status, MVP, Menang/Kalah, CPT)
+- Score display logic (winner highlighting, neon text, tabular-nums)
+- Club logo rendering (ClubLogoImage + fallback Shield)
+- Avatar rendering (AvatarMedia with getAvatarUrl)
+- Roster member list rendering
+- Loading indicator
+- All state management and data flow (useEffect fetch, preview data fallback)
+- Dialog/DialogContent/DialogTitle/DialogDescription structural components
+
+## Verification
+- `npx tsc --noEmit` — ✅ Zero TypeScript errors
+- `bun run lint` — ✅ Only pre-existing errors (hero-section.tsx, shared.tsx), no new errors
+- All changes are CSS class additions/replacements only — no logic or data flow modifications
+- Match scores, rosters, MVP display fully preserved
+
+---
+Task ID: 3-c
+Agent: frontend-styling-expert
+Task: Redesign UnifiedLoginModal to use new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/unified-login-modal.tsx`
+
+### 1. DialogContent — Container classes (line 475)
+- **Old**: `className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50"`
+- **New**: `` className={`modal-container modal-container-md modal-enter-slide ${activeView === 'admin' ? 'modal-container-gold' : effectiveDivision === 'male' ? 'modal-container-male' : 'modal-container-female'} p-0 gap-0 overflow-hidden`} ``
+- Added `modal-container` (base container: background, border, border-radius, width)
+- Added `modal-container-md` (max-width: 28rem, same as previous `sm:max-w-md`)
+- Added `modal-enter-slide` (slide-up entrance animation)
+- Added dynamic division class: `modal-container-male` / `modal-container-female` / `modal-container-gold` (themed border + box-shadow)
+- Removed `sm:max-w-md` (redundant with `modal-container-md`)
+- Removed `bg-background` (provided by `modal-container`)
+- Removed `border-border/50` (overridden by division-specific border colors)
+- Kept `p-0 gap-0 overflow-hidden` (structural overrides for DialogContent)
+
+### 2. Accent bar (lines 479-485) — KEPT UNCHANGED
+- The h-1 gradient bar at the top is a nice design touch, preserved as-is
+
+### 3. Body content wrapper (line 487)
+- **Old**: `className="p-5 pt-3 relative"`
+- **New**: `className="modal-body pt-3 relative"`
+- `modal-body` provides `padding: 1.25rem` (≈ p-5) + `flex: 1` + `overflow-y: auto`
+- Kept `pt-3` override to account for the accent bar above
+- Kept `relative` for positioned children
+
+### 4. Player logged-in state card (line 494)
+- **Old**: `` className={`p-4 rounded-2xl ${...division bg/border...} mb-4`} ``
+- **New**: `` className={`modal-body-compact rounded-2xl ${...division bg/border...} mb-4`} ``
+- `modal-body-compact` provides `padding: 1rem` (≈ p-4) + `flex: 1` + `overflow-y: auto`
+- Replaced `p-4` with design system class while keeping division-themed bg/border
+
+### 5. Register form scrollable section (line 772)
+- **Old**: `className="space-y-2.5 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1"`
+- **New**: `className="space-y-2.5 modal-scroll pr-1"`
+- `modal-scroll` provides: `overflow-y: auto`, `max-height: calc(90vh - 8rem)`, `overscroll-behavior: contain`, custom scrollbar styling
+- Removed `max-h-[60vh]` (replaced by `modal-scroll`'s max-height)
+- Removed `overflow-y-auto custom-scrollbar` (provided by `modal-scroll`)
+- Kept `pr-1` for right padding adjustment
+
+### 6. Stats grid cards — KEPT UNCHANGED
+- As instructed, the existing stats grid card styling (`bg-muted/30 border border-border/30`) looks good
+
+## What Was NOT Changed
+- No logic, state, or data flow modifications
+- No structural JSX changes (kept Dialog/DialogContent/DialogTitle/DialogDescription)
+- Accent bar gradient kept as-is
+- Stats grid cards kept as-is
+- Admin logged-in card kept with original `p-4` styling (not in scope)
+- All form handlers, mode switching, and authentication flows untouched
+- All existing functionality preserved (multi-view login, player/admin tabs, logged-in state, gamertag auth)
+
+## Verification
+- `npx tsc --noEmit` — ✅ Zero TypeScript errors
+- `bun run lint` — ✅ Only pre-existing errors (hero-section.tsx, shared.tsx), no new errors introduced
+
+---
+Task ID: 3-d
+Agent: frontend-styling-expert
+Task: Redesign PlayerAccountModal using new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/player-account-modal.tsx`
+
+### 1. DialogContent — Container classes
+- **Old**: `className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50"`
+- **New**: `className="modal-container modal-container-md modal-enter-slide sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50"`
+- Added `modal-container` (base modal styling), `modal-container-md` (medium width), `modal-enter-slide` (slide entrance animation)
+
+### 2. Body wrapper — modal-body
+- **Old**: `<div className="p-4 sm:p-6">`
+- **New**: `<div className="modal-body p-4 sm:p-6">`
+- Added `modal-body` to the main scrollable content area wrapping all modes
+
+### 3. Choose mode header (Akun Pemain)
+- **Old**: `<div className="text-center mb-6">` → `<div className="modal-header text-center mb-6">`
+- **Old**: `<h2 className="text-lg font-bold">` → `<h2 className="modal-header-title text-lg font-bold">`
+- **Old**: `<p className="text-xs text-muted-foreground mt-1">` → `<p className="modal-header-subtitle text-xs text-muted-foreground mt-1">`
+
+### 4. Login mode header (Login Akun)
+- **Old**: `<div className="text-center mb-5">` → `<div className="modal-header text-center mb-5">`
+- **Old**: `<h2 className="text-base font-bold">` → `<h2 className="modal-header-title text-base font-bold">`
+- **Old**: `<p className="text-[10px] text-muted-foreground mt-0.5">` → `<p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">`
+
+### 5. Register mode header (Daftar)
+- **Old**: `<div className="text-center mb-4">` → `<div className="modal-header text-center mb-4">`
+- **Old**: `<h2 className="text-base font-bold">` → `<h2 className="modal-header-title text-base font-bold">`
+- **Old**: `<p className="text-[10px] text-muted-foreground mt-0.5">` → `<p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">`
+
+### 6. Change-password mode header (Ganti Password)
+- **Old**: `<div className="text-center mb-5">` → `<div className="modal-header text-center mb-5">`
+- **Old**: `<h2 className="text-base font-bold">` → `<h2 className="modal-header-title text-base font-bold">`
+- **Old**: `<p className="text-[10px] text-muted-foreground mt-0.5">` → `<p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">`
+
+### 7. Register form — Scrollable area
+- **Old**: `<form onSubmit={handleRegister} className="space-y-3 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">`
+- **New**: `<form onSubmit={handleRegister} className="modal-scroll space-y-3 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">`
+- Added `modal-scroll` for consistent scrollable area styling
+
+### 8. Close button note
+- The shadcn DialogContent renders a default X close button (showCloseButton=true by default) inside dialog.tsx, not in player-account-modal.tsx directly. The `modal-close` class should be applied to the dialog.tsx component's close button in a separate task if needed.
+
+## Verification
+- `bun run lint` — ✅ Only pre-existing errors (hero-section.tsx, shared.tsx), no new errors introduced
+- All changes are CSS class additions only — no logic, state, or data flow modifications
+- Login, register, and change-password modes fully preserved
+- Form validation and all button handlers unchanged
+
+---
+Task ID: 4-a
+Agent: frontend-styling-expert
+Task: Redesign marketplace modals (SubmitMarketplaceModal + MarketplaceDetailModal) to use Modal Design System CSS classes
+
+## Changes Applied
+
+### 1. SubmitMarketplaceModal (`submit-marketplace-modal.tsx`)
+
+**Backdrop** (line 348):
+- Old: `fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in`
+- New: `modal-backdrop modal-backdrop-enter z-50 p-4`
+
+**Container** (line 352):
+- Old: `relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-background border border-orange-500/15 shadow-2xl animate-fade-in-up`
+- New: `modal-container modal-container-md modal-enter-slide`
+
+**Header** (line 356):
+- Old: `sticky top-0 z-10 flex items-center justify-between p-4 pb-3 bg-background/95 backdrop-blur-sm border-b border-orange-500/10`
+- New: `modal-header`
+
+**Close button** (line 368):
+- Old: `w-7 h-7 rounded-lg bg-muted/20 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors cursor-pointer`
+- New: `modal-close`
+
+**Body wrapper** (line 375):
+- Added `<div className="modal-body">` wrapping all three content states (not-logged-in, success, form) after the header
+- Closing `</div>` added before the container closing tag
+
+### 2. MarketplaceDetailModal (`marketplace-detail-modal.tsx`)
+
+**Backdrop** (line 112):
+- Old: `fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in`
+- New: `modal-backdrop modal-backdrop-enter z-50 p-4`
+
+**Container** (line 116):
+- Old: `relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-background border border-orange-500/15 shadow-2xl animate-fade-in-up`
+- New: `modal-container modal-container-lg modal-enter-slide`
+
+**Close button** (line 122):
+- Old: `absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white hover:bg-black/70 transition-colors cursor-pointer`
+- New: `modal-close-dark`
+
+**Image navigation arrows**: Kept as-is (gallery-specific, per instructions)
+
+**Content body** (line 213):
+- Old: `p-5 space-y-4`
+- New: `modal-body-compact space-y-4`
+
+## Verification
+- TypeScript: `npx tsc --noEmit` — ✅ no errors
+- No logic or data flow changes — only CSS class replacements
+
+---
+Task ID: 4-b
+Agent: frontend-styling-expert
+Task: Redesign 3 misc modals to use new Modal Design System CSS classes
+
+## Date: 2026-03-05
+
+## Changes Applied
+
+### 1. `/home/z/my-project/src/components/idm/video-modal.tsx` — Video player modal
+
+**Backdrop** (line 104):
+- Old: `animate-fade-enter-sm fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6`
+- New: `modal-backdrop-heavy modal-backdrop-enter z-[60]`
+
+**Container** (line 115):
+- Old: `animate-fade-enter relative z-10 w-full max-w-4xl`
+- New: `modal-container modal-container-lg modal-enter-slide`
+
+**Close button** (line 124):
+- Old: `absolute -top-10 right-0 sm:-top-12 sm:-right-12 flex items-center justify-center w-9 h-9 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors z-20`
+- New: `modal-close-dark`
+
+Note: Inner backdrop div (`absolute inset-0 bg-black/90` with onClick) kept for click-to-close functionality.
+
+### 2. `/home/z/my-project/src/components/idm/landing/video-modal.tsx` — Landing video modal (shadcn Dialog)
+
+**DialogContent** (line 49):
+- Old: `sm:max-w-3xl p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl`
+- New: `modal-container modal-container-lg modal-enter-slide sm:max-w-3xl p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl`
+
+**Close button** (line 58):
+- Old: `absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors cursor-pointer`
+- New: `modal-close`
+
+### 3. `/home/z/my-project/src/components/idm/my-account-card.tsx` — ChangePasswordModal (createPortal)
+
+**Backdrop wrapper** (line 262):
+- Old: `fixed inset-0 z-[9999] flex items-center justify-center`
+- New: `modal-backdrop modal-backdrop-enter z-[9999]`
+
+**Inner backdrop** (line 265):
+- Old: `absolute inset-0 bg-black/60 backdrop-blur-sm`
+- New: `absolute inset-0 bg-black/60` (removed redundant `backdrop-blur-sm` since `modal-backdrop` provides blur)
+
+**Container** (line 270):
+- Old: `relative w-full max-w-sm mx-4 bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200`
+- New: `modal-container modal-container-md modal-enter-slide`
+
+**Header** (line 275):
+- Old: `flex items-center justify-between px-5 pt-4 pb-2`
+- New: `modal-header`
+
+**Title** (line 281):
+- Old: `text-sm font-bold`
+- New: `modal-header-title`
+
+**Close button** (line 288):
+- Old: `w-7 h-7 rounded-lg bg-muted/40 hover:bg-muted/60 flex items-center justify-center transition-colors`
+- New: `modal-close`
+
+**Form body** (line 295):
+- Old: `p-5 pt-2 space-y-3`
+- New: `modal-body-compact`
+
+## Verification
+- `bun run lint` — ✅ Only pre-existing errors (hero-section.tsx, shared.tsx) — no new errors introduced
+- No logic or data flow changes — only CSS class replacements
+- Top accent gradient bar preserved on ChangePasswordModal
+- Inner backdrop click handlers preserved in all modals

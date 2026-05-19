@@ -8,7 +8,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { RegistrationPaymentInfo } from './registration-payment-info';
@@ -39,7 +38,6 @@ interface RegistrationModalProps {
 }
 
 export function RegistrationModal({ open, onClose, defaultDivision }: RegistrationModalProps) {
-  const dt = useDivisionTheme();
   const { setPlayerAuth, refreshPlayerSession } = useAppStore();
   const [division, setDivision] = useState<'male' | 'female'>(defaultDivision || 'male');
   const [step, setStep] = useState<'pick' | 'form'>(defaultDivision ? 'form' : 'pick');
@@ -380,28 +378,27 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
 
   const modal = (
     <div
-      className="animate-fade-enter-sm fixed inset-0 z-[9999] bg-black/80"
+      className="modal-backdrop modal-backdrop-enter z-[9999] p-3 sm:p-4"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-label="Form Pendaftaran Peserta"
     >
-      <div className="flex items-center justify-center h-dvh p-3 sm:p-4">
         <div
-          className={`animate-fade-enter w-full sm:max-w-lg relative flex flex-col max-h-[90vh] ${dt.casinoCard} border border-idm-gold-warm/20 rounded-2xl`}
+          className={`modal-container modal-container-md modal-enter-slide ${division === 'male' ? 'modal-container-male' : 'modal-container-female'}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="shrink-0 bg-background border-b border-idm-gold-warm/10 px-5 py-4 flex items-center justify-between z-10 rounded-t-2xl">
+          <div className={`modal-header ${step === 'form' ? (division === 'male' ? 'modal-header-male' : 'modal-header-female') : ''}`}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${step === 'pick' ? 'bg-idm-gold-warm/10' : division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
                 <UserPlus className={`w-5 h-5 ${step === 'pick' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gradient-fury">
+                <h2 className="modal-header-title text-gradient-fury">
                   {step === 'pick' ? 'Pilih Divisi' : 'Daftar Peserta'}
                 </h2>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="modal-header-subtitle">
                   {step === 'pick' ? 'Pilih divisi terlebih dahulu' : 'IDM League'}
                 </p>
               </div>
@@ -411,24 +408,24 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
                 <button
                   onClick={() => setStep('pick')}
                   aria-label="Kembali pilih divisi"
-                  className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
+                  className="modal-close"
                 >
-                  <ChevronDown className="w-5 h-5 text-muted-foreground rotate-90" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground rotate-90" />
                 </button>
               )}
               <button
                 onClick={handleClose}
                 aria-label="Tutup form pendaftaran"
-                className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
+                className="modal-close"
               >
-                <X className="w-5 h-5 text-muted-foreground" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
           </div>
 
           {/* ═══ Division Picker Step ═══ */}
           {step === 'pick' && (
-            <div className="p-5 space-y-5">
+            <div className="modal-body">
               <p className="text-sm text-muted-foreground text-center">
                 Pilih divisi pertandingan yang ingin kamu ikuti
               </p>
@@ -477,7 +474,7 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
 
           {/* ═══ Form Step ═══ */}
           {step === 'form' && (
-          <div className="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+          <div className="modal-body modal-scroll">
                 {/* Success State */}
                 {submitResult && (
                   <div className="py-4">
@@ -1085,7 +1082,6 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
                 )}
         </div>
           )}
-      </div>
       </div>
     </div>
   );

@@ -296,23 +296,22 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
 
   const modal = (
     <div
-      className="animate-fade-enter-sm fixed inset-0 z-[9999] bg-black/80"
+      className="modal-backdrop-heavy modal-backdrop-enter z-[9999] p-3 sm:p-4 overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Profil ${player.gamertag}`}
     >
-      <div className="flex items-center justify-center h-dvh p-3 sm:p-4">
       <div
-        className="animate-fade-enter w-full sm:max-w-lg relative flex flex-col max-h-[90vh]"
+        className={`modal-container modal-container-lg modal-enter-slide ${playerDivision === 'male' ? 'modal-container-male' : 'modal-container-female'}`}
         onClick={(e) => e.stopPropagation()}
-        style={skinColors ? { padding: '4px' } : undefined}
+        style={{ overflow: 'visible', ...(skinColors ? { padding: '4px' } : {}) }}
       >
           {/* ═══ STICKY CLOSE BUTTON — always visible, outside scroll area ═══ */}
           <button
             onClick={onClose}
             aria-label="Kembali"
-            className="absolute top-3 right-3 z-[60] flex items-center justify-center w-9 h-9 rounded-full bg-black/50 backdrop-blur-md text-white/90 hover:bg-black/60 active:scale-90 transition-all border border-white/10 shadow-lg"
+            className="modal-close-dark modal-close-lg absolute top-3 right-3 z-[60]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -446,7 +445,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
           })()}
 
           {/* Inner scrollable content container — sits above the chase border */}
-          <div className="relative z-10 bg-background overflow-hidden sm:rounded-[20px] min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="relative z-10 bg-background overflow-hidden sm:rounded-[20px] min-h-0 flex-1 modal-scroll">
 
           {/* ═══ HERO BANNER — Full Avatar Card Style ═══ */}
             <div className={`relative h-[280px] sm:h-[380px] md:h-[440px] overflow-hidden cinema-hero cinema-flare ${playerDivision === 'male' ? 'cinema-flare-male' : 'cinema-flare-female'} cinema-grade`}>
@@ -972,7 +971,6 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
             </div>
           )}
           </div>
-      </div>
       </div>
     </div>
   );

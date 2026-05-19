@@ -109,17 +109,17 @@ export function MarketplaceDetailModal({ open, onClose, item }: MarketplaceDetai
     <>
             {open && (
               <div
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+                className="modal-backdrop modal-backdrop-enter z-50 p-4"
                 onClick={onClose}
               >
                 <div
-                  className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-background border border-orange-500/15 shadow-2xl animate-fade-in-up"
+                  className="modal-container modal-container-lg modal-enter-slide"
                   onClick={(e) => e.stopPropagation()}
                 >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white hover:bg-black/70 transition-colors cursor-pointer"
+              className="modal-close-dark"
             >
               <X className="w-4 h-4" />
             </button>
@@ -210,7 +210,7 @@ export function MarketplaceDetailModal({ open, onClose, item }: MarketplaceDetai
             )}
 
             {/* ═══ Content Section ═══ */}
-            <div className="p-5 space-y-4">
+            <div className="modal-body-compact space-y-4">
               {/* Category + Time */}
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${catColor}`}>

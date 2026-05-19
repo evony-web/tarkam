@@ -173,22 +173,20 @@ export function PaymentModal({ open, onClose, division }: PaymentModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="modal-backdrop modal-backdrop-enter z-[9999] p-4"
       role="dialog"
       aria-modal="true"
       aria-label="Info Pembayaran"
+      onClick={onClose}
     >
-      {/* ── Backdrop ── */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
-        onClick={onClose}
-      />
-
       {/* ── Modal Card ── */}
-      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-border/50 bg-background shadow-2xl shadow-black/40 animate-[slideUp_300ms_ease-out]">
+      <div
+        className={`modal-container modal-container-md modal-enter-slide ${division === 'male' ? 'modal-container-male' : 'modal-container-female'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
 
         {/* ═══ Header ═══ */}
-        <div className={`relative h-32 bg-gradient-to-br ${divConfig.gradient} overflow-hidden rounded-t-3xl`}>
+        <div className={`modal-header-gradient relative h-32 bg-gradient-to-br ${divConfig.gradient} overflow-hidden`}>
           {/* Animated shimmer */}
           <div
             className="absolute inset-0 animate-[shimmer_4s_ease-in-out_infinite]"
@@ -225,14 +223,14 @@ export function PaymentModal({ open, onClose, division }: PaymentModalProps) {
           <button
             onClick={onClose}
             aria-label="Tutup"
-            className="absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"
+            className="modal-close-dark absolute top-3 right-3 z-50"
           >
-            <X className="w-4 h-4 text-white" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* ═══ Content ═══ */}
-        <div className="p-5 space-y-4">
+        <div className="modal-body modal-scroll space-y-4">
 
           {/* ── Registration Fee Notice ── */}
           <div

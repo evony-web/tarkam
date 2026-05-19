@@ -472,7 +472,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta', 
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
+      <DialogContent className={`modal-container modal-container-md modal-enter-slide ${activeView === 'admin' ? 'modal-container-gold' : effectiveDivision === 'male' ? 'modal-container-male' : 'modal-container-female'} p-0 gap-0 overflow-hidden`}>
         <DialogTitle className="sr-only">Login Tarkam IDM</DialogTitle>
         <DialogDescription className="sr-only">Login ke akun peserta atau admin Tarkam IDM</DialogDescription>
         {/* Top accent bar */}
@@ -484,14 +484,14 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta', 
               : 'from-idm-female to-idm-female-light'
         }`} />
 
-        <div className="p-5 pt-3 relative">
+        <div className="modal-body pt-3 relative">
           {/* ═══ PESERTA VIEW ═══ */}
           {activeView === 'peserta' && (
             <>
               {isPlayerLoggedIn ? (
                 /* ── Player Already Logged In ── */
                 <div>
-                  <div className={`p-4 rounded-2xl ${effectiveDivision === 'male' ? 'bg-idm-male/5 border border-idm-male/20' : 'bg-idm-female/5 border border-idm-female/20'} mb-4`}>
+                  <div className={`modal-body-compact rounded-2xl ${effectiveDivision === 'male' ? 'bg-idm-male/5 border border-idm-male/20' : 'bg-idm-female/5 border border-idm-female/20'} mb-4`}>
                     <div className="flex items-center gap-3">
                       <SkinAvatarFrame skin={getPrimarySkin(playerAuth.account!.skins || [])}>
                         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border/20">
@@ -769,7 +769,7 @@ export function UnifiedLoginModal({ open, onOpenChange, defaultTab = 'peserta', 
                     </div>
                   </div>
 
-                  <form onSubmit={handlePlayerRegister} className="space-y-2.5 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                  <form onSubmit={handlePlayerRegister} className="space-y-2.5 modal-scroll pr-1">
                     {/* Nama/Nickname */}
                     <div className="space-y-1">
                       <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nama / Nickname <span className="text-idm-gold">*</span></label>

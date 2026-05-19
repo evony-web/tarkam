@@ -46,7 +46,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-3xl p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl">
+      <DialogContent className="modal-container modal-container-lg modal-enter-slide sm:max-w-3xl p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl">
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Video player for {title}</DialogDescription>
@@ -55,7 +55,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
         {/* Custom close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 transition-colors cursor-pointer"
+          className="modal-close"
           aria-label="Close video"
         >
           <X className="w-4 h-4" />

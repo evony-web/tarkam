@@ -323,14 +323,14 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
 
   const modal = (
     <div
-      className="animate-fade-enter-sm fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-3 sm:p-4 overflow-hidden"
+      className="modal-backdrop-heavy modal-backdrop-enter z-[9999] p-3 sm:p-4 overflow-hidden"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Profil Club ${club.name}`}
     >
       <div
-        className="animate-fade-enter bg-background w-full sm:max-w-md sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar"
+        className="modal-container modal-container-md modal-container-gold modal-enter-slide overflow-y-auto custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
           {/* ── Header Banner ── */}
@@ -368,7 +368,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             <button
               onClick={onClose}
               aria-label="Kembali"
-              className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-black/60 backdrop-blur-sm text-white/90 hover:bg-black/70 active:scale-95 transition-all border border-white/10 shadow-lg"
+              className="absolute top-3 left-3 z-20 modal-close-dark w-auto! h-auto! rounded-2xl! flex items-center gap-1.5 px-3 py-2 border border-white/10 shadow-lg backdrop-blur-sm"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-xs font-semibold">Kembali</span>
@@ -433,7 +433,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
           </div>
 
           {/* ── Content ── */}
-          <div className="px-4 pt-16 pb-6">
+          <div className="modal-body-compact pt-16! overflow-visible!">
             {/* Name & Division */}
             <div className="text-center mb-4">
               <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #F9CB25, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>

@@ -305,21 +305,21 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
+      <DialogContent className="modal-container modal-container-md modal-enter-slide sm:max-w-md p-0 gap-0 overflow-hidden bg-background border-border/50">
         <DialogTitle className="sr-only">Akun Pemain Tarkam IDM</DialogTitle>
         {/* Top accent bar */}
         <div className={`h-1 w-full bg-gradient-to-r ${effectiveDivision === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`} />
 
-        <div className="p-4 sm:p-6">
+        <div className="modal-body p-4 sm:p-6">
           {mode === 'choose' && (
             <div key="choose">
               {/* Header */}
-              <div className="text-center mb-6">
+              <div className="modal-header text-center mb-6">
                 <div className={`w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${effectiveDivision === 'male' ? 'from-idm-male/20 to-idm-male/5 border-idm-male/30' : 'from-idm-female/20 to-idm-female/5 border-idm-female/30'} border flex items-center justify-center`}>
                   <Gamepad2 className={`w-7 h-7 ${dt.text}`} />
                 </div>
-                <h2 className="text-lg font-bold">Akun Pemain</h2>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h2 className="modal-header-title text-lg font-bold">Akun Pemain</h2>
+                <p className="modal-header-subtitle text-xs text-muted-foreground mt-1">
                   Login untuk melihat statistik & prestasi kamu
                 </p>
               </div>
@@ -371,12 +371,12 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
           {mode === 'login' && (
             <div key="login">
               {/* Header */}
-              <div className="text-center mb-5">
+              <div className="modal-header text-center mb-5">
                 <div className={`w-12 h-12 mx-auto mb-2 rounded-2xl bg-gradient-to-br ${effectiveDivision === 'male' ? 'from-idm-male/20 to-idm-male/5 border-idm-male/30' : 'from-idm-female/20 to-idm-female/5 border-idm-female/30'} border flex items-center justify-center`}>
                   <LogIn className={`w-6 h-6 ${dt.text}`} />
                 </div>
-                <h2 className="text-base font-bold">Login Akun</h2>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
+                <h2 className="modal-header-title text-base font-bold">Login Akun</h2>
+                <p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">
                   Gunakan gamertag dan password kamu
                 </p>
               </div>
@@ -480,12 +480,12 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
           {mode === 'register' && (
             <div key="register">
               {/* Header */}
-              <div className="text-center mb-4">
+              <div className="modal-header text-center mb-4">
                 <div className="w-12 h-12 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-idm-gold/20 to-idm-gold/5 border border-idm-gold/30 flex items-center justify-center">
                   <UserPlus className="w-6 h-6 text-idm-gold" />
                 </div>
-                <h2 className="text-base font-bold">Daftar</h2>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
+                <h2 className="modal-header-title text-base font-bold">Daftar</h2>
+                <p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">
                   Isi data diri untuk mendaftar sebagai pemain turnamen
                 </p>
               </div>
@@ -498,7 +498,7 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
               </div>
 
               {/* Registration Form */}
-              <form onSubmit={handleRegister} className="space-y-3 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
+              <form onSubmit={handleRegister} className="modal-scroll space-y-3 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
                 {/* Nama/Gamertag */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Nama / Gamertag</label>
@@ -705,12 +705,12 @@ export function PlayerAccountModal({ open, onOpenChange }: PlayerAccountModalPro
           {mode === 'change-password' && (
             <div key="change-password">
               {/* Header */}
-              <div className="text-center mb-5">
+              <div className="modal-header text-center mb-5">
                 <div className={`w-12 h-12 mx-auto mb-2 rounded-2xl bg-gradient-to-br ${effectiveDivision === 'male' ? 'from-idm-male/20 to-idm-male/5 border-idm-male/30' : 'from-idm-female/20 to-idm-female/5 border-idm-female/30'} border flex items-center justify-center`}>
                   <KeyRound className={`w-6 h-6 ${dt.text}`} />
                 </div>
-                <h2 className="text-base font-bold">Ganti Password</h2>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Ubah password akun pemain kamu</p>
+                <h2 className="modal-header-title text-base font-bold">Ganti Password</h2>
+                <p className="modal-header-subtitle text-[10px] text-muted-foreground mt-0.5">Ubah password akun pemain kamu</p>
               </div>
 
               {/* Change Password Form */}

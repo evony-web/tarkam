@@ -112,14 +112,14 @@ export function MatchDetailModal({ matchId, onClose, preview }: MatchDetailModal
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
-        className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-background border-border"
+        className={`modal-container modal-container-lg modal-enter-slide p-0 gap-0 overflow-hidden ${dt.division === 'male' ? 'modal-container-male' : dt.division === 'female' ? 'modal-container-female' : ''}`}
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Detail Match</DialogTitle>
         <DialogDescription className="sr-only">Detail pertandingan antar club</DialogDescription>
 
         {/* Header: Back + Week, Format, Status */}
-        <div className={`px-4 pt-4 pb-3 border-b ${dt.borderSubtle}`}>
+        <div className={`modal-header ${dt.division === 'male' ? 'modal-header-male' : dt.division === 'female' ? 'modal-header-female' : ''}`}>
           <div className="flex items-center gap-2 mb-2">
             <button onClick={onClose} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-idm-gold-warm transition-colors" aria-label="Kembali">
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export function MatchDetailModal({ matchId, onClose, preview }: MatchDetailModal
         </div>
 
         {/* Score header */}
-        <div className={`px-4 py-4 border-b ${dt.borderSubtle}`}>
+        <div className="px-5 py-4 border-b border-border">
           <div className="flex items-center justify-center gap-3">
             {/* Club 1 */}
             <div className="flex-1 text-center">
@@ -199,7 +199,7 @@ export function MatchDetailModal({ matchId, onClose, preview }: MatchDetailModal
 
         {/* MVP Section */}
         {mvpPlayer && (
-          <div className={`mx-4 mt-3 p-3 sm:p-4 rounded-lg bg-yellow-500/5 border border-yellow-500/10 flex items-center gap-2.5`}>
+          <div className="mx-5 mt-3 p-3 sm:p-4 rounded-lg bg-yellow-500/5 border border-yellow-500/10 flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-full bg-yellow-500/15 flex items-center justify-center shrink-0">
               <Star className="w-3.5 h-3.5 text-yellow-500" />
             </div>
@@ -222,7 +222,7 @@ export function MatchDetailModal({ matchId, onClose, preview }: MatchDetailModal
 
         {/* Rosters */}
         {data && (
-          <div className="px-4 py-3 space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
+          <div className="modal-body-compact modal-scroll space-y-4">
             {/* Club 1 Roster */}
             <div>
               <div className="flex items-center gap-2 mb-2">

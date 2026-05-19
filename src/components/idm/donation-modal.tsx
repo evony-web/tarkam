@@ -281,14 +281,14 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md p-0 overflow-hidden border-border/50 bg-background">
+      <DialogContent showCloseButton={false} className={`modal-container modal-container-md modal-enter-slide ${effectiveDivision === 'female' ? 'modal-container-female' : 'modal-container-male'} sm:max-w-md p-0 overflow-hidden border-border/50 bg-background`}>
         {/* Accessible title - visually hidden */}
         <DialogHeader className="sr-only">
           <DialogTitle>{config.title}</DialogTitle>
           <DialogDescription>{config.subtitle}</DialogDescription>
         </DialogHeader>
         {/* Header with animated gradient + custom close button */}
-        <div className={`relative h-28 bg-gradient-to-br ${step === 'division' ? 'from-cyan-600 via-purple-600 to-idm-gold-warm' : config.gradient} overflow-hidden`}>
+        <div className={`modal-header-gradient bg-gradient-to-br ${step === 'division' ? 'from-cyan-600 via-purple-600 to-idm-gold-warm' : config.gradient}`}>
           <div className="absolute inset-0 bg-black/20" />
           {/* Animated sparkles — CSS animation instead of framer-motion */}
           <div
@@ -308,14 +308,14 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
               )}
             </div>
             <div>
-              <h2 className="text-lg font-black text-white drop-shadow-sm">
+              <h2 className="modal-header-title text-lg font-black text-white drop-shadow-sm">
                 {step === 'division'
                   ? 'Pilih Divisi'
                   : step === 'result' && submitResult?.success
                   ? 'Terima Kasih!'
                   : config.title}
               </h2>
-              <p className="text-[11px] text-white/80 max-w-[220px]">
+              <p className="modal-header-subtitle text-[11px] text-white/80 max-w-[220px]">
                 {step === 'division'
                   ? 'Sawer untuk prize pool divisi mana?'
                   : step === 'result' && submitResult?.success
@@ -328,13 +328,13 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           <button
             onClick={handleClose}
             aria-label="Tutup"
-            className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"
+            className="modal-close-dark"
           >
             <X className="w-4 h-4 text-white" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="modal-body">
 
           {/* ═══════════════ STEP 1: FORM ═══════════════ */}
           {step === 'form' && (
@@ -385,7 +385,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                     </span>
                   )}
                 </div>
-                <div className="max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]">
+                <div className="modal-scroll max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]">
                   {isDonorLoading ? (
                     <div className="py-6 text-center">
                       <Loader2 className="w-5 h-5 text-idm-gold-warm animate-spin mx-auto mb-1.5" />

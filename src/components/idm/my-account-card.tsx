@@ -259,40 +259,40 @@ function ChangePasswordModal({ onClose, onSuccess }: { onClose: () => void; onSu
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="modal-backdrop modal-backdrop-enter z-[9999] p-3 sm:p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-sm mx-4 bg-background border border-border/50 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="modal-container modal-container-md modal-enter-slide">
         {/* Top accent */}
         <div className="h-1 w-full bg-gradient-to-r from-idm-gold to-idm-gold-light" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2">
+        <div className="modal-header">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-idm-gold/10 border border-idm-gold/20 flex items-center justify-center">
               <KeyRound className="w-4 h-4 text-idm-gold" />
             </div>
             <div>
-              <h2 className="text-sm font-bold">Ganti Password</h2>
+              <h2 className="modal-header-title">Ganti Password</h2>
               <p className="text-[10px] text-muted-foreground">Ubah password akun kamu</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-muted/40 hover:bg-muted/60 flex items-center justify-center transition-colors"
+            className="modal-close"
           >
             <X className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-5 pt-2 space-y-3">
+        <form onSubmit={handleSubmit} className="modal-body-compact">
           {/* Current Password */}
           <div className="space-y-1">
             <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Password Lama</label>
