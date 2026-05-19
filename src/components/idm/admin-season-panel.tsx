@@ -6,7 +6,8 @@ import { broadcastInvalidation } from '@/lib/cross-tab-sync';
 import Image from 'next/image';
 import {
   Calendar, Crown, Trophy, Plus, Loader2, Check, X, Edit3,
-  Shield, Play, Flag, ChevronDown, ChevronUp, Star, Trash2, User, Lock
+  Shield, Play, Flag, ChevronDown, ChevronUp, Star, Trash2, User, Lock,
+  Heart, Gem
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,8 @@ interface SeasonData {
   championSquad?: Array<{ id: string; gamertag: string; division: string; role: string }> | null;
   championPlayerId?: string | null;
   championPlayer?: { id: string; gamertag: string; division: string; avatar: string | null; points: number } | null;
+  sultanPlayerId?: string | null;
+  sultanPlayer?: { id: string; gamertag: string; division: string; avatar: string | null; points: number; tier: string; totalWins: number; totalMvp: number; streak: number; maxStreak: number; matches: number } | null;
   players?: Array<{ id: string; gamertag: string; division: string; avatar: string | null; points: number; tournamentCount: number }>;
   availableProfiles?: Array<{ id: string; name: string; logo: string | null; memberCount: number }>;
   _count: { tournaments: number; clubs: number };
@@ -99,6 +102,9 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
   const [selectedChampionPlayer, setSelectedChampionPlayer] = useState<string>('');
   const [championPlayerSearch, setChampionPlayerSearch] = useState<string>('');
   const [editingStatus, setEditingStatus] = useState<string | null>(null);
+  const [editingSultan, setEditingSultan] = useState<string | null>(null);
+  const [selectedSultan, setSelectedSultan] = useState<string>('');
+  const [sultanSearch, setSultanSearch] = useState<string>('');
   const [editingSquad, setEditingSquad] = useState(false);
   const [squadSelection, setSquadSelection] = useState<Array<{id: string; gamertag: string; division: string; role: string}>>([]);
   const [confirmLocal, setConfirmLocal] = useState<{
@@ -205,6 +211,9 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
       setChampionPlayerSearch('');
       setEditingStatus(null);
       setEditingSquad(false);
+      setEditingSultan(null);
+      setSelectedSultan('');
+      setSultanSearch('');
     },
     onError: (e: Error) => { toast.error(e.message); },
   });
@@ -882,6 +891,186 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                 </>
                               )}
                             </div>
+
+
+
+                            {/* ── Sultan of Season Management (Tarkam only) ── */}
+                            {isTarkam && (
+                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                    <Heart className="w-3.5 h-3.5 text-rose-500" /> Sultan of Season
+                                  </p>
+                                  {!editingSultan && (
+                                    <Button size="sm" variant="outline" className="text-sm h-8"
+                                      onClick={() => {
+                                        setEditingSultan(season.id);
+                                        setSelectedSultan(seasonDetail?.sultanPlayerId || '');
+                                        setSultanSearch('');
+                                      }}>
+                                      <Edit3 className="w-3 h-3 mr-1" />
+                                      {seasonDetail?.sultanPlayerId ? 'Ubah' : 'Set Sultan'}
+                                    </Button>
+                                  )}
+                                </div>
+
+                                {/* Current sultan player display */}
+                                {seasonDetail?.sultanPlayer && !editingSultan && (
+                                  <div className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-500/5 border border-rose-500/10">
+                                    <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border-2 border-rose-500/30">
+                                      <Image
+                                        src={getAvatarUrl(seasonDetail.sultanPlayer.gamertag, seasonDetail.sultanPlayer.division as 'male' | 'female', seasonDetail.sultanPlayer.avatar)}
+                                        alt={seasonDetail.sultanPlayer.gamertag}
+                                        width={40}
+                                        height={40}
+                                        loading="lazy"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm font-bold text-rose-500">{seasonDetail.sultanPlayer.gamertag}</p>
+                                        <Badge className="bg-rose-500/10 text-rose-500 text-xs border-0">
+                                          <Heart className="w-3 h-3 mr-0.5" /> SULTAN
+                                        </Badge>
+                                        <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize">
+                                          {seasonDetail.sultanPlayer.division}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground">Top Penyawer Season {seasonDetail?.number} • {seasonDetail.sultanPlayer.points}pts</p>
+                                    </div>
+                                    <Button
+                                      size="sm" variant="ghost"
+                                      className="h-8 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                      onClick={() => {
+                                        setConfirmLocal({
+                                          open: true,
+                                          title: 'Hapus Sultan of Season?',
+                                          description: 'Hapus Sultan of Season dari season ini?',
+                                          onConfirm: () => {
+                                            updateSeason.mutate({
+                                              seasonId: season.id,
+                                              data: { sultanPlayerId: null },
+                                            });
+                                          },
+                                        });
+                                      }}
+                                    >
+                                      <X className="w-3 h-3 mr-1" /> Hapus
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {/* No sultan yet */}
+                                {!seasonDetail?.sultanPlayer && !editingSultan && (
+                                  <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                    <Heart className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
+                                    <p className="text-sm text-muted-foreground">Belum ada Sultan of Season untuk season ini</p>
+                                    <p className="text-xs text-muted-foreground/60 mt-0.5">Klik "Set Sultan" untuk menentukan top penyawer</p>
+                                  </div>
+                                )}
+
+                                {/* Sultan editing mode */}
+                                {editingSultan && (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-muted-foreground">Pilih pemain Sultan of Season untuk Season {seasonDetail?.number}:</p>
+                                    <Input
+                                      placeholder="Cari gamertag..."
+                                      value={sultanSearch}
+                                      onChange={(e) => setSultanSearch(e.target.value)}
+                                      className="text-xs h-8"
+                                    />
+                                    <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
+                                      {seasonDetail?.players
+                                        ?.filter(p => !sultanSearch.trim() || p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase()))
+                                        .map((player) => (
+                                        <div
+                                          key={player.id}
+                                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                            selectedSultan === player.id
+                                              ? 'border-rose-500/30 bg-rose-500/5'
+                                              : 'border-border/20 bg-card/30 hover:bg-muted/20'
+                                          }`}
+                                          onClick={() => setSelectedSultan(player.id)}
+                                        >
+                                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                                            <Image
+                                              src={getAvatarUrl(player.gamertag, player.division as 'male' | 'female', player.avatar)}
+                                              alt={player.gamertag}
+                                              width={32}
+                                              height={32}
+                                              loading="lazy"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium truncate">{player.gamertag}</p>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                              <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                                {player.division}
+                                              </Badge>
+                                              <span>•</span>
+                                              <span>{player.points}pts</span>
+                                              <span>•</span>
+                                              <span>{player.tournamentCount} tourney</span>
+                                            </div>
+                                          </div>
+                                          {selectedSultan === player.id && (
+                                            <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center shrink-0">
+                                              <Check className="w-3 h-3 text-white" />
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                      {(!seasonDetail?.players || seasonDetail.players.length === 0) && (
+                                        <p className="text-sm text-muted-foreground text-center py-4">
+                                          Belum ada pemain yang berpartisipasi di season ini
+                                        </p>
+                                      )}
+                                      {seasonDetail?.players && seasonDetail.players.length > 0 && sultanSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(sultanSearch.toLowerCase())).length === 0 && (
+                                        <p className="text-sm text-muted-foreground text-center py-2">
+                                          Pemain tidak ditemukan
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        size="sm"
+                                        className="text-sm bg-rose-600 hover:bg-rose-700 text-white"
+                                        disabled={!selectedSultan || updateSeason.isPending}
+                                        onClick={() => {
+                                          setConfirmLocal({
+                                            open: true,
+                                            title: 'Set Sultan of Season?',
+                                            description: `Set pemain ini sebagai Sultan of Season ${seasonDetail?.number}?`,
+                                            onConfirm: () => {
+                                              updateSeason.mutate({
+                                                seasonId: season.id,
+                                                data: { sultanPlayerId: selectedSultan },
+                                              });
+                                            },
+                                          });
+                                        }}
+                                      >
+                                        {updateSeason.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Heart className="w-3 h-3 mr-1" />}
+                                        Set Sultan
+                                      </Button>
+                                      <Button
+                                        size="sm" variant="ghost"
+                                        className="text-sm"
+                                        onClick={() => {
+                                          setEditingSultan(null);
+                                          setSelectedSultan('');
+                                          setSultanSearch('');
+                                        }}
+                                      >
+                                        Batal
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
 
 

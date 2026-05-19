@@ -26,6 +26,7 @@ export async function GET(
       donations: { orderBy: { createdAt: 'desc' } },
       championClub: { select: { id: true, name: true, logo: true } },
       championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
+      sultanPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true, tier: true, totalWins: true, totalMvp: true, streak: true, maxStreak: true, matches: true } },
       _count: { select: { tournaments: true, clubs: true, donations: true } },
     },
   });
@@ -173,7 +174,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  const { name, status, championClubId, championPlayerId, championPlayerPoints, championSquad, endDate } = body;
+  const { name, status, championClubId, championPlayerId, championPlayerPoints, championSquad, endDate, sultanPlayerId } = body;
 
   const season = await db.season.findUnique({ where: { id } });
   if (!season) {
@@ -208,6 +209,14 @@ export async function PUT(
     }
   }
 
+  // Validate sultanPlayerId if provided (Sultan of Season — references Player)
+  if (sultanPlayerId !== undefined && sultanPlayerId !== null) {
+    const player = await db.player.findUnique({ where: { id: sultanPlayerId } });
+    if (!player) {
+      return NextResponse.json({ error: 'Sultan of Season tidak ditemukan' }, { status: 400 });
+    }
+  }
+
   // Validate championSquad if provided — must be array with max 5 members
   if (championSquad !== undefined) {
     if (championSquad !== null && !Array.isArray(championSquad)) {
@@ -229,6 +238,7 @@ export async function PUT(
   if (status !== undefined) updateData.status = status;
   if (championClubId !== undefined) updateData.championClubId = championClubId || null;
   if (championPlayerId !== undefined) updateData.championPlayerId = championPlayerId || null;
+  if (sultanPlayerId !== undefined) updateData.sultanPlayerId = sultanPlayerId || null;
   if (championPlayerPoints !== undefined) updateData.championPlayerPoints = championPlayerPoints || null;
   if (championSquad !== undefined) updateData.championSquad = championSquad ? JSON.stringify(championSquad) : null;
   if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
@@ -317,6 +327,7 @@ export async function PUT(
     include: {
       championClub: { select: { id: true, name: true, logo: true } },
       championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
+      sultanPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true, tier: true, totalWins: true, totalMvp: true, streak: true, maxStreak: true, matches: true } },
       _count: { select: { tournaments: true, clubs: true } },
     },
   });
