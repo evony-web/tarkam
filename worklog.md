@@ -1244,3 +1244,20 @@ Note: Inner backdrop div (`absolute inset-0 bg-black/90` with onClick) kept for 
 - No logic or data flow changes — only CSS class replacements
 - Top accent gradient bar preserved on ChangePasswordModal
 - Inner backdrop click handlers preserved in all modals
+
+---
+Task ID: modal-fix-1
+Agent: Main Agent
+Task: Fix 3 broken modals: DonationModal (can't scroll), RegistrationModal (close button misplaced), ClubProfile (cut off, logo truncated, hard to scroll)
+
+Work Log:
+- **DonationModal fix**: Added `flex flex-col max-h-[90vh] overflow-hidden` to DialogContent to override shadcn's `grid` layout (which prevented flex-based scrolling). Added `shrink-0` to header gradient. Changed `modal-body` to `modal-body flex-1 min-h-0 overflow-y-auto` for proper constrained scrolling.
+- **RegistrationModal fix**: Added `justify-between` to modal-header div so close button is pushed to the right edge. Added `min-w-0` to title area and `shrink-0` to icon/buttons for proper flex overflow handling.
+- **ClubProfile fix**: Changed container from `max-h-[90vh] overflow-y-auto custom-scrollbar` to `max-h-[90vh] flex flex-col overflow-hidden` — separates non-scrolling banner from scrollable content. Banner now `shrink-0` with increased height (h-48/56/64). Logo repositioned from `-bottom-12` to `-bottom-10` and removed `overflow-hidden` from logo container. Content section now has `flex-1 min-h-0 overflow-y-auto custom-scrollbar` for proper constrained scrolling.
+- **CSS fix**: Added `justify-content: space-between` to `.modal-header` in globals.css as default behavior (most headers need close button on the right).
+
+Stage Summary:
+- DonationModal now scrollable (flex column layout instead of grid)
+- RegistrationModal close button properly positioned on the right
+- ClubProfile: banner stays fixed while content scrolls, SVG logo no longer truncated
+- Dev server compiles without errors

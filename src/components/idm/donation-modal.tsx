@@ -281,14 +281,14 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent showCloseButton={false} className={`modal-container modal-container-md modal-enter-slide ${effectiveDivision === 'female' ? 'modal-container-female' : 'modal-container-male'} sm:max-w-md p-0 overflow-hidden border-border/50 bg-background`}>
+      <DialogContent showCloseButton={false} className={`flex flex-col modal-container modal-container-md modal-enter-slide ${effectiveDivision === 'female' ? 'modal-container-female' : 'modal-container-male'} sm:max-w-md p-0 max-h-[90vh] overflow-hidden border-border/50 bg-background`}>
         {/* Accessible title - visually hidden */}
         <DialogHeader className="sr-only">
           <DialogTitle>{config.title}</DialogTitle>
           <DialogDescription>{config.subtitle}</DialogDescription>
         </DialogHeader>
         {/* Header with animated gradient + custom close button */}
-        <div className={`modal-header-gradient bg-gradient-to-br ${step === 'division' ? 'from-cyan-600 via-purple-600 to-idm-gold-warm' : config.gradient}`}>
+        <div className={`modal-header-gradient shrink-0 bg-gradient-to-br ${step === 'division' ? 'from-cyan-600 via-purple-600 to-idm-gold-warm' : config.gradient}`}>
           <div className="absolute inset-0 bg-black/20" />
           {/* Animated sparkles — CSS animation instead of framer-motion */}
           <div
@@ -334,7 +334,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body flex-1 min-h-0 overflow-y-auto">
 
           {/* ═══════════════ STEP 1: FORM ═══════════════ */}
           {step === 'form' && (

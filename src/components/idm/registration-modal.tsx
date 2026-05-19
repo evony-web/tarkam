@@ -389,12 +389,12 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className={`modal-header ${step === 'form' ? (division === 'male' ? 'modal-header-male' : 'modal-header-female') : ''}`}>
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${step === 'pick' ? 'bg-idm-gold-warm/10' : division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
+          <div className={`modal-header justify-between ${step === 'form' ? (division === 'male' ? 'modal-header-male' : 'modal-header-female') : ''}`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${step === 'pick' ? 'bg-idm-gold-warm/10' : division === 'male' ? 'bg-idm-male/10' : 'bg-idm-female/10'}`}>
                 <UserPlus className={`w-5 h-5 ${step === 'pick' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="modal-header-title text-gradient-fury">
                   {step === 'pick' ? 'Pilih Divisi' : 'Daftar Peserta'}
                 </h2>
@@ -403,7 +403,7 @@ export function RegistrationModal({ open, onClose, defaultDivision }: Registrati
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {step === 'form' && (
                 <button
                   onClick={() => setStep('pick')}

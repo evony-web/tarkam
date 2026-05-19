@@ -330,11 +330,11 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
       aria-label={`Profil Club ${club.name}`}
     >
       <div
-        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] overflow-y-auto custom-scrollbar"
+        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-          {/* ── Header Banner ── */}
-          <div className="relative h-40 sm:h-48 md:h-56">
+          {/* ── Header Banner (non-scrolling) ── */}
+          <div className="relative h-48 sm:h-56 md:h-64 shrink-0">
   {/* FIX: Jangan render bg-section.jpg sebagai fallback */}
   {(() => {
   const bannerSrc = unifiedData?.bannerImage || club.bannerImage;
@@ -400,8 +400,8 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             )}
 
             {/* ── Large Club Logo ── */}
-            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 z-10">
-              <div className={`rounded-2xl border-4 border-background overflow-hidden ${
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-10">
+              <div className={`rounded-2xl border-4 border-background ${
                 isChampion ? 'bg-yellow-500/5' : ''
               }`}>
                 {club.logo ? (
@@ -426,14 +426,16 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
                     )}
                   </div>
                 ) : (
-                  <ClubLogo name={club.name} size={100} isChampion={isChampion} />
+                  <div className="pt-1">
+                    <ClubLogo name={club.name} size={96} isChampion={isChampion} />
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* ── Content ── */}
-          <div className="modal-body-compact pt-16! overflow-visible!">
+          {/* ── Content (scrollable) ── */}
+          <div className="modal-body-compact pt-14! flex-1 min-h-0 overflow-y-auto custom-scrollbar">
             {/* Name & Division */}
             <div className="text-center mb-4">
               <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #F9CB25, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>
