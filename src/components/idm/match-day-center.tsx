@@ -804,7 +804,7 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
                   week={w}
                   dt={ct}
                   accentColor={divisionAccentColor}
-                  defaultExpanded={idx < 2}
+                  defaultExpanded={idx === 0}
                 />
               ))}
 
