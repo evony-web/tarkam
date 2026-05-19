@@ -28,7 +28,7 @@ export function Ticker() {
           100% { transform: translateX(-50%); }
         }
         .animate-marquee {
-          animation: marquee 30s linear infinite;
+          animation: marquee 50s linear infinite;
         }
       `}</style>
     </section>

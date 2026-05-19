@@ -2562,7 +2562,7 @@ div.group:hover .donor-rank-badge {
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 50s linear infinite;
 }
 
 .animate-marquee:hover {
@@ -10930,7 +10930,7 @@ main, [role="main"] {
   /* Marquee ticker: keep running but slow it down for reduced-motion users */
   .marquee-track {
     animation-name: marquee-scroll !important;
-    animation-duration: 120s !important;
+    animation-duration: 180s !important;
     animation-iteration-count: infinite !important;
     animation-timing-function: linear !important;
     animation-fill-mode: none !important;
@@ -11414,7 +11414,7 @@ main, [role="main"] {
   /* Marquee ticker exception — core UI element, keep running but slower */
   .marquee-track {
     animation-name: marquee-scroll !important;
-    animation-duration: 120s !important;
+    animation-duration: 180s !important;
     animation-iteration-count: infinite !important;
     animation-timing-function: linear !important;
     animation-fill-mode: none !important;

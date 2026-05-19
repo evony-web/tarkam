@@ -14,9 +14,9 @@ import type { StatsData } from '@/types/stats';
 
 /* ========== Speed Configuration ========== */
 // Duration in seconds for one full scroll cycle — longer = slower (more readable)
-// ESPN-style: fast enough to feel alive, slow enough to read headlines
-const DESKTOP_DURATION = 55;
-const MOBILE_DURATION = 65;
+// Smooth & readable: slow enough to comfortably read, still feels alive
+const DESKTOP_DURATION = 90;
+const MOBILE_DURATION = 110;
 const MOBILE_BREAKPOINT = 768;
 
 /* ========== Feed Item Types ========== */
