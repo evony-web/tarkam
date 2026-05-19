@@ -104,7 +104,7 @@ const StepGuide = memo(function StepGuide({ status }: { status: string }) {
   if (!guide) return null;
 
   return (
-    <div className="p-4 rounded-2xl bg-idm-gold-warm/5 border border-idm-gold-warm/20">
+    <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
       <div
         className="flex items-center gap-2 cursor-pointer select-none"
         onClick={() => setGuideCollapsed(c => !c)}
@@ -120,13 +120,13 @@ const StepGuide = memo(function StepGuide({ status }: { status: string }) {
           <ol className="space-y-1 ml-7 mt-2">
             {guide.steps.map((s, i) => (
               <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
-                <span className="text-idm-gold-warm/50 font-mono text-[10px] mt-0.5">{i + 1}.</span>
+                <span className="text-idm-gold-warm/50 font-mono text-xs mt-0.5">{i + 1}.</span>
                 <span>{s}</span>
               </li>
             ))}
           </ol>
           {guide.tip && (
-            <p className="text-[10px] text-idm-gold-warm/60 mt-2 ml-7 flex items-start gap-1">
+            <p className="text-sm text-idm-gold-warm/60 mt-2 ml-7 flex items-start gap-1">
               <span>💡</span> <span>{guide.tip}</span>
             </p>
           )}
@@ -203,30 +203,30 @@ function AdminMatchCard({ m, labelOverride, selected, getTeamName, scoreInputs, 
 
   return (
     <div className={`p-2.5 rounded-lg border text-xs transition-all ${
-      isLive ? 'bg-red-500/5 border-red-500/20 shadow-[0_0_8px_rgba(239,68,68,0.1)]' :
+      isLive ? 'bg-red-500/5 border-red-500/20' :
       isCompleted ? 'bg-muted/30 border-border/20' :
       isReady ? 'bg-green-500/5 border-green-500/20' :
-      isGrandFinal ? 'bg-idm-gold-warm/5 border-idm-gold-warm/25 shadow-[0_0_12px_rgba(239,249,35,0.1)]' :
+      isGrandFinal ? 'bg-idm-gold-warm/5 border-idm-gold-warm/25' :
       is3rd ? 'bg-orange-500/5 border-orange-500/15' :
       'bg-muted/20 border-border/10'
     }`}>
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           {matchLabel ? (
-            <Badge className={`text-[8px] border-0 ${
+            <Badge className={`text-xs border-0 ${
               isGrandFinal ? 'bg-idm-gold-warm/15 text-idm-gold-warm' :
               is3rd ? 'bg-orange-500/10 text-orange-400' :
               isSF ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
               'bg-muted/50'
             }`}>{matchLabel}</Badge>
           ) : (
-            <Badge className="text-[8px] border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
+            <Badge className="text-xs border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
           )}
-          <Badge className="text-[8px] border-0 bg-muted/50">{m.format}</Badge>
-          {isLive && <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
-          {isCompleted && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
-          {isReady && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">Siap</Badge>}
-          {isPending && <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}
+          <Badge className="text-xs border-0 bg-muted/50">{m.format}</Badge>
+          {isLive && <Badge className="text-xs border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
+          {isCompleted && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
+          {isReady && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">Siap</Badge>}
+          {isPending && <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}
         </div>
         {m.winner && <span className="text-idm-gold-warm font-semibold">👑 {m.winner.name}</span>}
       </div>
@@ -234,23 +234,23 @@ function AdminMatchCard({ m, labelOverride, selected, getTeamName, scoreInputs, 
       <div className="flex items-center gap-2">
         <div className={`flex-1 ${m.winnerId === m.team1Id ? 'font-bold text-idm-gold-warm' : ''}`}>
           {getTeamName(m.team1Id)}
-          {m.team1 && <span className="text-[9px] text-muted-foreground ml-1">({m.team1.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', ')})</span>}
+          {m.team1 && <span className="text-xs text-muted-foreground ml-1">({m.team1.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', ')})</span>}
         </div>
         {hasScore ? (
           <span className="font-mono font-bold">{m.score1} - {m.score2}</span>
         ) : <span className="text-muted-foreground">vs</span>}
         <div className={`flex-1 text-right ${m.winnerId === m.team2Id ? 'font-bold text-idm-gold-warm' : ''}`}>
           {getTeamName(m.team2Id)}
-          {m.team2 && <span className="text-[9px] text-muted-foreground ml-1">({m.team2.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', ')})</span>}
+          {m.team2 && <span className="text-xs text-muted-foreground ml-1">({m.team2.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', ')})</span>}
         </div>
       </div>
 
-      {m.mvpPlayer && <p className="text-[9px] text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
+      {m.mvpPlayer && <p className="text-xs text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
 
       {/* Undo button for completed matches */}
       {selected.status === 'main_event' && isCompleted && m.team1Id && m.team2Id && (
         <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-          <Button size="sm" variant="outline" className="text-[10px] h-6 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
+          <Button size="sm" variant="outline" className="text-sm h-8 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
             disabled={undoScoreMutation.isPending}
             onClick={() => {
               setConfirmDialog({
@@ -268,7 +268,7 @@ function AdminMatchCard({ m, labelOverride, selected, getTeamName, scoreInputs, 
       {selected.status === 'main_event' && m.team1Id && m.team2Id && !isCompleted && (
         <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
           {(isReady || isPending) && (
-            <Button size="sm" className="text-[10px] h-6 bg-green-600 hover:bg-green-700 text-white"
+            <Button size="sm" className="text-sm h-8 bg-green-600 hover:bg-green-700 text-white"
               disabled={startMatchMutation.isPending}
               onClick={() => startMatchMutation.mutate({ tournamentId: selected.id, matchId: m.id })}>
               <Play className="w-3 h-3 mr-1" /> Start
@@ -276,14 +276,14 @@ function AdminMatchCard({ m, labelOverride, selected, getTeamName, scoreInputs, 
           )}
           {isLive && (
             <>
-              <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-6 text-[10px]"
+              <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-8 text-sm"
                 value={scoreInputs[m.id]?.s1 ?? ''}
                 onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 ?? '' } }))} />
-              <span className="text-[10px] text-muted-foreground">vs</span>
-              <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-6 text-[10px]"
+              <span className="text-xs text-muted-foreground">vs</span>
+              <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-8 text-sm"
                 value={scoreInputs[m.id]?.s2 ?? ''}
                 onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 ?? '' } }))} />
-              <Button size="sm" className="text-[10px] h-6 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
+              <Button size="sm" className="text-sm h-8 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
                 disabled={scoreInputs[m.id]?.s1 == null || scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s2 == null || scoreInputs[m.id]?.s2 === '' || scoreMutation.isPending}
                 onClick={() => {
                   const s1 = parseInt(scoreInputs[m.id].s1);
@@ -744,7 +744,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Plus className={`w-4 h-4 ${dt.neonText}`} /> Buat Tournament Baru
             </h3>
-            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
               onClick={() => setShowCreateForm(false)}>
               <X className="w-3.5 h-3.5" />
             </Button>
@@ -773,7 +773,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             <Input placeholder="Lokasi" value={newForm.location} onChange={e => setNewForm(f => ({ ...f, location: e.target.value }))} />
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3 text-muted-foreground shrink-0" />
-              <span className="text-[10px] text-muted-foreground shrink-0">Jadwal (WIB)</span>
+              <span className="text-sm text-muted-foreground shrink-0">Jadwal (WIB)</span>
               <Input type="datetime-local" value={newForm.scheduledAt} onChange={e => setNewForm(f => ({ ...f, scheduledAt: e.target.value }))} className="h-9 text-sm" />
             </div>
             <Button size="sm" disabled={!newForm.name || !newForm.weekNumber || !seasonId || createMutation.isPending}
@@ -789,12 +789,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             </Button>
           </div>
           {!seasonId ? (
-            <div className="flex items-center gap-2 mt-2 p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+            <div className="flex items-center gap-2 mt-2 p-3 rounded-lg bg-red-500/10 border border-border">
               <span className="text-xs">⚠️</span>
               <p className="text-[11px] text-red-400 font-medium">Buat season terlebih dahulu di tab <strong>"Season"</strong> sebelum membuat tournament.</p>
             </div>
           ) : !newForm.name || !newForm.weekNumber ? (
-            <p className="text-[10px] text-muted-foreground mt-2">💡 Isi <strong>Nama Tournament</strong> dan <strong>Week #</strong> untuk mengaktifkan tombol Buat.</p>
+            <p className="text-sm text-muted-foreground mt-2">Isi <strong>Nama Tournament</strong> dan <strong>Week #</strong> untuk mengaktifkan tombol Buat.</p>
           ) : null}
         </CardContent>
       </Card>
@@ -834,7 +834,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
           const stepPct = Math.round(((stepIdx + 1) / STEPS.length) * 100);
           return (
           <div key={t.id}>
-            <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-colors duration-150 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''} ${isLive ? 'shadow-red-500/10 shadow-md' : dt.casinoGlow}`}
+            <Card className={`${dt.casinoCard} ${ss.bg} ${ss.border} cursor-pointer transition-colors duration-150 ${selectedId === t.id ? `ring-1 ring-idm-gold-warm` : ''}`}
               onClick={() => setSelectedId(selectedId === t.id ? null : t.id)}>
               <div className={`${ss.bar} h-1 transition-colors duration-300`} />
               <CardContent className="p-4 sm:p-6 relative z-10">
@@ -846,32 +846,32 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <StatusBadge status={t.status} />
-                      <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{FORMAT_LABELS[t.format] || t.format}</Badge>
-                      <span className="text-[10px] text-muted-foreground">Week {t.weekNumber}</span>
-                      <span className="text-[10px] text-muted-foreground">{formatCurrency(t.prizePool)}</span>
-                      {t.bpm && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Heart className="w-2.5 h-2.5 text-red-400" />{t.bpm} BPM</span>}
-                      {t.location && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{t.location}</span>}
-                      {t.scheduledAt && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Calendar className="w-2.5 h-2.5" />{(() => { const d = parseWIBDate(t.scheduledAt); return d ? `${formatWIBDateShort(d)}, ${formatWIBTime(d)}` : ''; })()}</span>}
+                      <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{FORMAT_LABELS[t.format] || t.format}</Badge>
+                      <span className="text-sm text-muted-foreground">Week {t.weekNumber}</span>
+                      <span className="text-sm text-muted-foreground">{formatCurrency(t.prizePool)}</span>
+                      {t.bpm && <span className="text-sm text-muted-foreground flex items-center gap-1"><Heart className="w-2.5 h-2.5 text-red-400" />{t.bpm} BPM</span>}
+                      {t.location && <span className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-2.5 h-2.5" />{t.location}</span>}
+                      {t.scheduledAt && <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="w-2.5 h-2.5" />{(() => { const d = parseWIBDate(t.scheduledAt); return d ? `${formatWIBDateShort(d)}, ${formatWIBTime(d)}` : ''; })()}</span>}
                       {t._count && <>
-                        <span className="text-[10px] text-muted-foreground">{t._count.teams} tim</span>
-                        <span className="text-[10px] text-muted-foreground">{t._count.participations} pemain</span>
+                        <span className="text-xs text-muted-foreground">{t._count.teams} tim</span>
+                        <span className="text-xs text-muted-foreground">{t._count.participations} pemain</span>
                       </>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
                     {/* Quick Action Button */}
                     <Button size="sm" variant="ghost"
-                      className={`h-7 px-2 text-[10px] font-medium ${na.color}`}
+                      className={`h-8 px-2 text-sm font-medium ${na.color}`}
                       onClick={() => setSelectedId(t.id)}
                       title={na.label}>
                       <span className="mr-1">{na.icon}</span>{na.label}
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-idm-gold-warm hover:text-idm-gold-warm/80 hover:bg-idm-gold-warm/10"
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-idm-gold-warm hover:text-idm-gold-warm/80 hover:bg-idm-gold-warm/10"
                       onClick={() => openEditDialog(t)} title="Edit Tournament">
                       <Pencil className="w-3 h-3" />
                     </Button>
                     {t.status !== 'completed' && (
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true, title: 'Hapus Tournament?',
                           description: `Tournament "${t.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
@@ -887,7 +887,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                     <div className={`h-full rounded-full transition-[width,colors] duration-300 ${ss.bar}`} style={{ width: `${stepPct}%` }} />
                   </div>
-                  <span className="text-[9px] text-muted-foreground shrink-0">{stepIdx + 1}/{STEPS.length}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">{stepIdx + 1}/{STEPS.length}</span>
                 </div>
               </CardContent>
             </Card>
@@ -900,7 +900,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
       {/* On desktop: hidden when spin is active (spin replaces it inline) */}
       {/* On mobile: hidden when spin is active (spin overlay covers it) */}
       {selected && !spinRevealData && (
-        <Card className={`${dt.casinoCard} border-idm-gold-warm/20`}>
+        <Card className={`${dt.casinoCard} border-border`}>
           <div className={dt.casinoBar} />
           <CardContent className="p-4 relative z-10 space-y-4">
             {/* Header + Step Progress */}
@@ -908,13 +908,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               <div>
                 <h3 className="text-sm font-semibold">{selected.name}</h3>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  {selected.bpm && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Heart className="w-2.5 h-2.5 text-red-400" />{selected.bpm} BPM</span>}
-                  {selected.location && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{selected.location}</span>}
-                  <span className="text-[10px] text-muted-foreground">💰 {formatCurrency(parseInt(manualPrizePool) || selected.prizePool || 0)}</span>
+                  {selected.bpm && <span className="text-sm text-muted-foreground flex items-center gap-1"><Heart className="w-2.5 h-2.5 text-red-400" />{selected.bpm} BPM</span>}
+                  {selected.location && <span className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-2.5 h-2.5" />{selected.location}</span>}
+                  <span className="text-sm text-muted-foreground">{formatCurrency(parseInt(manualPrizePool) || selected.prizePool || 0)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{FORMAT_LABELS[selected.format] || selected.format}</Badge>
+                <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{FORMAT_LABELS[selected.format] || selected.format}</Badge>
                 <StatusBadge status={selected.status} />
                 <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-idm-gold-warm hover:text-idm-gold-warm/80 hover:bg-idm-gold-warm/10"
                   onClick={() => openEditDialog(selected)} title="Edit Tournament">
@@ -942,8 +942,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 return (
                   <div key={step.key} className="flex items-center shrink-0">
                     <div
-                      className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all min-w-[80px] sm:min-w-[96px]
-                        ${isClickable ? 'bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 hover:scale-105 active:scale-100' :
+                      className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all min-w-[80px] sm:min-w-[96px]
+                        ${isClickable ? 'bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40' :
                           isCurrent ? 'bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40' :
                           'bg-muted/30 border border-border/10 opacity-50'}`}
                       onClick={() => {
@@ -973,11 +973,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       <span className="text-lg sm:text-xl leading-none">
                         {isCompleted ? '✅' : step.icon}
                       </span>
-                      <span className={`text-[10px] sm:text-xs font-semibold leading-tight text-center
+                      <span className={`text-xs sm:text-sm font-semibold leading-tight text-center
                         ${isCompleted ? 'text-green-500' : isCurrent ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
                         {step.label}
                       </span>
-                      <span className={`text-[8px] sm:text-[10px] leading-tight text-center hidden sm:block
+                      <span className={`text-xs sm:text-xs leading-tight text-center hidden sm:block
                         ${isCompleted ? 'text-green-400/70' : isCurrent ? 'text-idm-gold-warm/70' : 'text-muted-foreground/50'}`}>
                         {step.desc}
                       </span>
@@ -996,7 +996,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               <div className="flex sm:hidden items-center gap-2 py-2">
                 {currentStepIdx > 0 && (
                   <div
-                    className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 active:scale-95 transition-all"
+                    className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/20 hover:border-green-500/40 transition-all"
                     onClick={() => {
                       if (!selected) return;
                       const step = STEPS[currentStepIdx - 1];
@@ -1023,17 +1023,17 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     }}
                   >
                     <span className="text-base leading-none">✅</span>
-                    <span className="text-[9px] font-semibold text-green-500">{STEPS[currentStepIdx - 1].label}</span>
+                    <span className="text-xs font-semibold text-green-500">{STEPS[currentStepIdx - 1].label}</span>
                   </div>
                 )}
-                <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40">
+                <div className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-lg bg-idm-gold-warm/15 border-2 border-idm-gold-warm/40">
                   <span className="text-base leading-none">{STEPS[currentStepIdx].icon}</span>
-                  <span className="text-[9px] font-semibold text-idm-gold-warm">{STEPS[currentStepIdx].label}</span>
+                  <span className="text-xs font-semibold text-idm-gold-warm">{STEPS[currentStepIdx].label}</span>
                 </div>
                 {currentStepIdx < STEPS.length - 1 && (
-                  <div className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-muted/30 border border-border/10 opacity-50">
+                  <div className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-lg bg-muted/30 border border-border/10 opacity-50">
                     <span className="text-base leading-none">{STEPS[currentStepIdx + 1].icon}</span>
-                    <span className="text-[9px] font-semibold text-muted-foreground">{STEPS[currentStepIdx + 1].label}</span>
+                    <span className="text-xs font-semibold text-muted-foreground">{STEPS[currentStepIdx + 1].label}</span>
                   </div>
                 )}
               </div>
@@ -1049,7 +1049,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-blue-500 flex items-center gap-1.5">📋 Manajemen Peserta</p>
+                    <p className="text-sm font-semibold text-blue-500 flex items-center gap-1.5">Manajemen Peserta</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Daftarkan, setujui, dan atur tier pemain. ✓ = Setujui, ✗ = Tolak</p>
                   </div>
                   {selected.status === 'setup' && (
@@ -1064,14 +1064,14 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   <>
                     {/* ── SECTION 1: PESERTA MENUNGGU PERSETUJUAN (with ✓/✗) ── */}
                     {pendingApprovals.length > 0 && (
-                      <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4 space-y-3">
+                      <div className="border border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-yellow-400" />
                             <p className="text-sm font-semibold text-yellow-400">Menunggu Persetujuan</p>
-                            <Badge className="text-[10px] border-0 bg-yellow-500/20 text-yellow-400">{pendingApprovals.length}</Badge>
+                            <Badge className="text-xs border-0 bg-yellow-500/20 text-yellow-400">{pendingApprovals.length}</Badge>
                           </div>
-                          <Button size="sm" variant="outline" className="text-xs h-7"
+                          <Button size="sm" variant="outline" className="text-xs h-8"
                             disabled={approveMutation.isPending}
                             onClick={() => {
                               if (wouldBulkApproveBreakBalance) {
@@ -1113,26 +1113,26 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                                   <span className="text-sm flex-shrink-0">{tc.icon}</span>
                                   <TierBadge tier={effectiveTier} />
                                   <span className="text-xs font-medium truncate">{p.player.gamertag}</span>
-                                  <span className="text-[10px] text-muted-foreground flex-shrink-0">({p.player.tier}) {p.player.points}pts</span>
+                                  <span className="text-xs text-muted-foreground flex-shrink-0">({p.player.tier}) {p.player.points}pts</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 flex-shrink-0">
                                   <Select value={tierOverrides[p.playerId] || p.player.tier}
                                     onValueChange={v => setTierOverrides(prev => ({ ...prev, [p.playerId]: v }))}>
-                                    <SelectTrigger className="w-14 h-7 text-[11px]"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="w-14 h-8 text-[11px]"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="S">🔥 S</SelectItem>
                                       <SelectItem value="A">⚡ A</SelectItem>
                                       <SelectItem value="B">🛡️ B</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-500 hover:text-green-400 hover:bg-green-500/10"
                                     onClick={() => approveMutation.mutate({
                                       id: selected.id,
                                       data: { playerId: p.playerId, tier: tierOverrides[p.playerId] || p.player.tier, approve: true }
                                     })} title="Setujui">
                                     <Check className="w-4 h-4" />
                                   </Button>
-                                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                     onClick={() => {
                                       approveMutation.mutate({ id: selected.id, data: { playerId: p.playerId, approve: false } });
                                     }} title="Tolak">
@@ -1148,15 +1148,15 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     {/* ── SECTION 2: PESERTA DISETUJUI ── */}
                     {approvedParticipations.length > 0 && (
-                      <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-4 space-y-3">
+                      <div className="border border-border">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4 text-green-400" />
                             <p className="text-sm font-semibold text-green-400">Peserta Disetujui</p>
-                            <Badge className="text-[10px] border-0 bg-green-500/20 text-green-400">{approvedParticipations.length}</Badge>
+                            <Badge className="text-xs border-0 bg-green-500/20 text-green-400">{approvedParticipations.length}</Badge>
                           </div>
                           <Button size="sm" variant="outline"
-                            className="text-[10px] h-7 text-orange-500 border-orange-500/30 hover:bg-orange-500/10"
+                            className="text-sm h-8 text-orange-500 border-orange-500/30 hover:bg-orange-500/10"
                             disabled={unapproveMutation.isPending}
                             onClick={() => setConfirmDialog({
                               open: true, title: 'Batalkan Semua Persetujuan?',
@@ -1173,16 +1173,16 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             const effectiveTier = p.tierOverride || p.player?.tier || 'B';
                             const tc = TIER_COLORS[effectiveTier] || TIER_COLORS.B;
                             return (
-                              <div key={p.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-background/50">
+                              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className="text-sm flex-shrink-0">{tc.icon}</span>
                                   <TierBadge tier={effectiveTier} />
                                   <span className="text-xs font-medium truncate">{p.player?.gamertag}</span>
                                   {p.tierOverride && p.tierOverride !== p.player?.tier && (
-                                    <span className="text-[10px] text-muted-foreground">(asal: {p.player?.tier})</span>
+                                    <span className="text-xs text-muted-foreground">(asal: {p.player?.tier})</span>
                                   )}
                                 </div>
-                                <Button size="sm" variant="ghost" className="h-6 text-[10px] text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
+                                <Button size="sm" variant="ghost" className="h-8 text-sm text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
                                   disabled={unapproveMutation.isPending}
                                   onClick={() => unapproveMutation.mutate({ id: selected.id, data: { playerId: p.playerId } })}>
                                   <RotateCcw className="w-3 h-3 mr-0.5" /> Batalkan
@@ -1196,7 +1196,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     {/* ── SECTION 3: TIER BALANCE DASHBOARD ── */}
                     {(pendingApprovals.length > 0 || approvedParticipations.length > 0) && (
-                      <div className={`p-4 rounded-2xl border-2 transition-colors duration-150
+                      <div className={`p-4 rounded-lg border-2 transition-colors duration-150
                         ${isTierBalanced ? 'bg-green-500/5 border-green-500/30' : 'bg-red-500/5 border-red-500/30'}`}>
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-sm font-bold flex items-center gap-2">
@@ -1232,7 +1232,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                                   <div className={`h-full rounded-full ${tc.bar} transition-[width,colors] duration-300`} style={{ width: `${pct}%` }} />
                                 </div>
                                 {!isTierBalanced && deficit > 0 && (
-                                  <p className="text-[10px] text-red-400 mt-1 font-medium">Kurang {deficit}</p>
+                                  <p className="text-sm text-red-400 mt-1 font-medium">Kurang {deficit}</p>
                                 )}
                               </div>
                             );
@@ -1271,20 +1271,20 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           Generate Tim ({tierDist.S} tim)
                         </Button>
                         {!isTierBalanced && (
-                          <p className="text-[10px] text-red-400/80">Tier harus seimbang (S=A=B) untuk generate tim. Kurang: {tierMaxCount - tierDist.S}S, {tierMaxCount - tierDist.A}A, {tierMaxCount - tierDist.B}B</p>
+                          <p className="text-sm text-red-400/80">Tier harus seimbang (S=A=B) untuk generate tim. Kurang: {tierMaxCount - tierDist.S}S, {tierMaxCount - tierDist.A}A, {tierMaxCount - tierDist.B}B</p>
                         )}
                       </div>
                     )}
 
                     {/* ── SECTION 5: POOL PEMAIN TERSEDIA ── */}
-                    <div className="rounded-2xl border border-border/30 bg-muted/10 p-4 space-y-3">
+                    <div className="rounded-lg border border-border/30 bg-muted/10 p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <UserPlus className="w-4 h-4 text-muted-foreground" />
                           <p className="text-sm font-medium text-muted-foreground">Pool Pemain Tersedia</p>
-                          <Badge variant="outline" className="text-[10px]">{unregistered.length}</Badge>
+                          <Badge variant="outline" className="text-xs">{unregistered.length}</Badge>
                         </div>
-                        <Button size="sm" variant="outline" className="h-7 text-[10px]"
+                        <Button size="sm" variant="outline" className="h-8 text-sm"
                           disabled={unregistered.length === 0 || registerMutation.isPending}
                           onClick={() => setConfirmDialog({
                             open: true, title: 'Daftarkan Semua Player?',
@@ -1306,13 +1306,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           <p className="text-xs text-muted-foreground text-center py-4">{searchPlayer ? 'Tidak ditemukan' : 'Semua pemain sudah terdaftar'}</p>
                         )}
                         {filteredUnregistered.slice(0, 20).map((p: { id: string; gamertag: string; name: string; tier: string; points: number }) => (
-                          <div key={p.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg hover:bg-muted/40 transition-colors">
+                          <div key={p.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/40 transition-colors">
                             <div className="flex items-center gap-2">
                               <TierBadge tier={p.tier} />
                               <span className="text-xs font-medium">{p.gamertag}</span>
-                              <span className="text-[10px] text-muted-foreground">{p.points}pts</span>
+                              <span className="text-xs text-muted-foreground">{p.points}pts</span>
                             </div>
-                            <Button size="sm" variant="ghost" className={`h-7 text-xs ${dt.neonText}`}
+                            <Button size="sm" variant="ghost" className={`h-8 text-xs ${dt.neonText}`}
                               onClick={() => registerMutation.mutate({ id: selected.id, data: { playerId: p.id } })}>
                               <Plus className="w-3.5 h-3.5 mr-1" /> Daftar
                             </Button>
@@ -1325,7 +1325,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     {pendingApprovals.length === 0 && approvedParticipations.length === 0 && (
                       <div className="py-6 text-center">
                         <p className="text-xs text-muted-foreground">Belum ada peserta terdaftar</p>
-                        <p className="text-[10px] text-muted-foreground/70 mt-1">Tambahkan pemain dari pool di atas</p>
+                        <p className="text-sm text-muted-foreground/70 mt-1">Tambahkan pemain dari pool di atas</p>
                       </div>
                     )}
                   </>
@@ -1339,7 +1339,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {/* Step indicator — bigger and clearer */}
                 <div className="flex items-center gap-3">
                   <button
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-semibold transition-colors duration-150
+                    className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold transition-colors duration-150
                       ${approvalStep === 'approve'
                         ? 'bg-yellow-500/15 text-yellow-500 border-2 border-yellow-500/30'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
@@ -1348,7 +1348,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   </button>
                   <ArrowRight className="w-4 h-4 text-muted-foreground/30" />
                   <button
-                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-semibold transition-colors duration-150
+                    className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold transition-colors duration-150
                       ${approvalStep === 'prize'
                         ? 'bg-idm-gold-warm/15 text-idm-gold-warm border-2 border-idm-gold-warm/30'
                         : 'bg-muted/30 text-muted-foreground border border-border/10 hover:bg-muted/50'}`}
@@ -1367,7 +1367,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                     <p className="text-sm text-muted-foreground">Atur tier setiap pemain (S/A/B), lalu setujui. Tier harus seimbang (S=A=B) untuk generate tim.</p>
 
                     {/* ===== TIER BALANCE STATUS — BIG & PROMINENT ===== */}
-                    <div className={`p-5 rounded-2xl border-2 transition-colors duration-150
+                    <div className={`p-5 rounded-lg border-2 transition-colors duration-150
                       ${isTierBalanced
                         ? 'bg-green-500/5 border-green-500/30'
                         : 'bg-red-500/5 border-red-500/30'}`}>
@@ -1395,7 +1395,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           const tc = TIER_COLORS[tier];
                           const deficit = tierMaxCount - count;
                           return (
-                            <div key={tier} className={`p-3 rounded-2xl ${tc.bg} border border-current/10`}>
+                            <div key={tier} className={`p-3 rounded-lg ${tc.bg} border border-current/10`}>
                               <div className="flex items-center justify-between mb-2">
                                 <span className={`text-sm font-bold flex items-center gap-1.5 ${tc.text}`}>
                                   <span className="text-lg">{tc.icon}</span> Tier {tier}
@@ -1417,7 +1417,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
 
                       {!isTierBalanced && (
-                        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <div className="p-4 rounded-lg bg-red-500/10 border border-border">
                           <p className="text-sm text-red-400 font-bold flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4" /> Tier harus seimbang (S = A = B) untuk generate tim
                           </p>
@@ -1429,7 +1429,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       )}
 
                       {isTierBalanced && (
-                        <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <div className="p-4 rounded-lg bg-green-500/10 border border-border">
                           <p className="text-sm text-green-500 font-bold flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4" /> Siap generate {tierDist.S} tim! Setiap tim = 1S + 1A + 1B
                           </p>
@@ -1466,18 +1466,18 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             const effectiveTier = p.tierOverride || p.player?.tier || 'B';
                             const tc = TIER_COLORS[effectiveTier] || TIER_COLORS.B;
                             return (
-                              <div key={p.id} className="flex items-center justify-between p-4 sm:p-5 rounded-lg bg-green-500/5 border border-green-500/10">
+                              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/10">
                                 <div className="flex items-center gap-2.5">
                                   <span className="text-sm">{tc.icon}</span>
                                   <TierBadge tier={effectiveTier} />
                                   <span className="text-sm font-medium">{p.player?.gamertag}</span>
                                   {p.tierOverride && p.tierOverride !== p.player?.tier && (
-                                    <span className="text-[10px] text-muted-foreground">(asal: {p.player?.tier})</span>
+                                    <span className="text-xs text-muted-foreground">(asal: {p.player?.tier})</span>
                                   )}
                                   <span className="text-xs text-muted-foreground">{p.player?.points}pts</span>
                                 </div>
                                 <Button size="sm" variant="ghost"
-                                  className="h-7 text-xs text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
+                                  className="h-8 text-xs text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
                                   disabled={unapproveMutation.isPending}
                                   onClick={() => setConfirmDialog({
                                     open: true,
@@ -1503,7 +1503,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </p>
 
                       {pendingApprovals.length === 0 ? (
-                        <div className="p-5 rounded-lg bg-green-500/5 border border-green-500/20 text-center">
+                        <div className="border border-border">
                           <p className="text-sm text-green-500 font-medium">✅ Semua pemain sudah disetujui!</p>
                           {!isTierBalanced && (
                             <p className="text-xs text-orange-400 mt-2">
@@ -1517,7 +1517,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             const effectiveTier = tierOverrides[p.playerId] || p.player.tier;
                             const tc = TIER_COLORS[effectiveTier] || TIER_COLORS.B;
                             return (
-                              <div key={p.id} className="flex items-center justify-between p-4 sm:p-5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                              <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
                                 <div className="flex items-center gap-2.5">
                                   <span className="text-sm">{tc.icon}</span>
                                   <TierBadge tier={effectiveTier} />
@@ -1591,7 +1591,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         </div>
 
                         {wouldBulkApproveBreakBalance && (
-                          <div className="flex items-center gap-2 p-4 sm:p-5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-border">
                             <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
                             <p className="text-xs text-yellow-500 font-medium">
                               Menyetujui semua pemain akan menyebabkan tier tidak seimbang. Sebaiknya atur tier dulu sebelum approve, atau approve satu per satu per tier.
@@ -1631,7 +1631,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           Generate Tim ({tierDist.S} tim)
                         </Button>
                         {!isTierBalanced && (
-                          <div className="flex items-center gap-2 p-4 rounded-lg bg-red-500/5 border border-red-500/20">
+                          <div className="flex items-center gap-2 p-4 rounded-lg bg-red-500/5 border border-border">
                             <ShieldX className="w-5 h-5 text-red-500 shrink-0" />
                             <div>
                               <p className="text-sm text-red-400 font-bold">Tier harus seimbang (S=A=B) untuk generate tim</p>
@@ -1639,7 +1639,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                                 Butuh: S={tierDist.S}, A={tierDist.A}, B={tierDist.B} → Kurang {tierMaxCount - tierDist.S}S, {tierMaxCount - tierDist.A}A, {tierMaxCount - tierDist.B}B
                               </p>
                               <p className="text-xs text-orange-400/80 mt-1">
-                                💡 Tips: Batalkan persetujuan pemain di tier yang kelebihan, ubah tier-nya, lalu setujui lagi.
+                                Tips: Batalkan persetujuan pemain di tier yang kelebihan, ubah tier-nya, lalu setujui lagi.
                               </p>
                             </div>
                           </div>
@@ -1655,7 +1655,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           Lanjut ke Hadiah →
                         </Button>
                         {!isTierBalanced && (
-                          <p className="text-[10px] text-yellow-500/80">💡 Anda bisa lanjut ke hadiah sambil menunggu tier seimbang.</p>
+                          <p className="text-sm text-yellow-500/80">Anda bisa lanjut ke hadiah sambil menunggu tier seimbang.</p>
                         )}
                       </div>
                     )}
@@ -1665,12 +1665,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {/* ===== STEP 2: PRIZE DISTRIBUTION ===== */}
                 {approvalStep === 'prize' && (
                   <>
-                    <p className="text-base font-semibold text-idm-gold-warm flex items-center gap-2">💰 Pembagian Hadiah</p>
+                    <p className="text-base font-semibold text-idm-gold-warm flex items-center gap-2">Pembagian Hadiah</p>
                     <p className="text-sm text-muted-foreground">Atur prize pool dan pembagian hadiah untuk pemenang.</p>
 
                     {/* Reference Prize Pool Info */}
-                    <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
-                      <p className="text-xs font-semibold text-idm-gold-warm mb-2">📋 Info Prize Pool (Referensi)</p>
+                    <div className="p-4 rounded-lg bg-idm-gold-warm/5 border border-border">
+                      <p className="text-xs font-semibold text-idm-gold-warm mb-2">Info Prize Pool (Referensi)</p>
                       <div className="space-y-1 text-xs">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">├─ Dari Pendaftaran:</span>
@@ -1691,7 +1691,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     {/* Manual Prize Pool Input */}
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold">💰 Total Prize Pool</Label>
+                      <Label className="text-xs font-semibold">Total Prize Pool</Label>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">Rp</span>
                         <Input
@@ -1702,12 +1702,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           className="h-8 text-xs flex-1"
                         />
                         {manualPrizePool && parseInt(manualPrizePool) !== referencePrizePool && (
-                          <span className={`text-[10px] font-medium ${parseInt(manualPrizePool) > referencePrizePool ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className={`text-sm font-medium ${parseInt(manualPrizePool) > referencePrizePool ? 'text-green-500' : 'text-red-500'}`}>
                             {parseInt(manualPrizePool) > referencePrizePool ? '+' : ''}{formatCurrency(parseInt(manualPrizePool) - referencePrizePool)} dari referensi
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground">💡 Isi sesuai kebutuhan. Jika kosong, menggunakan nilai referensi ({formatCurrency(referencePrizePool)}).</p>
+                      <p className="text-sm text-muted-foreground">Isi sesuai kebutuhan. Jika kosong, menggunakan nilai referensi ({formatCurrency(referencePrizePool)}).</p>
                     </div>
 
                     {/* Manual prize distribution toggle */}
@@ -1723,35 +1723,35 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         className="rounded border-muted-foreground/30"
                       />
                       <label htmlFor="manualPrize" className="text-xs font-medium cursor-pointer">
-                        ☑️ Saya ingin atur pembagian hadiah manual
+                        Saya ingin atur pembagian hadiah manual
                       </label>
                     </div>
 
                     {/* Prize inputs */}
                     {showPrizeConfig && wantsManualPrize && (
                       <div className="space-y-2 pt-2 border-t border-border/20">
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           Pembagian Hadiah — Juara 1/2/3: Rp / 1000 / 3 = pts/org | MVP: Rp / 1000 / 1 = pts
                         </p>
                         {prizes.map((prize, i) => (
                           <div key={i} className="flex items-center gap-2">
-                            <Input placeholder="Label" value={prize.label} className="h-7 text-[10px] flex-1"
+                            <Input placeholder="Label" value={prize.label} className="h-8 text-sm flex-1"
                               onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, label: e.target.value, isMvp: e.target.value.toLowerCase().includes('mvp') } : p))} />
-                            <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-7 text-[10px] w-28"
+                            <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-8 text-sm w-28"
                               onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, prizeAmount: parseInt(e.target.value) || 0 } : p))} />
-                            <span className="text-[10px] text-muted-foreground w-12 text-center">
+                            <span className="text-xs text-muted-foreground w-12 text-center">
                               {prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '÷ 1' : '÷ 3'}
                             </span>
-                            <span className="text-[9px] font-medium text-idm-gold-warm w-16">
+                            <span className="text-xs font-medium text-idm-gold-warm w-16">
                               = {Math.floor((prize.prizeAmount / 1000) / (prize.isMvp || prize.label.toLowerCase().includes('mvp') ? 1 : 3))} pts{prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '' : '/org'}
                             </span>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-red-500"
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 touch-icon text-red-500"
                               onClick={() => setPrizes(prev => prev.filter((_, j) => j !== i))}>
                               <X className="w-3 h-3" />
                             </Button>
                           </div>
                         ))}
-                        <Button size="sm" variant="outline" className="text-[10px] h-7"
+                        <Button size="sm" variant="outline" className="text-sm h-8"
                           onClick={() => setPrizes(prev => [...prev, { label: '', position: prev.length + 1, prizeAmount: 0, recipientCount: 3, isMvp: false }])}>
                           <Plus className="w-3 h-3 mr-1" /> Tambah Hadiah
                         </Button>
@@ -1761,7 +1761,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           const totalUsed = prizes.reduce((sum, p) => sum + p.prizeAmount, 0);
                           const effectivePool = parseInt(manualPrizePool) || referencePrizePool;
                           return (
-                            <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 text-[10px]">
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 text-sm">
                               <span>Total Terpakai:</span>
                               <span className={totalUsed === effectivePool ? 'text-green-500 font-semibold' : totalUsed > effectivePool ? 'text-red-500' : 'text-yellow-500'}>
                                 {formatCurrency(totalUsed)} / {formatCurrency(effectivePool)}
@@ -1805,7 +1805,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           Generate Tim ({tierDist.S} tim)
                         </Button>
                         {!isTierBalanced && (
-                          <div className="flex items-center gap-2 p-4 sm:p-5 rounded-lg bg-red-500/5 border border-red-500/20">
+                          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/5 border border-border">
                             <ShieldX className="w-4 h-4 text-red-500 shrink-0" />
                             <p className="text-xs text-red-400 font-medium">Tier harus seimbang (S=A=B) untuk generate tim. Kembali ke tab Persetujuan untuk memperbaiki.</p>
                           </div>
@@ -1841,7 +1841,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {selected.teams.map((t: { id: string; name: string; power: number; isWinner: boolean; rank: number | null; teamPlayers: { player: { gamertag: string; tier: string; points: number } }[] }) => (
-                    <div key={t.id} className={`p-4 sm:p-5 rounded-lg text-sm ${t.isWinner ? 'bg-idm-gold-warm/5 border border-idm-gold-warm/20' : t.rank ? 'bg-muted/50 border border-border/30' : 'bg-muted/30'}`}>
+                    <div key={t.id} className={`p-3 rounded-lg text-sm ${t.isWinner ? 'bg-idm-gold-warm/5 border border-border' : t.rank ? 'bg-muted/50 border border-border/30' : 'bg-muted/30'}`}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">{t.name} {t.isWinner && '👑'} {t.rank === 2 && '🥈'} {t.rank === 3 && '🥉'}</span>
                         <span className={dt.neonText}>⚡ {t.power}</span>
@@ -1877,17 +1877,17 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   <p className="text-sm font-semibold flex items-center gap-1.5">
                     <Gift className="w-4 h-4 text-idm-gold-warm" /> Pembagian Hadiah
                   </p>
-                  <Button size="sm" variant="ghost" className="text-[10px] h-6"
+                  <Button size="sm" variant="ghost" className="text-sm h-8"
                     onClick={() => setShowPrizeConfig(!showPrizeConfig)}>
                     {showPrizeConfig ? 'Sembunyikan' : 'Edit Hadiah'}
                   </Button>
                 </div>
-                <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20 text-[10px]">
-                  <p className="font-semibold text-idm-gold-warm mb-1">📋 Info Prize Pool (Referensi)</p>
+                <div className="p-2.5 rounded-lg bg-idm-gold-warm/5 border border-border text-sm">
+                  <p className="font-semibold text-idm-gold-warm mb-1">Info Prize Pool (Referensi)</p>
                   <div className="flex justify-between"><span>Dari Pendaftaran:</span><span>{approvedParticipations.length} × Rp 20.000 = {formatCurrency(basePrizePoolRef)}</span></div>
                   {approvedSawer > 0 && <div className="flex justify-between"><span>Dari Sawer:</span><span>{formatCurrency(approvedSawer)} <span className="text-idm-gold-warm">(otomatis +)</span></span></div>}
                   <div className="flex justify-between font-semibold text-idm-gold-warm border-t border-idm-gold-warm/10 pt-1 mt-1"><span>Total Tampilan:</span><span>{formatCurrency(referencePrizePool)}</span></div>
-                  <p className="text-[8px] text-muted-foreground mt-1">💡 Input hanya prize pool dasar (tanpa sawer). Sawer ditambahkan otomatis saat ditampilkan.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Input hanya prize pool dasar (tanpa sawer). Sawer ditambahkan otomatis saat ditampilkan.</p>
                   {selected.prizePool > 0 && selected.prizePool !== basePrizePoolRef && (
                     <div className="flex justify-between mt-1 pt-1 border-t border-idm-gold-warm/10">
                       <span>Base Prize Pool Aktif:</span>
@@ -1898,23 +1898,23 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 {showPrizeConfig && (
                   <div className="space-y-2 pt-2 border-t border-border/20">
                     <div className="space-y-1.5">
-                      <Label className="text-[10px] font-semibold">💰 Base Prize Pool (tanpa sawer)</Label>
+                      <Label className="text-sm font-semibold">Base Prize Pool (tanpa sawer)</Label>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground">Rp</span>
+                        <span className="text-sm text-muted-foreground">Rp</span>
                         <Input
                           type="number"
                           placeholder={String(basePrizePoolRef)}
                           value={manualPrizePool}
                           onChange={e => setManualPrizePool(e.target.value)}
-                          className="h-7 text-[10px] flex-1"
+                          className="h-8 text-sm flex-1"
                         />
                         {manualPrizePool && parseInt(manualPrizePool) !== basePrizePoolRef && (
-                          <span className={`text-[9px] font-medium ${parseInt(manualPrizePool) > basePrizePoolRef ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className={`text-xs font-medium ${parseInt(manualPrizePool) > basePrizePoolRef ? 'text-green-500' : 'text-red-500'}`}>
                             {parseInt(manualPrizePool) > basePrizePoolRef ? '+' : ''}{formatCurrency(parseInt(manualPrizePool) - basePrizePoolRef)} dari base
                           </span>
                         )}
                       </div>
-                      <p className="text-[9px] text-muted-foreground">💡 Isi hanya prize pool dasar. Sawer ({formatCurrency(approvedSawer)}) ditambah otomatis. Total tampilan: {formatCurrency(referencePrizePool)}</p>
+                      <p className="text-xs text-muted-foreground">Isi hanya prize pool dasar. Sawer ({formatCurrency(approvedSawer)}) ditambah otomatis. Total tampilan: {formatCurrency(referencePrizePool)}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1928,40 +1928,40 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         }}
                         className="rounded border-muted-foreground/30"
                       />
-                      <label htmlFor="manualPrizeLater" className="text-[10px] font-medium cursor-pointer">
-                        ☑️ Saya ingin atur pembagian hadiah manual
+                      <label htmlFor="manualPrizeLater" className="text-sm font-medium cursor-pointer">
+                        Saya ingin atur pembagian hadiah manual
                       </label>
                     </div>
 
                     {wantsManualPrize && (
                       <>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           Pembagian Hadiah — Juara 1/2/3: Rp / 1000 / 3 = pts/org | MVP: Rp / 1000 / 1 = pts
                         </p>
                         {prizes.map((prize, i) => (
                           <div key={i} className="flex items-center gap-2">
-                            <Input placeholder="Label" value={prize.label} className="h-7 text-[10px] flex-1"
+                            <Input placeholder="Label" value={prize.label} className="h-8 text-sm flex-1"
                               onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, label: e.target.value, isMvp: e.target.value.toLowerCase().includes('mvp') } : p))} />
-                            <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-7 text-[10px] w-28"
+                            <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-8 text-sm w-28"
                               onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, prizeAmount: parseInt(e.target.value) || 0 } : p))} />
-                            <span className="text-[10px] text-muted-foreground w-12 text-center">
+                            <span className="text-xs text-muted-foreground w-12 text-center">
                               {prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '÷ 1' : '÷ 3'}
                             </span>
-                            <span className="text-[9px] font-medium text-idm-gold-warm w-16">
+                            <span className="text-xs font-medium text-idm-gold-warm w-16">
                               = {Math.floor((prize.prizeAmount / 1000) / (prize.isMvp || prize.label.toLowerCase().includes('mvp') ? 1 : 3))} pts{prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '' : '/org'}
                             </span>
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 touch-icon text-red-500"
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 touch-icon text-red-500"
                               onClick={() => setPrizes(prev => prev.filter((_, j) => j !== i))}>
                               <X className="w-3 h-3" />
                             </Button>
                           </div>
                         ))}
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" className="text-[10px] h-7"
+                          <Button size="sm" variant="outline" className="text-sm h-8"
                             onClick={() => setPrizes(prev => [...prev, { label: '', position: prev.length + 1, prizeAmount: 0, recipientCount: 3, isMvp: false }])}>
                             <Plus className="w-3 h-3 mr-1" /> Tambah Hadiah
                           </Button>
-                          <Button size="sm" variant="outline" className="text-[10px] h-7 text-idm-gold-warm"
+                          <Button size="sm" variant="outline" className="text-sm h-8 text-idm-gold-warm"
                             disabled={updateMutation.isPending}
                             onClick={async () => {
                               const pool = parseInt(manualPrizePool) || referencePrizePool;
@@ -1987,7 +1987,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           const totalUsed = prizes.reduce((sum, p) => sum + p.prizeAmount, 0);
                           const effectivePool = parseInt(manualPrizePool) || referencePrizePool;
                           return (
-                            <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 text-[10px]">
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 text-sm">
                               <span>Total Terpakai:</span>
                               <span className={totalUsed === effectivePool ? 'text-green-500 font-semibold' : totalUsed > effectivePool ? 'text-red-500' : 'text-yellow-500'}>
                                 {formatCurrency(totalUsed)} / {formatCurrency(effectivePool)}
@@ -2014,7 +2014,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   <p className="text-sm font-semibold text-purple-500 flex items-center gap-1.5">🏆 Bracket & Pertandingan</p>
                   {selected.status === 'bracket_generation' && (
                     <div className="flex gap-1.5">
-                      <Button size="sm" variant="outline" className="text-[10px] h-7"
+                      <Button size="sm" variant="outline" className="text-sm h-8"
                         disabled={generateBracketMutation.isPending}
                         onClick={() => setConfirmDialog({
                           open: true, title: 'Re-generate Bracket?',
@@ -2032,8 +2032,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 </div>
 
                 {nextMatch && selected.status === 'main_event' && (
-                  <div className="p-3 sm:p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
-                    <p className="text-[10px] text-idm-gold-warm font-semibold">▶️ Match Selanjutnya: {getTeamName(nextMatch.team1Id)} vs {getTeamName(nextMatch.team2Id)}</p>
+                  <div className="p-3 rounded-lg bg-idm-gold-warm/5 border border-border">
+                    <p className="text-sm text-idm-gold-warm font-semibold">Match Selanjutnya: {getTeamName(nextMatch.team1Id)} vs {getTeamName(nextMatch.team2Id)}</p>
                   </div>
                 )}
 
@@ -2044,13 +2044,13 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   const hasIncomplete = playableMatches.some((m: { status: string }) => m.status !== 'completed');
                   if (!hasIncomplete && completedPlayable.length > 0) {
                     return (
-                      <div className="p-4 sm:p-5 rounded-lg bg-green-500/5 border border-green-500/20">
+                      <div className="p-3 rounded-lg bg-green-500/5 border border-border">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[10px] font-bold text-green-400">✅ Semua match selesai!</p>
-                            <p className="text-[9px] text-muted-foreground">{completedPlayable.length} pertandingan telah diselesaikan</p>
+                            <p className="text-sm font-bold text-green-400">✅ Semua match selesai!</p>
+                            <p className="text-xs text-muted-foreground">{completedPlayable.length} pertandingan telah diselesaikan</p>
                           </div>
-                          <Button size="sm" className="text-[10px] h-7 bg-green-600 hover:bg-green-700 text-white"
+                          <Button size="sm" className="text-sm h-8 bg-green-600 hover:bg-green-700 text-white"
                             onClick={() => updateMutation.mutate({ id: selected.id, data: { status: 'finalization' } })}>
                             <ArrowRight className="w-3 h-3 mr-1" /> Lanjut ke Finalisasi
                           </Button>
@@ -2099,26 +2099,26 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     return (
                       <div key={m.id} className={`p-2.5 rounded-lg border text-xs transition-all ${
-                        isLive ? 'bg-red-500/5 border-red-500/20 shadow-[0_0_8px_rgba(239,68,68,0.1)]' :
+                        isLive ? 'bg-red-500/5 border-red-500/20' :
                         isCompleted ? 'bg-muted/30 border-border/20' :
                         isReady ? 'bg-green-500/5 border-green-500/20' :
                         isGrandFinal ? 'bg-idm-gold-warm/5 border-idm-gold-warm/25' :
                         is3rd ? 'bg-orange-500/5 border-orange-500/15' :
                         'bg-muted/20 border-border/10'
-                      } ${isGrandFinal ? 'shadow-[0_0_12px_rgba(239,249,35,0.1)]' : ''}`}>
+                      }`}>
 
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
-                            {matchLabel && <Badge className={`text-[8px] border-0 ${
+                            {matchLabel && <Badge className={`text-xs border-0 ${
                               isGrandFinal ? 'bg-idm-gold-warm/15 text-idm-gold-warm' :
                               is3rd ? 'bg-orange-500/10 text-orange-400' :
                               'bg-idm-gold-warm/10 text-idm-gold-warm'
                             }`}>{matchLabel}</Badge>}
-                            <Badge className="text-[8px] border-0 bg-muted/50">{m.format}</Badge>
-                            {isLive && <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
-                            {isCompleted && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
-                            {isReady && <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">Siap</Badge>}
-                            {isPending && <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}
+                            <Badge className="text-xs border-0 bg-muted/50">{m.format}</Badge>
+                            {isLive && <Badge className="text-xs border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
+                            {isCompleted && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
+                            {isReady && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">Siap</Badge>}
+                            {isPending && <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}
                           </div>
                           {m.winner && <span className="text-idm-gold-warm font-semibold">👑 {m.winner.name}</span>}
                         </div>
@@ -2126,23 +2126,23 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         <div className="flex items-center gap-2">
                           <div className={`flex-1 ${m.winnerId === m.team1Id ? 'font-bold text-idm-gold-warm' : ''}`}>
                             {getTeamName(m.team1Id)}
-                            {m.team1 && <span className="text-[9px] text-muted-foreground ml-1">({m.team1.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
+                            {m.team1 && <span className="text-xs text-muted-foreground ml-1">({m.team1.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
                           </div>
                           {hasScore ? (
                             <span className="font-mono font-bold">{m.score1} - {m.score2}</span>
                           ) : <span className="text-muted-foreground">vs</span>}
                           <div className={`flex-1 text-right ${m.winnerId === m.team2Id ? 'font-bold text-idm-gold-warm' : ''}`}>
                             {getTeamName(m.team2Id)}
-                            {m.team2 && <span className="text-[9px] text-muted-foreground ml-1">({m.team2.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
+                            {m.team2 && <span className="text-xs text-muted-foreground ml-1">({m.team2.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
                           </div>
                         </div>
 
-                        {m.mvpPlayer && <p className="text-[9px] text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
+                        {m.mvpPlayer && <p className="text-xs text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
 
                         {/* Undo button for completed matches */}
                         {selected.status === 'main_event' && isCompleted && m.team1Id && m.team2Id && (
                           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-                            <Button size="sm" variant="outline" className="text-[10px] h-6 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
+                            <Button size="sm" variant="outline" className="text-sm h-8 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
                               disabled={undoScoreMutation.isPending}
                               onClick={() => {
                                 setConfirmDialog({
@@ -2160,7 +2160,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         {selected.status === 'main_event' && m.team1Id && m.team2Id && !isCompleted && (
                           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
                             {(isReady || isPending) && (
-                              <Button size="sm" className="text-[10px] h-6 bg-green-600 hover:bg-green-700 text-white"
+                              <Button size="sm" className="text-sm h-8 bg-green-600 hover:bg-green-700 text-white"
                                 disabled={startMatchMutation.isPending}
                                 onClick={() => startMatchMutation.mutate({ tournamentId: selected.id, matchId: m.id })}>
                                 <Play className="w-3 h-3 mr-1" /> Start
@@ -2168,14 +2168,14 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             )}
                             {isLive && (
                               <>
-                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-6 text-[10px]"
+                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-8 text-sm"
                                   value={scoreInputs[m.id]?.s1 ?? ''}
                                   onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 ?? '' } }))} />
-                                <span className="text-[10px] text-muted-foreground">vs</span>
-                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-6 text-[10px]"
+                                <span className="text-xs text-muted-foreground">vs</span>
+                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-8 text-sm"
                                   value={scoreInputs[m.id]?.s2 ?? ''}
                                   onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 ?? '' } }))} />
-                                <Button size="sm" className="text-[10px] h-6 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
+                                <Button size="sm" className="text-sm h-8 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
                                   disabled={scoreInputs[m.id]?.s1 == null || scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s2 == null || scoreInputs[m.id]?.s2 === '' || scoreMutation.isPending}
                                   onClick={() => {
                                     const s1 = parseInt(scoreInputs[m.id].s1);
@@ -2214,20 +2214,20 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         };
                         return (
                           <div>
-                            <p className="text-[10px] font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS['swiss']}</p>
+                            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS['swiss']}</p>
                             <div className="space-y-1.5">
                               {realSwiss.map((m: any) => renderAdminMatchCard(m))}
                               {byeSwiss.length > 0 && (
                                 <div className="mt-2 pt-2 border-t border-border/10">
                                   <div className="flex items-center gap-1.5 mb-1.5">
-                                    <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
-                                    <span className="text-[9px] text-muted-foreground">Tim berikut mendapat bye:</span>
+                                    <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
+                                    <span className="text-xs text-muted-foreground">Tim berikut mendapat bye:</span>
                                   </div>
                                   {byeSwiss.map((m: any) => (
-                                    <div key={m.id} className="p-3 sm:p-4 rounded-lg border border-amber-500/15 bg-amber-500/5 text-xs opacity-70">
+                                    <div key={m.id} className="p-3 rounded-lg border border-amber-500/15 bg-amber-500/5 text-xs opacity-70">
                                       <div className="flex items-center gap-2">
-                                        <Badge className="text-[8px] border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
-                                        <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
+                                        <Badge className="text-xs border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
+                                        <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
                                         <span className="text-muted-foreground">{getByeTeamName(m)} <span className="text-amber-500/70 italic">(bye)</span></span>
                                       </div>
                                     </div>
@@ -2243,11 +2243,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       {(sf1 || sf2) && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider">
-                              ⚔️ Semi Final
+                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider">
+                              Semi Final
                             </div>
                             <div className="flex-1 h-px bg-border/20" />
-                            <span className="text-[9px] text-muted-foreground">Pemenang → Grand Final</span>
+                            <span className="text-xs text-muted-foreground">Pemenang → Grand Final</span>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {sf1 && renderAdminMatchCard(sf1, 'SF1')}
@@ -2261,11 +2261,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         <div className="flex items-center justify-center gap-2 py-1.5">
                           <div className="flex-1 flex items-center justify-end">
                             <div className="flex items-center gap-1">
-                              <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
+                              <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
                               <div className="h-px w-8 bg-idm-gold-warm/30" />
                             </div>
                           </div>
-                          <div className="flex flex-col items-center gap-0.5">
+                          <div className="flex flex-col items-center gap-1">
                             <div className="w-px h-3 bg-idm-gold-warm/20" />
                             <div className="w-3.5 h-3.5 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
                               <Crown className="w-2 h-2 text-idm-gold-warm" />
@@ -2275,7 +2275,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           <div className="flex-1 flex items-center">
                             <div className="flex items-center gap-1">
                               <div className="h-px w-8 bg-orange-500/20" />
-                              <span className="text-[8px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
+                              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
                             </div>
                           </div>
                         </div>
@@ -2285,7 +2285,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       {(grandFinal || thirdPlace) && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider border border-idm-gold-warm/20">
+                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-border">
                               🏆 Grand Final
                             </div>
                             <div className="flex-1 h-px bg-border/20" />
@@ -2395,11 +2395,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         return (
                           <div key={label}>
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-                                🏟️ Grup {label}
+                              <div className="px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground text-xs font-bold uppercase tracking-wider">
+                                Grup {label}
                               </div>
                               <div className="flex-1 h-px bg-border/20" />
-                              <span className="text-[9px] text-muted-foreground">{realMatches.length} match</span>
+                              <span className="text-xs text-muted-foreground">{realMatches.length} match</span>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                               {realMatches.map((m: any) => (
@@ -2417,11 +2417,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       {(sf1 || sf2) && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider">
-                              ⚔️ Semi Final
+                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider">
+                              Semi Final
                             </div>
                             <div className="flex-1 h-px bg-border/20" />
-                            <span className="text-[9px] text-muted-foreground">Pemenang → Grand Final</span>
+                            <span className="text-xs text-muted-foreground">Pemenang → Grand Final</span>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {sf1 && <AdminMatchCard key={sf1.id} m={sf1} labelOverride="SF1" selected={selected} getTeamName={getTeamName}
@@ -2441,11 +2441,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         <div className="flex items-center justify-center gap-2 py-1.5">
                           <div className="flex-1 flex items-center justify-end">
                             <div className="flex items-center gap-1">
-                              <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
+                              <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
                               <div className="h-px w-8 bg-idm-gold-warm/30" />
                             </div>
                           </div>
-                          <div className="flex flex-col items-center gap-0.5">
+                          <div className="flex flex-col items-center gap-1">
                             <div className="w-px h-3 bg-idm-gold-warm/20" />
                             <div className="w-3.5 h-3.5 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
                               <Crown className="w-2 h-2 text-idm-gold-warm" />
@@ -2455,7 +2455,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                           <div className="flex-1 flex items-center">
                             <div className="flex items-center gap-1">
                               <div className="h-px w-8 bg-orange-500/20" />
-                              <span className="text-[8px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
+                              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
                             </div>
                           </div>
                         </div>
@@ -2465,7 +2465,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       {(grandFinal || thirdPlace) && (
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider border border-idm-gold-warm/20">
+                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-border">
                               🏆 Grand Final
                             </div>
                             <div className="flex-1 h-px bg-border/20" />
@@ -2499,7 +2499,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                     return (
                     <div key={bracket}>
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS[bracket] || bracket}</p>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS[bracket] || bracket}</p>
                       <div className="space-y-1.5">
                         {realMatches.map((m: any) => (
                           <AdminMatchCard key={m.id} m={m} selected={selected} getTeamName={getTeamName}
@@ -2511,12 +2511,12 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                         {byeMatches.length > 0 && (
                           <div className="mt-2 pt-2 border-t border-border/10">
                             <div className="flex items-center gap-1.5 mb-1.5">
-                              <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
-                              <span className="text-[9px] text-muted-foreground">Tim berikut mendapat bye:</span>
+                              <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
+                              <span className="text-xs text-muted-foreground">Tim berikut mendapat bye:</span>
                             </div>
                             {byeMatches.map((m: any) => (
-                              <div key={m.id} className="px-2 py-1 rounded border border-amber-500/15 bg-amber-500/5 text-[10px] opacity-70 flex items-center gap-1.5 mb-1">
-                                <Badge className="text-[7px] border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
+                              <div key={m.id} className="px-2 py-1 rounded border border-amber-500/15 bg-amber-500/5 text-xs opacity-70 flex items-center gap-1.5 mb-1">
+                                <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
                                 <span className="text-muted-foreground">{getByeTeamName(m)}</span>
                               </div>
                             ))}
@@ -2528,7 +2528,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   })
                 )}
 
-                <p className="text-[10px] text-muted-foreground text-center">
+                <p className="text-sm text-muted-foreground text-center">
                   {Array.isArray(selected.matches) && selected.matches.filter((m: { status: string }) => m.status === 'completed').length} / {selected.matches?.length ?? 0} match selesai
                 </p>
               </div>
@@ -2541,15 +2541,15 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-muted-foreground">💰 Pembagian Hadiah</p>
-                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-idm-gold-warm hover:bg-idm-gold-warm/10"
+                    <p className="text-xs font-semibold text-muted-foreground">Pembagian Hadiah</p>
+                    <Button size="sm" variant="ghost" className="h-8 text-sm text-idm-gold-warm hover:bg-idm-gold-warm/10"
                       onClick={() => setShowPrizeConfig(!showPrizeConfig)}>
                       {showPrizeConfig ? 'Sembunyikan' : '✏️ Edit Hadiah'}
                     </Button>
                   </div>
                   {selected.prizes?.length > 0 ? (
                     selected.prizes.map((p: { id: string; label: string; prizeAmount: number; pointsPerPlayer: number; recipientCount: number }) => (
-                      <div key={p.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 text-xs">
+                      <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 text-xs">
                         <span className="font-medium">{p.label}</span>
                         <span className="text-idm-gold-warm">
                           {formatCurrency(p.prizeAmount)} → {p.pointsPerPlayer} pts{p.recipientCount > 1 ? `/org × ${p.recipientCount}` : ''}
@@ -2557,41 +2557,41 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 sm:p-5 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-border">
                       <p className="text-xs text-yellow-500 font-medium">⚠️ Belum ada pembagian hadiah</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Klik "Edit Hadiah" untuk mengatur, atau langsung finalisasi tanpa hadiah.</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">Klik "Edit Hadiah" untuk mengatur, atau langsung finalisasi tanpa hadiah.</p>
                     </div>
                   )}
 
                   {showPrizeConfig && (
-                    <div className="space-y-2 p-4 sm:p-5 rounded-lg bg-muted/20 border border-border/10">
+                    <div className="space-y-2 p-3 rounded-lg bg-muted/20 border border-border/10">
                       <div>
-                        <Label className="text-[10px] font-semibold">💰 Total Prize Pool</Label>
-                        <Input type="number" className="h-7 text-xs mt-1"
+                        <Label className="text-sm font-semibold">Total Prize Pool</Label>
+                        <Input type="number" className="h-8 text-xs mt-1"
                           placeholder={String(referencePrizePool)}
                           value={manualPrizePool}
                           onChange={e => setManualPrizePool(e.target.value)} />
-                        <p className="text-[9px] text-muted-foreground mt-0.5">💡 Referensi: {formatCurrency(referencePrizePool)} (berdasarkan peserta & saweran)</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Referensi: {formatCurrency(referencePrizePool)} (berdasarkan peserta & saweran)</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <input type="checkbox" id="manualPrizeFinal"
                           checked={wantsManualPrize}
                           onChange={e => { setWantsManualPrize(e.target.checked); if (!e.target.checked) setShowPrizeConfig(false); }}
                           className="rounded" />
-                        <label htmlFor="manualPrizeFinal" className="text-[10px] font-medium cursor-pointer">☑️ Atur pembagian hadiah manual</label>
+                        <label htmlFor="manualPrizeFinal" className="text-sm font-medium cursor-pointer">Atur pembagian hadiah manual</label>
                       </div>
                       {wantsManualPrize && (
                         <div className="space-y-1.5">
                           {prizes.map((prize, i) => (
                             <div key={i} className="flex items-center gap-1.5">
-                              <Input placeholder="Label" value={prize.label} className="h-7 text-[10px] flex-1"
+                              <Input placeholder="Label" value={prize.label} className="h-8 text-sm flex-1"
                                 onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, label: e.target.value, isMvp: e.target.value.toLowerCase().includes('mvp') } : p))} />
-                              <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-7 text-[10px] w-28"
+                              <Input placeholder="Hadiah (Rp)" type="number" value={prize.prizeAmount || ''} className="h-8 text-sm w-28"
                                 onChange={e => setPrizes(prev => prev.map((p, j) => j === i ? { ...p, prizeAmount: parseInt(e.target.value) || 0 } : p))} />
-                              <span className="text-[9px] text-muted-foreground w-14">
+                              <span className="text-xs text-muted-foreground w-14">
                                 {prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '÷ 1' : '÷ 3'}
                               </span>
-                              <span className="text-[9px] text-idm-gold-warm w-20">
+                              <span className="text-xs text-idm-gold-warm w-20">
                                 = {Math.floor((prize.prizeAmount / 1000) / (prize.isMvp || prize.label.toLowerCase().includes('mvp') ? 1 : 3))} pts{prize.isMvp || prize.label.toLowerCase().includes('mvp') ? '' : '/org'}
                               </span>
                               <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-red-400 hover:text-red-300"
@@ -2600,11 +2600,11 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                               </Button>
                             </div>
                           ))}
-                          <Button size="sm" variant="outline" className="h-6 text-[10px] w-full"
+                          <Button size="sm" variant="outline" className="h-8 text-sm w-full"
                             onClick={() => setPrizes(prev => [...prev, { label: '', position: prev.length + 1, prizeAmount: 0, recipientCount: 3, isMvp: false }])}>
                             <Plus className="w-3 h-3 mr-1" /> Tambah Hadiah
                           </Button>
-                          <Button size="sm" className="h-7 text-[10px] w-full bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
+                          <Button size="sm" className="h-8 text-sm w-full bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
                             disabled={updateMutation.isPending}
                             onClick={() => {
                               const pool = parseInt(manualPrizePool) || referencePrizePool;
@@ -2628,7 +2628,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                             const totalUsed = prizes.reduce((sum, p) => sum + p.prizeAmount, 0);
                             const effectivePool = parseInt(manualPrizePool) || referencePrizePool;
                             return (
-                              <div className={`text-[10px] p-3 sm:p-4 rounded-lg ${totalUsed > effectivePool ? 'bg-red-500/10 text-red-400' : totalUsed === effectivePool ? 'bg-green-500/10 text-green-400' : 'bg-muted/30 text-muted-foreground'}`}>
+                              <div className={`text-sm p-3 rounded-lg ${totalUsed > effectivePool ? 'bg-red-500/10 text-red-400' : totalUsed === effectivePool ? 'bg-green-500/10 text-green-400' : 'bg-muted/30 text-muted-foreground'}`}>
                                 <div className="flex justify-between"><span>Total Hadiah:</span><span>{formatCurrency(totalUsed)}</span></div>
                                 <div className="flex justify-between"><span>Prize Pool:</span><span>{formatCurrency(effectivePool)}</span></div>
                                 <div className="flex justify-between font-semibold border-t border-current/10 pt-1 mt-1">
@@ -2679,14 +2679,14 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 <p className="text-base font-semibold text-green-500 flex items-center gap-2">🎉 Tournament Selesai!</p>
 
                 {Array.isArray(selected.teams) && selected.teams.filter((t: { rank: number | null }) => t.rank).sort((a: { rank: number }, b: { rank: number }) => (a.rank || 99) - (b.rank || 99)).map((t: { id: string; name: string; rank: number | null; isWinner: boolean; teamPlayers: { player: { gamertag: string; tier: string } }[] }) => (
-                  <div key={t.id} className={`p-4 sm:p-5 rounded-lg border ${t.rank === 1 ? 'bg-idm-gold-warm/5 border-idm-gold-warm/20' : t.rank === 2 ? 'bg-gray-500/5 border-gray-500/20' : 'bg-orange-500/5 border-orange-500/20'}`}>
+                  <div key={t.id} className={`p-3 rounded-lg border ${t.rank === 1 ? 'bg-idm-gold-warm/5 border-idm-gold-warm/20' : t.rank === 2 ? 'bg-gray-500/5 border-gray-500/20' : 'bg-orange-500/5 border-orange-500/20'}`}>
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{t.rank === 1 ? '🥇' : t.rank === 2 ? '🥈' : '🥉'}</span>
                       <div>
                         <p className="text-xs font-semibold">{t.name}</p>
                         <div className="flex gap-1 mt-0.5">
                           {t.teamPlayers.map((tp: any) => (
-                            <span key={tp.player.gamertag} className="flex items-center gap-0.5 text-[9px]">
+                            <span key={tp.player.gamertag} className="flex items-center gap-1 text-xs">
                               <TierBadge tier={tp.tier || tp.player.tier}  /> {tp.player.gamertag}
                             </span>
                           ))}
@@ -2697,16 +2697,16 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 ))}
 
                 {selected.matches?.map((m: { mvpPlayer: { gamertag: string } | null }) => m.mvpPlayer).filter(Boolean).length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
-                    <p className="text-[10px] text-idm-gold-warm">⭐ MVP: {selected.matches.find((m: { mvpPlayer: { gamertag: string } | null }) => m.mvpPlayer)?.mvpPlayer?.gamertag}</p>
+                  <div className="p-3 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/20">
+                    <p className="text-sm text-idm-gold-warm">⭐ MVP: {selected.matches.find((m: { mvpPlayer: { gamertag: string } | null }) => m.mvpPlayer)?.mvpPlayer?.gamertag}</p>
                   </div>
                 )}
 
                 {selected.prizes?.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-[10px] text-muted-foreground">Distribusi Hadiah:</p>
+                    <p className="text-sm text-muted-foreground">Distribusi Hadiah:</p>
                     {selected.prizes.map((p: { id: string; label: string; prizeAmount: number; pointsPerPlayer: number; recipientCount: number }) => (
-                      <div key={p.id} className="flex items-center justify-between text-[10px] p-1.5 rounded bg-muted/30">
+                      <div key={p.id} className="flex items-center justify-between text-xs p-2 rounded bg-muted/30">
                         <span>{p.label}</span>
                         <span>{formatCurrency(p.prizeAmount)} → {p.pointsPerPlayer} pts/org × {p.recipientCount} penerima</span>
                       </div>
@@ -2715,10 +2715,10 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 )}
 
                 <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground">Poin yang Didapat:</p>
+                  <p className="text-sm text-muted-foreground">Poin yang Didapat:</p>
                   <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-0.5">
                     {selected.participations?.sort((a: { pointsEarned: number }, b: { pointsEarned: number }) => b.pointsEarned - a.pointsEarned).map((p: { id: string; playerId: string; pointsEarned: number; isMvp: boolean; isWinner: boolean; player: { gamertag: string } }) => (
-                      <div key={p.id} className="flex items-center justify-between text-[10px] p-1 rounded bg-muted/20">
+                      <div key={p.id} className="flex items-center justify-between text-xs p-1 rounded bg-muted/20">
                         <span>{p.player.gamertag} {p.isMvp && '⭐'} {p.isWinner && '👑'}</span>
                         <span className="font-mono">{p.pointsEarned} pts</span>
                       </div>
@@ -2829,8 +2829,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                 className="h-9 text-sm"
               />
             </div>
-            <div className="p-3 sm:p-4 rounded-lg bg-muted/30 text-[10px] text-muted-foreground">
-              <p>💡 Perubahan format dan jadwal akan langsung berlaku. Untuk tournament yang sudah berjalan, perubahan hanya mempengaruhi informasi tampilan.</p>
+            <div className="p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+              <p>Perubahan format dan jadwal akan langsung berlaku. Untuk tournament yang sudah berjalan, perubahan hanya mempengaruhi informasi tampilan.</p>
             </div>
           </div>
           <DialogFooter className="gap-2">
