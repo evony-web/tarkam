@@ -201,3 +201,26 @@ Stage Summary:
 - Detailed 2-line match rows with round grouping, MVP, champion per week
 - Beranda Hasil stays compact (1-line rows, summary only) with CTA linking to Bracket > Hasil
 - Same `/api/season-results` API used by both beranda and bracket views
+
+---
+Task ID: 1
+Agent: main
+Task: Restructure Bracket Menu Tab Hierarchy + Move Hero Banner to Hasil Tab
+
+Work Log:
+- Analyzed current bracket page structure: Division pills as primary → MatchDayContent with Bracket/Hasil sub-tabs
+- Identified that sub-agent had partially created BracketContent and ResultsContent components
+- BracketContent still had Hero Banner (should be removed per user request: "banner di tab bracket itu dipindahkan ditab hasil saja")
+- Rewrote BracketContent to ONLY contain: Format selector + BracketView (bracket tree)
+- Rewrote ResultsContent to contain: Hero Banner + Sponsor + Season Results history
+- Verified bracket-page.tsx already had correct new tab hierarchy: Hasil | Bracket as primary tabs, division as filter chips
+- Verified Beranda CTA (hasil-section.tsx) still works: setInitialBracketTab('results') + setCurrentView('bracket')
+- Ran lint - no new errors introduced
+
+Stage Summary:
+- Bracket tab: Now focused on bracket structure only (format selector + bracket tree visualization)
+- Hasil tab: Now the primary tab (default), contains Hero Banner (match scores) + Sponsor + Season Results
+- Tab hierarchy swapped: Hasil/Bracket are primary tabs, Semua/Cowo/Cewe are secondary filter chips
+- Hero Banner moved from Bracket tab to Hasil tab (match scores = hasil context)
+- Default tab is "Hasil" (results) - users see match results immediately
+- Deep-linking from Beranda CTA still works correctly

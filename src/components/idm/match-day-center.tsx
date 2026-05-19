@@ -821,13 +821,13 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
 }
 
 /* ═══════════════════════════════════════════════
-   BracketContent — Hero + Sponsor + BracketView
+   BracketContent — Format selector + BracketView ONLY
    Used by the new BracketPage primary "Bracket" tab
+   Hero Banner is in ResultsContent (match scores = hasil context)
    ═══════════════════════════════════════════════ */
 export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
   const ct = getDivisionTheme(divisionProp);
-  const dt = ct;
-  const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
+  const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
 
   const { data, isLoading } = useQuery<StatsData>({
     queryKey: ['stats', divisionProp],
@@ -841,221 +841,19 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
   const tournamentFormat = data?.activeTournament?.format;
   const bracketType = bracketTypeManual || tournamentFormat || 'swiss';
 
+  const tournamentMatches = data?.activeTournament?.matches || [];
+
   if (isLoading) {
     return (
-      <div className="space-y-5">
-        <MatchDayHeroSkeleton />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-border/50 bg-card/60 p-4 space-y-3">
-            <div className="skeleton-shimmer h-5 w-32 rounded" aria-hidden="true" />
-            <div className="space-y-2">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="skeleton-shimmer h-6 w-full rounded-lg" aria-hidden="true" />
-              ))}
-            </div>
-          </div>
-          <StatsRowSkeleton count={3} className="grid-cols-3" />
-        </div>
-        <MatchRowSkeleton count={4} />
+      <div className="space-y-4 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
+        <div className="h-12 rounded-lg bg-muted/20 animate-pulse" />
+        <div className="h-64 rounded-2xl border border-border/30 bg-card/40 animate-pulse" />
       </div>
     );
   }
-
-  if (!data?.hasData) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className={`w-8 h-8 border-2 ${ct.border} border-t-transparent rounded-full animate-spin`} />
-      </div>
-    );
-  }
-
-  const t = data.activeTournament;
-  const tournamentMatches = t?.matches || [];
-  const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
-  const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
 
   return (
-    <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
-
-      {/* ═══════ HERO: Featured Match Banner ═══════ */}
-      <div className="stagger-item-subtle stagger-d0">
-        <Card className={`${ct.casinoCard} ${ct.casinoGlow} casino-shimmer overflow-hidden`}>
-          <div className={ct.casinoBar} />
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/95" />
-            <div className="relative z-10 p-4 lg:p-6">
-              {/* Top Bar */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2.5">
-                  <Badge className={`${ct.casinoBadge} text-[10px]`}>
-                    <Flame className="w-3 h-3 mr-1" />
-                    Week {t?.weekNumber ?? '-'}
-                  </Badge>
-                  <Badge className={`${ct.casinoBadge} text-[10px]`}>
-                    {t?.name || 'Turnamen IDM'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShareButton
-                    title={t?.name || 'Tarkam IDM'}
-                    description={`Week ${t?.weekNumber ?? '-'} — ${divisionProp === 'male' ? 'Cowo' : 'Cewe'} Division`}
-                    variant="icon"
-                  />
-                  {(selectedMatch?.status === 'live' || selectedMatch?.status === 'main_event') ? (
-                    <LivePulse />
-                  ) : selectedMatch?.status === 'completed' ? (
-                    <Badge className="bg-green-500/10 text-green-500 text-[10px] font-black border-0">SELESAI</Badge>
-                  ) : (
-                    <Badge className={`${ct.casinoBadge} text-[10px]`}>MENDATANG</Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Match Selection Tabs */}
-              {tournamentMatches.length > 1 && (
-                <div className="flex gap-2 mb-4 overflow-x-auto custom-scrollbar pb-1">
-                  {tournamentMatches.map((m, idx) => {
-                    const isActive = idx === selectedMatchIdx;
-                    const isLive = m.status === 'live' || m.status === 'main_event';
-                    return (
-                      <button
-                        key={m.id}
-                        onClick={() => setSelectedMatchIdx(idx)}
-                        className={`shrink-0 px-3 py-2 rounded-md text-xs min-h-[36px] font-semibold transition-all border ${
-                          isActive
-                            ? `${ct.bg} ${ct.text} ${ct.border} shadow-sm`
-                            : `${ct.bgSubtle} ${ct.borderSubtle} text-muted-foreground hover:text-foreground`
-                        } ${isLive ? 'border-red-500/30' : ''}`}
-                      >
-                        {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 live-dot" />}
-                        {m.team1?.name || 'TBD'} vs {(m.team2?.name || 'TBD')}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Main Match Display */}
-              {selectedMatch && (
-                <div className="flex items-center gap-4 lg:gap-8">
-                  {/* Team 1 */}
-                  <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? '' : 'opacity-80'}`}>
-                    <div
-                      className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
-                        selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2!
-                          ? `bg-gradient-to-br ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
-                          : `${ct.iconBg} ${ct.text}`
-                      }`}
-                    >
-                      {(selectedMatch.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
-                    </div>
-                    <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? dt.neonText : ''}`}>
-                      {selectedMatch.team1?.name || 'TBD'}
-                    </p>
-                    {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! && (
-                      <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0 mt-1">
-                        <Crown className="w-2.5 h-2.5 mr-0.5" /> WINNER
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* VS / Score Center */}
-                  <div className="flex flex-col items-center shrink-0">
-                    {selectedMatch.score1 !== null && selectedMatch.score2 !== null ? (
-                      <div className="flex items-center gap-3 lg:gap-5">
-                        <span className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${selectedMatch.score1 > selectedMatch.score2 ? dt.neonGradient : 'text-foreground/30'}`}>
-                          {selectedMatch.score1}
-                        </span>
-                        <div className="flex flex-col items-center">
-                          <div className={`w-10 h-10 lg:w-14 lg:h-14 rounded-full ${ct.bgSubtle} ${ct.border} border flex items-center justify-center`}>
-                            <Star className={`w-5 h-5 lg:w-7 lg:h-7 ${ct.neonText}`} />
-                          </div>
-                          <span className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase">
-                            {selectedMatch.status === 'completed' ? 'Final' : 'BO3'}
-                          </span>
-                        </div>
-                        <span className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${selectedMatch.score2 > selectedMatch.score1 ? dt.neonGradient : 'text-foreground/30'}`}>
-                          {selectedMatch.score2}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <div className={`animate-pulse-scale w-16 h-16 lg:w-24 lg:h-24 rounded-full ${ct.bgSubtle} ${ct.border} border-2 flex items-center justify-center`}>
-                          <span className={`text-xl lg:text-3xl font-black ${ct.neonGradient}`}>VS</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground mt-2 font-semibold">Segera Dimulai</span>
-                      </div>
-                    )}
-
-                    {selectedMatch.mvpPlayer && (
-                      <div className={`stagger-item-subtle flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg ${ct.bgSubtle} ${ct.border} border`}>
-                        <Crown className="w-3.5 h-3.5 text-yellow-500" />
-                        <span className="text-xs font-semibold text-yellow-500">MVP: {selectedMatch.mvpPlayer.gamertag}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Team 2 */}
-                  <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? '' : 'opacity-80'}`}>
-                    <div
-                      className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
-                        selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1!
-                          ? `bg-gradient-to-br ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
-                          : `${ct.iconBg} ${ct.text}`
-                      }`}
-                    >
-                      {(selectedMatch.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
-                    </div>
-                    <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? dt.neonText : ''}`}>
-                      {selectedMatch.team2?.name || 'TBD'}
-                    </p>
-                    {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! && (
-                      <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0 mt-1">
-                        <Crown className="w-2.5 h-2.5 mr-0.5" /> WINNER
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Score Bar */}
-              {selectedMatch && selectedMatch.score1 !== null && selectedMatch.score2 !== null && (selectedMatch.score1 + selectedMatch.score2) > 0 && (
-                <div className="mt-4">
-                  <div className={`h-2 rounded-full ${ct.bgSubtle} overflow-hidden flex`}>
-                    <div
-                      className={`h-full rounded-l-full bg-gradient-to-r ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
-                      style={{ width: `${(selectedMatch.score1 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, transition: 'width 0.8s ease-out' }}
-                    />
-                    <div
-                      className={`h-full rounded-r-full bg-gradient-to-r ${divisionProp === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
-                      style={{ width: `${(selectedMatch.score2 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, opacity: 0.5, transition: 'width 0.8s ease-out' }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Match Meta */}
-              {t && (
-                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{t.scheduledAt ? (parseWitaDate(t.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(t.scheduledAt)!) : 'TBD') : 'TBD'}</span>
-                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {t.weekNumber}</span>
-                  <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(t.prizePool)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Sponsor Banner */}
-      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
-      {t?.id && (
-        <div className="space-y-3">
-          <PresentedBy tournamentId={t.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={t.id} />
-        </div>
-      )}
-
+    <div className="space-y-4 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
       {/* Bracket Type Selector */}
       <div className="flex items-center gap-1.5 px-1 overflow-x-auto scrollbar-none">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1.5 shrink-0">Format:</span>
@@ -1102,12 +900,23 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
 }
 
 /* ═══════════════════════════════════════════════
-   ResultsContent — Season Results (DetailWeekCards)
+   ResultsContent — Hero Banner + Sponsor + Season Results
    Used by the new BracketPage primary "Hasil" tab
+   Hero Banner here because match scores are "hasil" context
    ═══════════════════════════════════════════════ */
 export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'female' }) {
   const ct = getDivisionTheme(divisionProp);
   const dt = ct;
+  const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
+  const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
+
+  const { data, isLoading } = useQuery<StatsData>({
+    queryKey: ['stats', divisionProp],
+    queryFn: async () => {
+      const res = await fetch(`/api/stats?division=${divisionProp}`);
+      return res.json();
+    },
+  });
 
   const { data: seasonResults, isLoading: seasonLoading } = useQuery<SeasonResultsData>({
     queryKey: ['season-results', divisionProp],
@@ -1119,24 +928,211 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
     staleTime: 30000,
   });
 
-  const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
   const seasonWeeks = seasonResults?.weeks || [];
   const hasSeasonResults = seasonWeeks.some(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
   const completedWeeks = seasonWeeks.filter(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0).length;
 
-  if (seasonLoading) {
+  const t = data?.activeTournament;
+  const tournamentMatches = t?.matches || [];
+  const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
+
+  if (isLoading || seasonLoading) {
     return (
-      <div className="space-y-3">
-        {[1, 2].map(i => (
-          <div key={i} className="h-48 rounded-2xl border border-border/30 bg-card/40 animate-pulse" />
-        ))}
+      <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
+        <MatchDayHeroSkeleton />
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="h-48 rounded-2xl border border-border/30 bg-card/40 animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!hasSeasonResults) {
-    return (
-      <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
+  return (
+    <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
+
+      {/* ═══════ HERO: Featured Match Banner ═══════ */}
+      {t && (
+        <div className="stagger-item-subtle stagger-d0">
+          <Card className={`${ct.casinoCard} ${ct.casinoGlow} casino-shimmer overflow-hidden`}>
+            <div className={ct.casinoBar} />
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/95" />
+              <div className="relative z-10 p-4 lg:p-6">
+                {/* Top Bar: Tournament Info + Live Indicator */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2.5">
+                    <Badge className={`${ct.casinoBadge} text-[10px]`}>
+                      <Flame className="w-3 h-3 mr-1" />
+                      Week {t.weekNumber ?? '-'}
+                    </Badge>
+                    <Badge className={`${ct.casinoBadge} text-[10px]`}>
+                      {t.name || 'Turnamen IDM'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ShareButton
+                      title={t.name || 'Tarkam IDM'}
+                      description={`Week ${t.weekNumber ?? '-'} — ${divisionProp === 'male' ? 'Cowo' : 'Cewe'} Division`}
+                      variant="icon"
+                    />
+                    {(selectedMatch?.status === 'live' || selectedMatch?.status === 'main_event') ? (
+                      <LivePulse />
+                    ) : selectedMatch?.status === 'completed' ? (
+                      <Badge className="bg-green-500/10 text-green-500 text-[10px] font-black border-0">SELESAI</Badge>
+                    ) : (
+                      <Badge className={`${ct.casinoBadge} text-[10px]`}>MENDATANG</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Match Selection Tabs */}
+                {tournamentMatches.length > 1 && (
+                  <div className="flex gap-2 mb-4 overflow-x-auto custom-scrollbar pb-1">
+                    {tournamentMatches.map((m, idx) => {
+                      const isActive = idx === selectedMatchIdx;
+                      const isLive = m.status === 'live' || m.status === 'main_event';
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setSelectedMatchIdx(idx)}
+                          className={`shrink-0 px-3 py-2 rounded-md text-xs min-h-[36px] font-semibold transition-all border ${
+                            isActive
+                              ? `${ct.bg} ${ct.text} ${ct.border} shadow-sm`
+                              : `${ct.bgSubtle} ${ct.borderSubtle} text-muted-foreground hover:text-foreground`
+                          } ${isLive ? 'border-red-500/30' : ''}`}
+                        >
+                          {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 live-dot" />}
+                          {m.team1?.name || 'TBD'} vs {m.team2?.name || 'TBD'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Main Match Display */}
+                {selectedMatch && (
+                  <div className="flex items-center gap-4 lg:gap-8">
+                    {/* Team 1 */}
+                    <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? '' : 'opacity-80'}`}>
+                      <div
+                        className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
+                          selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2!
+                            ? `bg-gradient-to-br ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
+                            : `${ct.iconBg} ${ct.text}`
+                        }`}
+                      >
+                        {(selectedMatch.team1?.name || 'TBD').slice(0, 2).toUpperCase()}
+                      </div>
+                      <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! ? dt.neonText : ''}`}>
+                        {selectedMatch.team1?.name || 'TBD'}
+                      </p>
+                      {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score1! > selectedMatch.score2! && (
+                        <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0 mt-1">
+                          <Crown className="w-2.5 h-2.5 mr-0.5" /> WINNER
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* VS / Score Center */}
+                    <div className="flex flex-col items-center shrink-0">
+                      {selectedMatch.score1 !== null && selectedMatch.score2 !== null ? (
+                        <div className="flex items-center gap-3 lg:gap-5">
+                          <span className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${selectedMatch.score1 > selectedMatch.score2 ? dt.neonGradient : 'text-foreground/30'}`}>
+                            {selectedMatch.score1}
+                          </span>
+                          <div className="flex flex-col items-center">
+                            <div className={`w-10 h-10 lg:w-14 lg:h-14 rounded-full ${ct.bgSubtle} ${ct.border} border flex items-center justify-center`}>
+                              <Star className={`w-5 h-5 lg:w-7 lg:h-7 ${ct.neonText}`} />
+                            </div>
+                            <span className="text-[10px] text-muted-foreground mt-1 font-semibold uppercase">
+                              {selectedMatch.status === 'completed' ? 'Final' : 'BO3'}
+                            </span>
+                          </div>
+                          <span className={`stagger-item-subtle text-4xl lg:text-6xl font-black tabular-nums ${selectedMatch.score2 > selectedMatch.score1 ? dt.neonGradient : 'text-foreground/30'}`}>
+                            {selectedMatch.score2}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <div className={`animate-pulse-scale w-16 h-16 lg:w-24 lg:h-24 rounded-full ${ct.bgSubtle} ${ct.border} border-2 flex items-center justify-center`}>
+                            <span className={`text-xl lg:text-3xl font-black ${ct.neonGradient}`}>VS</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground mt-2 font-semibold">Segera Dimulai</span>
+                        </div>
+                      )}
+
+                      {selectedMatch.mvpPlayer && (
+                        <div className={`stagger-item-subtle flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-lg ${ct.bgSubtle} ${ct.border} border`}>
+                          <Crown className="w-3.5 h-3.5 text-yellow-500" />
+                          <span className="text-xs font-semibold text-yellow-500">MVP: {selectedMatch.mvpPlayer.gamertag}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Team 2 */}
+                    <div className={`flex-1 text-center ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? '' : 'opacity-80'}`}>
+                      <div
+                        className={`hover-scale-md w-20 h-20 lg:w-28 lg:h-28 mx-auto rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-black shadow-lg ${
+                          selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1!
+                            ? `bg-gradient-to-br ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white glow-champion`
+                            : `${ct.iconBg} ${ct.text}`
+                        }`}
+                      >
+                        {(selectedMatch.team2?.name || 'TBD').slice(0, 2).toUpperCase()}
+                      </div>
+                      <p className={`text-sm lg:text-xl font-bold mt-3 ${selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! ? dt.neonText : ''}`}>
+                        {selectedMatch.team2?.name || 'TBD'}
+                      </p>
+                      {selectedMatch.score1 !== null && selectedMatch.score2 !== null && selectedMatch.score2! > selectedMatch.score1! && (
+                        <Badge className="bg-yellow-500/10 text-yellow-500 text-[10px] border-0 mt-1">
+                          <Crown className="w-2.5 h-2.5 mr-0.5" /> WINNER
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Score Bar */}
+                {selectedMatch && selectedMatch.score1 !== null && selectedMatch.score2 !== null && (selectedMatch.score1 + selectedMatch.score2) > 0 && (
+                  <div className="mt-4">
+                    <div className={`h-2 rounded-full ${ct.bgSubtle} overflow-hidden flex`}>
+                      <div
+                        className={`h-full rounded-l-full bg-gradient-to-r ${divisionProp === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`}
+                        style={{ width: `${(selectedMatch.score1 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, transition: 'width 0.8s ease-out' }}
+                      />
+                      <div
+                        className={`h-full rounded-r-full bg-gradient-to-r ${divisionProp === 'male' ? 'from-idm-male-light to-idm-male' : 'from-idm-female-light to-idm-female'}`}
+                        style={{ width: `${(selectedMatch.score2 / (selectedMatch.score1 + selectedMatch.score2)) * 100}%`, opacity: 0.5, transition: 'width 0.8s ease-out' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Match Meta */}
+                <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{t.scheduledAt ? (parseWitaDate(t.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(t.scheduledAt)!) : 'TBD') : 'TBD'}</span>
+                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {t.weekNumber}</span>
+                  <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(t.prizePool)}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Sponsor Banner */}
+      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
+      {t?.id && (
+        <div className="space-y-3">
+          <PresentedBy tournamentId={t.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={t.id} />
+        </div>
+      )}
+
+      {/* ═══════ Season Results History ═══════ */}
+      {!hasSeasonResults ? (
         <SectionCard title="Hasil Pertandingan" icon={Trophy} theme={ct}>
           <div className="text-center py-8">
             <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
@@ -1144,42 +1140,40 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
             <p className="text-xs text-muted-foreground/50 mt-1">Hasil match akan muncul setelah pertandingan selesai</p>
           </div>
         </SectionCard>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
-      {/* Season overview header */}
-      <div className="flex items-center gap-3 mb-2 pt-1">
-        <div className={`w-8 h-8 rounded-lg ${ct.iconBg} flex items-center justify-center shrink-0`}>
-          <Swords className={`w-4 h-4 ${ct.neonText}`} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-bold ${dt.neonText}`}>
-              {seasonResults?.season?.name || `Season ${seasonResults?.season?.number || 1}`}
-            </span>
-            <Badge className={`${ct.iconBg} ${dt.neonText} text-[9px] border-0`}>{completedWeeks} Minggu</Badge>
+      ) : (
+        <div className="space-y-4">
+          {/* Season overview header */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`w-8 h-8 rounded-lg ${ct.iconBg} flex items-center justify-center shrink-0`}>
+              <Swords className={`w-4 h-4 ${ct.neonText}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-bold ${dt.neonText}`}>
+                  {seasonResults?.season?.name || `Season ${seasonResults?.season?.number || 1}`}
+                </span>
+                <Badge className={`${ct.iconBg} ${dt.neonText} text-[9px] border-0`}>{completedWeeks} Minggu</Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Riwayat hasil pertandingan lengkap</p>
+            </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">Riwayat hasil pertandingan lengkap</p>
+
+          {/* Week-by-week results */}
+          {seasonWeeks.map((w, idx) => (
+            <DetailWeekCard
+              key={w.weekNumber}
+              week={w}
+              dt={ct}
+              accentColor={divisionAccentColor}
+              defaultExpanded={idx === seasonWeeks.findIndex(sw => sw.tournamentMatches.length > 0 || sw.leagueMatches.length > 0)}
+            />
+          ))}
+
+          {/* Ghost for future weeks */}
+          {seasonWeeks.length === 0 && (
+            <DetailGhostWeekCard dt={ct} accentColor={divisionAccentColor} />
+          )}
         </div>
-      </div>
-
-      {/* Week-by-week results */}
-      {seasonWeeks.map((w, idx) => (
-        <DetailWeekCard
-          key={w.weekNumber}
-          week={w}
-          dt={ct}
-          accentColor={divisionAccentColor}
-          defaultExpanded={idx === seasonWeeks.findIndex(sw => sw.tournamentMatches.length > 0 || sw.leagueMatches.length > 0)}
-        />
-      ))}
-
-      {/* Ghost for future weeks */}
-      {seasonWeeks.length === 0 && (
-        <DetailGhostWeekCard dt={ct} accentColor={divisionAccentColor} />
       )}
     </div>
   );
