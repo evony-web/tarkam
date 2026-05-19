@@ -3,17 +3,12 @@
 import React from 'react';
 import { useMemo, useState } from 'react';
 import { AvatarMedia } from '@/components/ui/avatar-media';
-import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import {
   Users, Award, Shield, Flame, Trophy,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, ChevronRight,
 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 import { SkinBadgesRow, SkinName } from '../skin-renderer';
 import { getPrimarySkin } from '@/lib/skin-utils';
 import { ClubLogoImage } from '../club-logo-image';
@@ -45,7 +40,7 @@ interface TarkamClub {
 }
 
 /* ═══════════════════════════════════════════════════════
-   COMMUNITY LEADERBOARD — Tarkam mode for clubs
+   COMMUNITY LEADERBOARD — Card-per-row design (no table)
    ═══════════════════════════════════════════════════════ */
 interface CommunityLeaderboardProps {
   maleData?: StatsData;
@@ -63,6 +58,23 @@ interface CommunityLeaderboardProps {
 }
 
 type DivisionFilter = 'all' | 'male' | 'female';
+
+/* ─── Rank badge component ─── */
+function RankBadge({ rank }: { rank: number }) {
+  return (
+    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+      rank === 1
+        ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+        : rank === 2
+          ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+          : rank === 3
+            ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+            : 'bg-muted text-muted-foreground'
+    }`}>
+      {rank}
+    </span>
+  );
+}
 
 export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
   maleData,
@@ -155,117 +167,127 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
   const displayedClubs = showAll ? clubs : (showAllClubs ? clubs : clubs.slice(0, maxClubs));
 
   return (
-    <div className="space-y-4">
-      {/* ═══ Player Leaderboard — Toornament clean table ═══ */}
+    <div className="space-y-3">
+      {/* ═══ Player Leaderboard — Card-per-row design ═══ */}
       {leaderboardSort === 'players' && (
-        <Card className={`${dt.casinoCard} overflow-hidden`}>
-          <div className={dt.casinoBar} />
-          {/* Header bar */}
-          <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+        <>
+          {/* Section header */}
+          <div className={`flex items-center gap-2.5 px-1`}>
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Award className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider">Peringkat Player</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
             <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TOP {displayedPlayers?.length || 10}</Badge>
           </div>
-          {/* Table — Mobile: no inner scroll (page scrolls). Desktop: max-height with inner scroll */}
-          <div className="sm:max-h-[650px] sm:overflow-y-auto custom-scrollbar">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="sticky top-0 z-10">
-                  <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                    <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">#</TableHead>
-                    <TableHead className="text-[10px] font-semibold min-w-[120px] bg-muted/80 backdrop-blur-sm">Player</TableHead>
-                    <TableHead className="w-16 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Divisi</TableHead>
-                    <TableHead className="w-14 text-right text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Pts</TableHead>
-                    <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">W</TableHead>
-                    <TableHead className="w-10 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">L</TableHead>
-                    <TableHead className="w-14 text-center text-[10px] font-semibold hidden md:table-cell bg-muted/80 backdrop-blur-sm">Streak</TableHead>
-                    <TableHead className="w-10 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">MVP</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayedPlayers?.map((p, idx) => {
-                    const losses = p.matches - p.totalWins;
-                    const playerDivision = (p.division || 'male') as 'male' | 'female';
-                    const playerDt = getDivisionTheme(playerDivision);
-                    const playerSkins = skinMap[p.id];
-                    const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
-                    const trendUp = p.streak > 1;
 
-                    return (
-                      <TableRow
-                        key={p.id}
-                        className={`standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} ${playerDivision === 'male' ? 'standings-row-glow-male' : 'standings-row-glow-female'} cursor-pointer transition-all duration-200 border-b ${playerDt.borderSubtle} ${
-                          idx < 3 ? `${playerDt.bgSubtle}` : ''
-                        }`}
-                        onClick={() => onPlayerClick(p, playerDivision)}
-                      >
-                        <TableCell className="text-center">
-                          <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                            idx === 0 ? 'rank-badge-gold-enhanced text-black' :
-                            idx === 1 ? 'rank-badge-silver-enhanced text-black' :
-                            idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
-                            'text-muted-foreground'
-                          }`}>
-                            {idx + 1}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-7 h-7 rounded-full overflow-hidden shrink-0 ${
-                              idx === 0 ? 'avatar-ring-gold' :
-                              idx === 1 ? 'avatar-ring-silver' :
-                              idx === 2 ? 'avatar-ring-bronze' : ''
-                            }`}>
-                              <AvatarMedia src={getAvatarUrl(p.gamertag, playerDivision, p.avatar)} alt={p.gamertag} width={28} height={28} className="w-full h-full" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <SkinName skin={primarySkin}>
-                                  <p className="text-xs font-medium truncate">{p.gamertag}</p>
-                                </SkinName>
-                                {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
-                              </div>
-                              {clubToString(p.club as any) && <p className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</p>}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={`${playerDt.badgeBg} text-[8px] border`}>
-                            {playerDivision === 'male' ? '🕺 Cowo' : '💃 Cewe'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className={`font-bold text-xs ${idx < 3 ? playerDt.neonText : ''}`}>{p.points}</span>
-                          {trendUp && <span className="trend-up text-green-400 text-[9px] ml-0.5">↑</span>}
-                        </TableCell>
-                        <TableCell className="text-center text-xs text-green-500 font-medium">{p.totalWins}</TableCell>
-                        <TableCell className="text-center text-xs text-red-500 font-medium hidden sm:table-cell">{losses > 0 ? losses : 0}</TableCell>
-                        <TableCell className="text-center text-xs hidden md:table-cell">
-                          {p.streak > 1 ? (
-                            <span className="text-orange-400 font-semibold flex items-center gap-0.5 justify-center"><Flame className="w-3 h-3" />{p.streak}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center text-xs hidden sm:table-cell">
-                          {p.totalMvp > 0 ? (
-                            <span className="text-yellow-500 font-semibold">{p.totalMvp}</span>
-                          ) : (
-                            <span className="text-muted-foreground">0</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+          {/* Card list */}
+          <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
+            {displayedPlayers?.map((p, idx) => {
+              const losses = p.matches - p.totalWins;
+              const playerDivision = (p.division || 'male') as 'male' | 'female';
+              const playerDt = getDivisionTheme(playerDivision);
+              const playerSkins = skinMap[p.id];
+              const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
+              const trendUp = p.streak > 1;
+              const isTop = idx < 3;
+
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => onPlayerClick(p, playerDivision)}
+                  className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                    idx === 0
+                      ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                      : isTop
+                        ? 'bg-card/60 border-border/30'
+                        : idx % 2 === 0
+                          ? 'bg-card/50 border-border/20'
+                          : 'bg-card/35 border-border/15'
+                  } hover:border-idm-gold-warm/20 hover:bg-card/70`}
+                >
+                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                    {/* Rank */}
+                    <RankBadge rank={idx + 1} />
+
+                    {/* Avatar */}
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 ${
+                      idx === 0 ? 'ring-2 ring-idm-gold-warm/50' :
+                      idx === 1 ? 'ring-2 ring-gray-400/40' :
+                      idx === 2 ? 'ring-2 ring-amber-600/40' : ''
+                    }`}>
+                      <AvatarMedia src={getAvatarUrl(p.gamertag, playerDivision, p.avatar)} alt={p.gamertag} width={40} height={40} className="w-full h-full" />
+                    </div>
+
+                    {/* Player info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <SkinName skin={primarySkin}>
+                          <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                        </SkinName>
+                        {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Badge className={`${playerDt.badgeBg} text-[8px] border`}>
+                          {playerDivision === 'male' ? '🕺 Cowo' : '💃 Cewe'}
+                        </Badge>
+                        {clubToString(p.club as any) && (
+                          <span className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats — Right side with divider */}
+                    <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                      {/* Points — Always visible */}
+                      <div className="text-center min-w-[36px]">
+                        <p className={`text-sm sm:text-base font-bold ${isTop ? playerDt.neonText : ''}`}>{p.points}</p>
+                        <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                      </div>
+
+                      {/* W/L — Visible on sm+ */}
+                      <div className="hidden sm:flex items-center gap-2">
+                        <div className="text-center min-w-[20px]">
+                          <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
+                          <p className="text-[7px] text-muted-foreground">W</p>
+                        </div>
+                        <div className="text-center min-w-[20px]">
+                          <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
+                          <p className="text-[7px] text-muted-foreground">L</p>
+                        </div>
+                      </div>
+
+                      {/* Streak — Visible on md+ */}
+                      <div className="hidden md:block text-center min-w-[28px]">
+                        {p.streak > 1 ? (
+                          <span className="text-orange-400 font-semibold flex items-center gap-0.5 justify-center text-xs"><Flame className="w-3 h-3" />{p.streak}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                        <p className="text-[7px] text-muted-foreground">streak</p>
+                      </div>
+
+                      {/* MVP — Visible on sm+ */}
+                      <div className="hidden sm:block text-center min-w-[20px]">
+                        {p.totalMvp > 0 ? (
+                          <p className="text-yellow-500 font-semibold text-xs">{p.totalMvp}</p>
+                        ) : (
+                          <p className="text-muted-foreground text-xs">0</p>
+                        )}
+                        <p className="text-[7px] text-muted-foreground">mvp</p>
+                      </div>
+
+                      {/* Chevron */}
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
           {/* Show more / less toggle or CTA */}
           {!showAll && mergedPlayers.length > maxPlayers && (
-            <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
+            <div className="flex items-center justify-center pt-1">
               {onViewAll ? (
                 <button
                   onClick={onViewAll}
@@ -283,122 +305,113 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
               )}
             </div>
           )}
-        </Card>
+        </>
       )}
 
-      {/* ═══ Club Standings — TARKAM MODE (poin = total poin anggota) ═══ */}
+      {/* ═══ Club Standings — Card-per-row design ═══ */}
       {leaderboardSort === 'clubs' && (
-        <Card className={`${dt.casinoCard} overflow-hidden`}>
-          <div className={dt.casinoBar} />
-          <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
+        <>
+          {/* Section header */}
+          <div className="flex items-center gap-2.5 px-1">
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Shield className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider">Klasemen Club</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
             <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TARKAM</Badge>
           </div>
+
           {isClubLoading ? (
-            <div className="p-6 text-center">
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-muted/30" />
-                    <div className="w-7 h-7 rounded-lg bg-muted/30" />
-                    <div className="flex-1 h-4 rounded bg-muted/20" />
-                    <div className="w-12 h-4 rounded bg-muted/20" />
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-16 rounded-xl bg-muted/20 animate-pulse" />
+              ))}
             </div>
           ) : clubs.length > 0 ? (
             <>
-              {/* Mobile: no inner scroll (page scrolls). Desktop: max-height with inner scroll */}
-              <div className="sm:max-h-[650px] sm:overflow-y-auto custom-scrollbar">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className="sticky top-0 z-10">
-                      <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                        <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">#</TableHead>
-                        <TableHead className="text-[10px] font-semibold min-w-[130px] bg-muted/80 backdrop-blur-sm">Club</TableHead>
-                        <TableHead className="w-14 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Anggota</TableHead>
-                        <TableHead className="w-14 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">
-                          <span className="text-idm-male">Pts M</span>
-                        </TableHead>
-                        <TableHead className="w-14 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">
-                          <span className="text-idm-female">Pts F</span>
-                        </TableHead>
-                        <TableHead className="w-14 text-right text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Pts</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayedClubs?.map((club, idx) => {
-                        const memberLabel = club.maleMemberCount > 0 && club.femaleMemberCount > 0
-                          ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
-                          : club.maleMemberCount > 0
-                            ? `${club.maleMemberCount}M`
-                            : `${club.femaleMemberCount}F`;
+              <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
+                {displayedClubs?.map((club, idx) => {
+                  const memberLabel = club.maleMemberCount > 0 && club.femaleMemberCount > 0
+                    ? `${club.maleMemberCount}M + ${club.femaleMemberCount}F`
+                    : club.maleMemberCount > 0
+                      ? `${club.maleMemberCount}M`
+                      : `${club.femaleMemberCount}F`;
+                  const isTop = idx < 4;
 
-                        return (
-                          <TableRow
-                            key={club.id}
-                            className={`standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} cursor-pointer transition-all duration-200 border-b ${dt.borderSubtle} ${
-                              idx < 4 ? `${dt.bgSubtle}` : ''
-                            }`}
-                            onClick={() => onClubClick?.(club as StatsData['clubs'][0])}
-                          >
-                            <TableCell className="text-center">
-                              <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                idx === 0 ? 'rank-badge-gold-enhanced text-black' :
-                                idx === 1 ? 'rank-badge-silver-enhanced text-black' :
-                                idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
-                                'text-muted-foreground'
-                              }`}>
-                                {idx + 1}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
-                                  {club.logo ? (
-                                    <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={28} height={28} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className={`w-full h-full ${dt.iconBg} flex items-center justify-center`}>
-                                      <Shield className={`w-3.5 h-3.5 ${dt.text}`} />
-                                    </div>
-                                  )}
-                                  {/* Season champion badge */}
-                                  {seasonChampionClubIds.has(club.id) && (
-                                    <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-border/20">
-                                      <span className="text-[6px] font-black text-mid leading-none">S{seasonChampionClubIds.get(club.id)}</span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <span className="text-xs font-semibold truncate">{club.name}</span>
-                                  <p className="text-[9px] text-muted-foreground">{memberLabel} anggota</p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center text-xs font-medium">
-                              <span>{club.memberCount}</span>
-                              <span className="text-[8px] text-muted-foreground block">{memberLabel}</span>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <span className="text-xs font-bold text-idm-male">{club.malePoints}</span>
-                            </TableCell>
-                            <TableCell className="text-center hidden sm:table-cell">
-                              <span className="text-xs font-bold text-idm-female">{club.femalePoints}</span>
-                            </TableCell>
-                            <TableCell className={`text-right font-bold text-xs ${idx === 0 ? dt.neonGradient : idx < 4 ? dt.neonText : ''}`}>{club.points}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                  return (
+                    <div
+                      key={club.id}
+                      onClick={() => onClubClick?.(club as StatsData['clubs'][0])}
+                      className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                        idx === 0
+                          ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                          : isTop
+                            ? 'bg-card/60 border-border/30'
+                            : idx % 2 === 0
+                              ? 'bg-card/50 border-border/20'
+                              : 'bg-card/35 border-border/15'
+                      } hover:border-idm-gold-warm/20 hover:bg-card/70`}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                        {/* Rank */}
+                        <RankBadge rank={idx + 1} />
+
+                        {/* Club logo */}
+                        <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden shrink-0">
+                          {club.logo ? (
+                            <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={40} height={40} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className={`w-full h-full ${dt.iconBg} flex items-center justify-center`}>
+                              <Shield className={`w-4 h-4 ${dt.text}`} />
+                            </div>
+                          )}
+                          {/* Season champion badge */}
+                          {seasonChampionClubIds.has(club.id) && (
+                            <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-border/20">
+                              <span className="text-[6px] font-black text-mid leading-none">S{seasonChampionClubIds.get(club.id)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Club info */}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-semibold truncate">{club.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[9px] text-muted-foreground">{club.memberCount} anggota</span>
+                            <span className="text-[8px] text-muted-foreground/60">({memberLabel})</span>
+                          </div>
+                        </div>
+
+                        {/* Stats — Right side with divider */}
+                        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                          {/* Male points — Visible on sm+ */}
+                          <div className="hidden sm:block text-center min-w-[28px]">
+                            <p className="text-xs font-bold text-idm-male">{club.malePoints}</p>
+                            <p className="text-[7px] text-muted-foreground">pts M</p>
+                          </div>
+
+                          {/* Female points — Visible on sm+ */}
+                          <div className="hidden sm:block text-center min-w-[28px]">
+                            <p className="text-xs font-bold text-idm-female">{club.femalePoints}</p>
+                            <p className="text-[7px] text-muted-foreground">pts F</p>
+                          </div>
+
+                          {/* Total points */}
+                          <div className="text-center min-w-[36px]">
+                            <p className={`text-sm sm:text-base font-bold ${idx === 0 ? dt.neonGradient : isTop ? dt.neonText : ''}`}>{club.points}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                          </div>
+
+                          {/* Chevron */}
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+
               {!showAll && clubs.length > maxClubs && (
-                <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
+                <div className="flex items-center justify-center pt-1">
                   {onViewAll ? (
                     <button
                       onClick={onViewAll}
@@ -418,15 +431,13 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
               )}
             </>
           ) : (
-            <div className="p-4">
-              <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-                <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">Poin klub dihitung dari total poin semua anggota</p>
-              </div>
+            <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
+              <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
+              <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1">Poin klub dihitung dari total poin semua anggota</p>
             </div>
           )}
-        </Card>
+        </>
       )}
     </div>
   );
