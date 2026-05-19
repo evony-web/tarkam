@@ -932,9 +932,59 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
   const hasSeasonResults = seasonWeeks.some(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
   const completedWeeks = seasonWeeks.filter(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0).length;
 
-  const t = data?.activeTournament;
-  const tournamentMatches = t?.matches || [];
+  // Smart hero data: if active tournament has no results, fall back to last completed week
+  const activeTournament = data?.activeTournament;
+  const activeHasResults = (activeTournament?.matches || []).some(m => m.score1 !== null && m.score2 !== null);
+
+  // Find last week with results (iterate from end)
+  const lastResultWeek = [...seasonWeeks].reverse().find(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
+
+  // Decide which data to show in hero banner
+  const heroData = useMemo(() => {
+    if (activeTournament && activeHasResults) {
+      // Active tournament has results — show it
+      return {
+        weekNumber: activeTournament.weekNumber,
+        name: activeTournament.name,
+        scheduledAt: activeTournament.scheduledAt,
+        prizePool: activeTournament.prizePool,
+        matches: activeTournament.matches || [],
+        isFallback: false,
+      };
+    }
+    if (lastResultWeek) {
+      // No active results — fall back to last completed week from season results
+      return {
+        weekNumber: lastResultWeek.weekNumber,
+        name: lastResultWeek.tournamentName,
+        scheduledAt: null,
+        prizePool: null,
+        matches: lastResultWeek.tournamentMatches.map(m => ({
+          id: m.id,
+          team1: m.team1,
+          team2: m.team2,
+          score1: m.score1,
+          score2: m.score2,
+          status: 'completed' as const,
+          round: m.round,
+          bracket: m.bracket,
+          format: m.format,
+          mvpPlayer: m.mvpPlayer,
+        })),
+        isFallback: true,
+      };
+    }
+    // No data at all
+    return null;
+  }, [activeTournament, activeHasResults, lastResultWeek]);
+
+  const tournamentMatches = heroData?.matches || [];
   const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
+
+  // Reset match selection when hero data changes (e.g., active → fallback)
+  useEffect(() => {
+    setSelectedMatchIdx(0);
+  }, [heroData?.weekNumber, heroData?.isFallback]);
 
   if (isLoading || seasonLoading) {
     return (
@@ -953,7 +1003,7 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
     <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
 
       {/* ═══════ HERO: Featured Match Banner ═══════ */}
-      {t && (
+      {heroData && (
         <div className="stagger-item-subtle stagger-d0">
           <Card className={`${ct.casinoCard} ${ct.casinoGlow} casino-shimmer overflow-hidden`}>
             <div className={ct.casinoBar} />
@@ -965,16 +1015,19 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
                   <div className="flex items-center gap-2.5">
                     <Badge className={`${ct.casinoBadge} text-[10px]`}>
                       <Flame className="w-3 h-3 mr-1" />
-                      Week {t.weekNumber ?? '-'}
+                      Week {heroData.weekNumber ?? '-'}
                     </Badge>
                     <Badge className={`${ct.casinoBadge} text-[10px]`}>
-                      {t.name || 'Turnamen IDM'}
+                      {heroData.name || 'Turnamen IDM'}
                     </Badge>
+                    {heroData.isFallback && (
+                      <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[9px] border border-idm-gold-warm/20 font-bold">Hasil Terakhir</Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <ShareButton
-                      title={t.name || 'Tarkam IDM'}
-                      description={`Week ${t.weekNumber ?? '-'} — ${divisionProp === 'male' ? 'Cowo' : 'Cewe'} Division`}
+                      title={heroData.name || 'Tarkam IDM'}
+                      description={`Week ${heroData.weekNumber ?? '-'} — ${divisionProp === 'male' ? 'Cowo' : 'Cewe'} Division`}
                       variant="icon"
                     />
                     {(selectedMatch?.status === 'live' || selectedMatch?.status === 'main_event') ? (
@@ -1112,9 +1165,9 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
 
                 {/* Match Meta */}
                 <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{t.scheduledAt ? (parseWitaDate(t.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(t.scheduledAt)!) : 'TBD') : 'TBD'}</span>
-                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {t.weekNumber}</span>
-                  <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(t.prizePool)}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{heroData.scheduledAt ? (parseWitaDate(heroData.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(heroData.scheduledAt)!) : 'TBD') : 'TBD'}</span>
+                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {heroData.weekNumber}</span>
+                  {heroData.prizePool != null && <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(heroData.prizePool)}</span>}
                 </div>
               </div>
             </div>
@@ -1124,10 +1177,10 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
 
       {/* Sponsor Banner */}
       <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
-      {t?.id && (
+      {activeTournament?.id && (
         <div className="space-y-3">
-          <PresentedBy tournamentId={t.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={t.id} />
+          <PresentedBy tournamentId={activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={activeTournament.id} />
         </div>
       )}
 

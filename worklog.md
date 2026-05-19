@@ -224,3 +224,26 @@ Stage Summary:
 - Hero Banner moved from Bracket tab to Hasil tab (match scores = hasil context)
 - Default tab is "Hasil" (results) - users see match results immediately
 - Deep-linking from Beranda CTA still works correctly
+
+---
+Task ID: 2
+Agent: main
+Task: Smart Hero Banner - fallback to last completed week when active tournament has no results
+
+Work Log:
+- Added `activeHasResults` check: checks if activeTournament has any matches with scores
+- Added `lastResultWeek` lookup: finds the last week from season-results that has match data
+- Added `heroData` useMemo: decides which data to show in hero banner
+  - If activeTournament has results → show it (normal behavior)
+  - If no active results but lastResultWeek exists → fall back to last completed week's data
+  - If no data at all → show nothing (heroData = null)
+- Added "Hasil Terakhir" badge when showing fallback data
+- Updated all `t.` references to `heroData.` in hero banner section
+- Added reset effect for selectedMatchIdx when hero data changes
+- Sponsor section still uses activeTournament.id (sponsors are per-tournament)
+
+Stage Summary:
+- Hero banner now mirrors the week list's smart expand behavior
+- If current week has no results, banner shows the last completed week instead of empty "MENDATANG"
+- Badge "Hasil Terakhir" appears when showing fallback data
+- Consistent UX: both banner and week list show the same "most recent results" logic
