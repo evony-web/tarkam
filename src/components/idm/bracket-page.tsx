@@ -54,22 +54,28 @@ export function BracketPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ═══ Header: Title + Primary Tabs in one row ═══ */}
+      {/* ═══ Header: Title + All tabs in one row ═══ */}
       <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          {/* Row 1: Title + Hasil/Bracket tabs */}
-          <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-                <Radio className="w-4 h-4 text-idm-gold-warm" />
-              </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">Bracket</h1>
-                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight hidden sm:block">Hasil & bracket tarkam</p>
-              </div>
+          {/* Row 1: Title alone */}
+          <div className="flex items-center gap-2.5 pt-3 sm:pt-4">
+            <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
+              <Radio className="w-4 h-4 text-idm-gold-warm" />
             </div>
+            <div>
+              <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">Bracket</h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight hidden sm:block">Hasil & bracket tarkam</p>
+            </div>
+          </div>
 
-            <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-auto">
+          {/* Row 2: Division chips + Primary tabs in one line */}
+          <div className="flex items-center gap-2 py-2.5 overflow-x-auto">
+            <DivisionChips division={division} setDivision={setDivision} />
+
+            {/* Separator dot */}
+            <div className="w-px h-5 bg-idm-gold-warm/15 shrink-0" />
+
+            <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-auto shrink-0">
               <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
                 {[
                   { value: 'results', label: 'Hasil', icon: Swords },
@@ -86,11 +92,6 @@ export function BracketPage() {
                 ))}
               </TabsList>
             </Tabs>
-          </div>
-
-          {/* Row 2: Division filter chips */}
-          <div className="pb-2.5">
-            <DivisionChips division={division} setDivision={setDivision} />
           </div>
         </div>
       </div>
