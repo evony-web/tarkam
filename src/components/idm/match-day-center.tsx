@@ -86,10 +86,11 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
   // Bracket sub-tab state — reads initialBracketTab from store (set by landing "Lihat Semua Hasil" button)
   const [activeBracketTab, setActiveBracketTab] = useState(() => initialBracketTab || 'bracket');
 
-  // Consume initialBracketTab once
+  // Consume initialBracketTab once — also scroll to top so user sees header, not footer
   useEffect(() => {
     if (initialBracketTab) {
       setActiveBracketTab(initialBracketTab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const timer = setTimeout(() => setInitialBracketTab(null), 100);
       return () => clearTimeout(timer);
     }

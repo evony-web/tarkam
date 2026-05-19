@@ -471,6 +471,8 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
                 onClick={() => {
                   setInitialBracketTab('results');
                   setCurrentView('bracket');
+                  // Scroll to top so user sees the menu header, not the bottom
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
                 className="group flex items-center gap-2 px-6 py-3 rounded-2xl border border-idm-gold-warm/20 bg-idm-gold-warm/5 text-idm-gold-warm text-sm font-bold transition-all duration-300 hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/35 hover:shadow-[0_0_20px_rgba(239,249,35,0.1)] cursor-pointer active:scale-[0.98]"
               >
