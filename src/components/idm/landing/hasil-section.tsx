@@ -178,6 +178,11 @@ function CompactLeagueRow({ m }: { m: WeekResult['leagueMatches'][0] }) {
   );
 }
 
+/* ─── Helper: find index of first week with results ─── */
+function firstResultIdx(weeks: WeekResult[]): number {
+  return weeks.findIndex(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
+}
+
 /* ─── Week Card — compact, collapsible ─── */
 function WeekCard({ week, divStyle, defaultExpanded }: { week: WeekResult; divStyle: DivisionStyle; defaultExpanded: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -395,7 +400,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
                   </div>
                   {hasMaleResults ? (
                     maleWeeks.map((w, idx) => (
-                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === 0} />
+                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === firstResultIdx(maleWeeks)} />
                     ))
                   ) : (
                     <GhostWeekCard divStyle={DIVISION_STYLE.male} />
@@ -410,7 +415,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
                   </div>
                   {hasFemaleResults ? (
                     femaleWeeks.map((w, idx) => (
-                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === 0} />
+                      <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === firstResultIdx(femaleWeeks)} />
                     ))
                   ) : (
                     <GhostWeekCard divStyle={DIVISION_STYLE.female} />
@@ -424,7 +429,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
               <div className="max-w-2xl space-y-2">
                 {hasMaleResults ? (
                   maleWeeks.map((w, idx) => (
-                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === 0} />
+                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.male} defaultExpanded={idx === firstResultIdx(maleWeeks)} />
                   ))
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.male} />
@@ -437,7 +442,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
               <div className="max-w-2xl space-y-2">
                 {hasFemaleResults ? (
                   femaleWeeks.map((w, idx) => (
-                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === 0} />
+                    <WeekCard key={w.weekNumber} week={w} divStyle={DIVISION_STYLE.female} defaultExpanded={idx === firstResultIdx(femaleWeeks)} />
                   ))
                 ) : (
                   <GhostWeekCard divStyle={DIVISION_STYLE.female} />

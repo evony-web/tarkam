@@ -804,7 +804,7 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
                   week={w}
                   dt={ct}
                   accentColor={divisionAccentColor}
-                  defaultExpanded={idx === 0}
+                  defaultExpanded={idx === seasonWeeks.findIndex(sw => sw.tournamentMatches.length > 0 || sw.leagueMatches.length > 0)}
                 />
               ))}
 
