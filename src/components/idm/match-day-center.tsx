@@ -5,7 +5,7 @@ import { useAppStore } from '@/lib/store';
 // Note: motion.div removed — replaced with CSS animations
 import {
   Trophy, Crown, Radio, Clock, Flame,
-  Star
+  Star, ChevronDown, Gamepad2, Swords,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,76 @@ import { BracketView } from './bracket-view';
 import { SponsorBanner, PresentedBy, SponsoredPrizes } from './ui/sponsor-banner';
 // container/item removed — replaced with CSS stagger-item classes
 
+/* ─── Season Results Types (shared with hasil-section) ─── */
+interface WeekResult {
+  weekNumber: number;
+  tournamentName: string;
+  tournamentStatus: string;
+  hasTournament: boolean;
+  tournamentMatches: Array<{
+    id: string;
+    round: number;
+    bracket: string;
+    score1: number | null;
+    score2: number | null;
+    format: string;
+    team1: { id: string; name: string } | null;
+    team2: { id: string; name: string } | null;
+    mvpPlayer: { id: string; gamertag: string } | null;
+  }>;
+  leagueMatches: Array<{
+    id: string;
+    week: number;
+    score1: number | null;
+    score2: number | null;
+    format: string;
+    club1: { id: string; name: string; logo: string | null };
+    club2: { id: string; name: string; logo: string | null };
+  }>;
+}
+
+interface SeasonResultsData {
+  season: {
+    id: string;
+    name: string;
+    number: number;
+    status: string;
+  };
+  weeks: WeekResult[];
+}
+
+/* ─── Bracket/Round label helpers ─── */
+function getFullRoundLabel(bracket: string, round: number): string {
+  switch (bracket) {
+    case 'grand_final':
+      return '🏆 Grand Final';
+    case 'upper':
+      if (round === 1) return 'Final';
+      if (round === 2) return 'Semi Final';
+      if (round === 3) return 'Quarter Final';
+      return `R${round}`;
+    case 'lower':
+      if (round === 1) return 'Lower Final';
+      if (round === 2) return 'Lower Semi';
+      return `Lower R${round}`;
+    case 'swiss':
+      return `Swiss R${round}`;
+    case 'group':
+      return `Group R${round}`;
+    default:
+      return `R${round}`;
+  }
+}
+
+function getRoundSortKey(bracket: string, round: number): number {
+  switch (bracket) {
+    case 'upper': return round * 10;
+    case 'lower': return 100 + round * 10;
+    case 'grand_final': return 999;
+    default: return 500 + round * 10;
+  }
+}
+
 /* ─── Live Pulse Indicator ─── */
 function LivePulse() {
   return (
@@ -37,7 +107,6 @@ function LivePulse() {
     </div>
   );
 }
-
 
 
 /* ─── Section Card ─── */
@@ -71,6 +140,268 @@ function SectionCard({ title, icon: Icon, badge, children, className = '', theme
 }
 
 /* ═══════════════════════════════════════════════
+   DETAILED MATCH ROWS — for Bracket > Hasil tab
+   2-line rows with round grouping, MVP, champion
+   ═══════════════════════════════════════════════ */
+
+/* ─── Detailed Tournament Match Row (2-line) ─── */
+function DetailTournamentMatchRow({ m, dt }: { m: WeekResult['tournamentMatches'][0]; dt: DivisionTheme }) {
+  const winner1 = m.score1 != null && m.score2 != null && m.score1 > m.score2;
+  const winner2 = m.score1 != null && m.score2 != null && m.score2 > m.score1;
+  const isGrandFinal = m.bracket === 'grand_final';
+
+  if (isGrandFinal) {
+    return (
+      <div className="group flex items-stretch rounded-lg overflow-hidden border bg-idm-gold-warm/5 border-idm-gold-warm/20 transition-all hover:shadow-sm hover:border-idm-gold-warm/35">
+        <div className="w-9 shrink-0 flex items-center justify-center bg-idm-gold-warm/15 border-r border-idm-gold-warm/20">
+          <span className="text-sm">🏆</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`flex items-center px-3 py-2 border-b border-idm-gold-warm/10 ${winner1 ? 'bg-idm-gold-warm/10' : 'opacity-60'}`}>
+            {winner1 && <span className="text-xs mr-1">👑</span>}
+            <span className={`text-sm font-bold truncate flex-1 ${winner1 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+              {m.team1?.name || 'TBD'}
+            </span>
+            <span className={`text-sm font-black tabular-nums w-6 text-right ${winner1 ? 'text-idm-gold-warm' : 'text-foreground'}`}>{m.score1 ?? '-'}</span>
+          </div>
+          <div className={`flex items-center px-3 py-2 ${winner2 ? 'bg-idm-gold-warm/10' : 'opacity-60'}`}>
+            {winner2 && <span className="text-xs mr-1">👑</span>}
+            <span className={`text-sm font-bold truncate flex-1 ${winner2 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+              {m.team2?.name || 'TBD'}
+            </span>
+            <span className={`text-sm font-black tabular-nums w-6 text-right ${winner2 ? 'text-idm-gold-warm' : 'text-foreground'}`}>{m.score2 ?? '-'}</span>
+          </div>
+        </div>
+        <div className="w-14 shrink-0 flex flex-col items-center justify-center border-l border-idm-gold-warm/15">
+          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[9px] border border-idm-gold-warm/25 font-black">FT</Badge>
+          {m.mvpPlayer && (
+            <span className="text-[9px] text-idm-gold-warm mt-0.5 flex items-center gap-0.5" title={`MVP: ${m.mvpPlayer.gamertag}`}>
+              ⭐ <span className="truncate max-w-[40px]">{m.mvpPlayer.gamertag}</span>
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Regular match row
+  return (
+    <div className={`group flex items-stretch rounded-lg overflow-hidden ${dt.bgSubtle} ${dt.borderSubtle} border transition-all ${dt.hoverBorder} hover:shadow-sm`}>
+      <div className="flex-1 min-w-0">
+        <div className={`flex items-center px-3 py-1.5 border-b ${dt.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+            {winner1 && <span className="mr-1">▸</span>}
+            {m.team1?.name || 'TBD'}
+          </span>
+          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-foreground'}`}>
+            {m.score1 ?? '-'}
+          </span>
+        </div>
+        <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+            {winner2 && <span className="mr-1">▸</span>}
+            {m.team2?.name || 'TBD'}
+          </span>
+          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-foreground'}`}>
+            {m.score2 ?? '-'}
+          </span>
+        </div>
+      </div>
+      <div className="w-12 shrink-0 flex flex-col items-center justify-center border-l border-idm-gold-warm/10">
+        <Badge className="bg-green-500/10 text-green-500 text-[9px] border-0">FT</Badge>
+        {m.mvpPlayer && (
+          <span className="text-[8px] text-idm-gold-warm mt-0.5 flex items-center gap-0.5" title={`MVP: ${m.mvpPlayer.gamertag}`}>
+            ⭐ <span className="truncate max-w-[32px]">{m.mvpPlayer.gamertag}</span>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Detailed League Match Row (2-line) ─── */
+function DetailLeagueMatchRow({ m, dt }: { m: WeekResult['leagueMatches'][0]; dt: DivisionTheme }) {
+  const winner1 = m.score1 != null && m.score2 != null && m.score1 > m.score2;
+  const winner2 = m.score1 != null && m.score2 != null && m.score2 > m.score1;
+
+  return (
+    <div className={`group flex items-stretch rounded-lg overflow-hidden ${dt.bgSubtle} ${dt.borderSubtle} border transition-all ${dt.hoverBorder} hover:shadow-sm`}>
+      <div className="flex-1 min-w-0">
+        <div className={`flex items-center px-3 py-1.5 border-b ${dt.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+            {winner1 && <span className="mr-1">▸</span>}
+            {m.club1.name}
+          </span>
+          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-foreground'}`}>
+            {m.score1 ?? '-'}
+          </span>
+        </div>
+        <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+            {winner2 && <span className="mr-1">▸</span>}
+            {m.club2.name}
+          </span>
+          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-foreground'}`}>
+            {m.score2 ?? '-'}
+          </span>
+        </div>
+      </div>
+      <div className="w-12 shrink-0 flex items-center justify-center border-l border-idm-gold-warm/10">
+        <Badge className="bg-muted/20 text-muted-foreground text-[9px] border-0">Liga</Badge>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Detail Week Card — full 2-line match rows, round group headers ─── */
+function DetailWeekCard({ week, dt, accentColor, defaultExpanded }: { week: WeekResult; dt: DivisionTheme; accentColor: string; defaultExpanded: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const totalMatches = week.tournamentMatches.length + week.leagueMatches.length;
+
+  // Group tournament matches by bracket/round
+  const groupedTournamentMatches = useMemo(() => {
+    const groups: Record<string, WeekResult['tournamentMatches']> = {};
+    for (const m of week.tournamentMatches) {
+      const key = `${m.bracket}-${m.round}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(m);
+    }
+    const sorted = Object.entries(groups).sort(([, a], [, b]) => {
+      const mA = a[0];
+      const mB = b[0];
+      return getRoundSortKey(mA.bracket, mA.round) - getRoundSortKey(mB.bracket, mB.round);
+    });
+    return sorted;
+  }, [week.tournamentMatches]);
+
+  // Find champion (Grand Final winner)
+  const grandFinalMatch = week.tournamentMatches.find(m => m.bracket === 'grand_final');
+  const championTeam = grandFinalMatch
+    ? (grandFinalMatch.score1 != null && grandFinalMatch.score2 != null
+        ? (grandFinalMatch.score1 > grandFinalMatch.score2 ? grandFinalMatch.team1 : grandFinalMatch.team2)
+        : null)
+    : null;
+
+  const isCompleted = week.tournamentStatus === 'completed';
+
+  return (
+    <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
+      expanded
+        ? 'border-border/50 bg-card/80 shadow-sm hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+        : 'border-border/30 bg-card/40 hover:border-border/50'
+    }`}>
+      {/* Top accent line */}
+      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent 5%, ${accentColor} 30%, ${accentColor} 70%, transparent 95%)` }} />
+
+      {/* Week header — clickable */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/5 transition-colors"
+      >
+        <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
+          <Gamepad2 className={`w-4 h-4 ${dt.neonText}`} />
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-bold ${dt.neonText}`}>Week {week.weekNumber}</span>
+            {isCompleted && (
+              <Badge className="bg-green-500/10 text-green-500 text-[8px] border-0 px-1.5 py-0">Selesai</Badge>
+            )}
+          </div>
+          {championTeam ? (
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              👑 <span className="font-semibold text-idm-gold-warm">{championTeam.name}</span>
+              <span className="text-muted-foreground/50">·</span>
+              {totalMatches} match
+            </p>
+          ) : totalMatches > 0 ? (
+            <p className="text-[11px] text-muted-foreground">{totalMatches} match dimainkan</p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground/50">Belum ada hasil</p>
+          )}
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          <Badge className={`${dt.iconBg} ${dt.neonText} text-[9px] border-0`}>{totalMatches}</Badge>
+          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {/* Expanded content */}
+      {expanded && totalMatches > 0 && (
+        <div className="px-4 pb-4 space-y-4 border-t border-border/10 pt-3">
+          {/* Tournament matches grouped by round */}
+          {groupedTournamentMatches.map(([key, matches]) => {
+            const firstMatch = matches[0];
+            const roundLabel = getFullRoundLabel(firstMatch.bracket, firstMatch.round);
+            const isGrandFinal = firstMatch.bracket === 'grand_final';
+
+            return (
+              <div key={key}>
+                {/* Round header */}
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
+                    isGrandFinal
+                      ? 'bg-idm-gold-warm/15 text-idm-gold-warm'
+                      : `${dt.iconBg} ${dt.neonText}`
+                  }`}>
+                    {roundLabel}
+                  </div>
+                  <div className={`flex-1 h-px ${dt.borderSubtle}`} />
+                  <span className="text-[10px] text-muted-foreground">{matches.length} match</span>
+                </div>
+                {/* Match rows */}
+                <div className="space-y-1.5">
+                  {matches.map(m => (
+                    <DetailTournamentMatchRow key={m.id} m={m} dt={dt} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* League matches */}
+          {week.leagueMatches.length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="px-2 py-0.5 rounded-md bg-muted/20 text-muted-foreground text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                  Liga
+                </div>
+                <div className={`flex-1 h-px ${dt.borderSubtle}`} />
+                <span className="text-[10px] text-muted-foreground">{week.leagueMatches.length} match</span>
+              </div>
+              <div className="space-y-1.5">
+                {week.leagueMatches.map(m => (
+                  <DetailLeagueMatchRow key={m.id} m={m} dt={dt} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Ghost Week Card ─── */
+function DetailGhostWeekCard({ dt, accentColor }: { dt: DivisionTheme; accentColor: string }) {
+  return (
+    <div className="border border-border/20 rounded-2xl overflow-hidden bg-card/30 opacity-40">
+      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, transparent 5%, ${accentColor} 30%, ${accentColor} 70%, transparent 95%)`}} />
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
+          <Gamepad2 className={`w-4 h-4 ${dt.neonText}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-bold ${dt.neonText}`}>Week —</p>
+          <p className="text-[11px] text-muted-foreground/50">Belum ada hasil</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════════
    SINGLE DIVISION: MatchDayContent
    Renders the full match day view for ONE specific division
    ═══════════════════════════════════════════════ */
@@ -102,6 +433,17 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
       const res = await fetch(`/api/stats?division=${divisionProp}`);
       return res.json();
     },
+  });
+
+  // Fetch season results for full history in Hasil tab
+  const { data: seasonResults, isLoading: seasonLoading } = useQuery<SeasonResultsData>({
+    queryKey: ['season-results', divisionProp],
+    queryFn: async () => {
+      const res = await fetch(`/api/season-results?division=${divisionProp}`);
+      if (!res.ok) return { weeks: [] } as SeasonResultsData;
+      return res.json() as Promise<SeasonResultsData>;
+    },
+    staleTime: 30000,
   });
 
   const [bracketTypeManual, setBracketTypeManual] = useState<string | null>(null);
@@ -149,6 +491,11 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
   const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
 
   const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
+
+  // Season results
+  const seasonWeeks = seasonResults?.weeks || [];
+  const hasSeasonResults = seasonWeeks.some(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0);
+  const completedWeeks = seasonWeeks.filter(w => w.tournamentMatches.length > 0 || w.leagueMatches.length > 0).length;
 
   return (
     <div className="space-y-5 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
@@ -416,109 +763,57 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
           </div>
         </TabsContent>
 
-        {/* ═══ RESULTS TAB ═══ */}
+        {/* ═══ RESULTS TAB — Full Season History ═══ */}
         <TabsContent value="results" className="mt-4 space-y-4">
-          <div className="space-y-4">
-            {/* All Tournament Results */}
-            <div className="stagger-item-fast stagger-d0">
-              <SectionCard title="Hasil Turnamen" icon={Trophy} badge={`${tournamentMatches.length} match`} theme={ct}>
-                <div className="space-y-2">
-                  {tournamentMatches.map((m) => {
-                    const hasScore = m.score1 !== null && m.score2 !== null;
-                    const winner1 = hasScore && m.score1! > m.score2!;
-                    const winner2 = hasScore && m.score2! > m.score1!;
-                    const isLive = m.status === 'live' || m.status === 'main_event';
-
-                    return (
-                      <div
-                        key={m.id}
-                        className={`flex items-stretch rounded-lg overflow-hidden ${ct.bgSubtle} ${ct.borderSubtle} border transition-all ${ct.hoverBorder} cursor-pointer`}
-                        onClick={() => {
-                          const idx = tournamentMatches.findIndex(tm => tm.id === m.id);
-                          if (idx >= 0) setSelectedMatchIdx(idx);
-                        }}
-                      >
-                        {/* Round indicator */}
-                        <div className={`w-10 shrink-0 flex items-center justify-center ${ct.bg} border-r ${ct.borderSubtle}`}>
-                          <span className={`text-[10px] font-bold ${ct.neonText}`}>R{m.round}</span>
-                        </div>
-
-                        {/* Main match content */}
-                        <div className="flex-1 min-w-0">
-                          <div className={`flex items-center px-3 py-1.5 border-b ${ct.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
-                            <span className={`text-sm font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
-                              {winner1 && <span className="mr-1">▸</span>}
-                              {m.team1?.name || 'TBD'}
-                            </span>
-                            <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-foreground'}`}>
-                              {hasScore ? m.score1 : '-'}
-                            </span>
-                          </div>
-                          <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
-                            <span className={`text-sm font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
-                              {winner2 && <span className="mr-1">▸</span>}
-                              {(m.team2?.name || 'TBD')}
-                            </span>
-                            <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-foreground'}`}>
-                              {hasScore ? m.score2 : '-'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Status */}
-                        <div className="w-16 shrink-0 flex flex-col items-center justify-center border-l border-transparent">
-                          {isLive ? (
-                            <Badge className="bg-red-500/10 text-red-500 text-[10px] border-0 live-dot">LIVE</Badge>
-                          ) : m.status === 'completed' ? (
-                            <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">FT</Badge>
-                          ) : (
-                            <Badge className={`${ct.casinoBadge} text-[10px]`}>VS</Badge>
-                          )}
-                          {m.mvpPlayer && <span className="text-[9px] text-yellow-500 mt-0.5 font-bold">MVP</span>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </SectionCard>
+          {seasonLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="h-48 rounded-2xl border border-border/30 bg-card/40 animate-pulse" />
+              ))}
             </div>
-
-            {/* Recent Tarkam Results */}
-            <div className="stagger-item-fast stagger-d1">
-              <SectionCard title="Hasil Tarkam" icon={Radio} badge="Terbaru" theme={ct}>
-                <div className="space-y-2">
-                  {data.recentMatches?.slice(0, 6).map(m => {
-                    const winner1 = m.score1 > m.score2;
-                    const winner2 = m.score2 > m.score1;
-                    return (
-                      <div key={m.id} className={`flex items-stretch rounded-lg overflow-hidden ${ct.bgSubtle} ${ct.borderSubtle} border`}>
-                        <div className={`w-10 shrink-0 flex items-center justify-center ${ct.bg} border-r ${ct.borderSubtle}`}>
-                          <span className={`text-[10px] font-bold ${ct.neonText}`}>W{m.week}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`flex items-center px-3 py-1.5 border-b ${ct.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
-                            <span className={`text-sm font-semibold truncate flex-1 ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
-                              {winner1 && <span className="mr-1">▸</span>}{m.club1.name}
-                            </span>
-                            <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-foreground'}`}>{m.score1}</span>
-                          </div>
-                          <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
-                            <span className={`text-sm font-semibold truncate flex-1 ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
-                              {winner2 && <span className="mr-1">▸</span>}{m.club2.name}
-                            </span>
-                            <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-foreground'}`}>{m.score2}</span>
-                          </div>
-                        </div>
-                        <div className="w-14 shrink-0 flex items-center justify-center border-l border-transparent">
-                          <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">FT</Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
+          ) : !hasSeasonResults ? (
+            <SectionCard title="Hasil Pertandingan" icon={Trophy} theme={ct}>
+              <div className="text-center py-8">
+                <Trophy className={`w-10 h-10 mx-auto mb-3 opacity-30`} />
+                <p className="text-sm text-muted-foreground">Belum ada hasil pertandingan</p>
+                <p className="text-xs text-muted-foreground/50 mt-1">Hasil match akan muncul setelah pertandingan selesai</p>
+              </div>
+            </SectionCard>
+          ) : (
+            <div className="space-y-4">
+              {/* Season overview header */}
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`w-8 h-8 rounded-lg ${ct.iconBg} flex items-center justify-center shrink-0`}>
+                  <Swords className={`w-4 h-4 ${ct.neonText}`} />
                 </div>
-              </SectionCard>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${dt.neonText}`}>
+                      {seasonResults?.season?.name || `Season ${seasonResults?.season?.number || 1}`}
+                    </span>
+                    <Badge className={`${ct.iconBg} ${dt.neonText} text-[9px] border-0`}>{completedWeeks} Minggu</Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Riwayat hasil pertandingan lengkap</p>
+                </div>
+              </div>
+
+              {/* Week-by-week results */}
+              {seasonWeeks.map((w, idx) => (
+                <DetailWeekCard
+                  key={w.weekNumber}
+                  week={w}
+                  dt={ct}
+                  accentColor={divisionAccentColor}
+                  defaultExpanded={idx < 2}
+                />
+              ))}
+
+              {/* Ghost for future weeks */}
+              {seasonWeeks.length === 0 && (
+                <DetailGhostWeekCard dt={ct} accentColor={divisionAccentColor} />
+              )}
             </div>
-          </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -174,3 +174,30 @@ Stage Summary:
 - Key change: 2-line match rows → 1-line match rows (saves ~50% vertical space per match)
 - Only latest week expanded by default (was 2-3 weeks before)
 - Total vertical space reduced significantly — mobile-first friendly
+
+---
+Task ID: 8
+Agent: Main
+Task: Add full season history to Bracket > Hasil tab (detailed 2-line match rows, round grouping, MVP, champion)
+
+Work Log:
+- User requested: beranda Hasil stays as compact summary, but Bracket > Hasil tab should show FULL season history with detailed "keren" design
+- Analyzed current Bracket > Hasil tab: only showed active tournament matches + 6 recent league matches — NOT full season history
+- Added React Query fetch for `/api/season-results?division={divisionProp}` inside MatchDayContent
+- Created detailed components in match-day-center.tsx:
+  - `DetailTournamentMatchRow` — 2-line match row (team1 line + team2 line, scores, MVP badge, winner highlight)
+  - `DetailLeagueMatchRow` — 2-line league match row (club1 + club2, scores, Liga badge)
+  - `DetailWeekCard` — collapsible week card with round group headers, Grand Final 🏆👑 gold styling, champion display, MVP per match
+  - `DetailGhostWeekCard` — empty state placeholder
+- Replaced old limited "Hasil Turnamen" + "Hasil Tarkam" sections with full season history view
+- Season overview header: season name + completed week count badge
+- First 2 weeks auto-expanded, rest collapsed
+- Round group headers with labels: Grand Final (gold), Semi Final, Quarter Final, Lower Final, etc.
+- Used DivisionTheme for consistent division coloring (male=cyan, female=pink)
+
+Stage Summary:
+- File modified: `/home/z/my-project/src/components/idm/match-day-center.tsx` (Hasil tab rewrite)
+- Bracket > Hasil tab now shows FULL season history (all weeks, all matches)
+- Detailed 2-line match rows with round grouping, MVP, champion per week
+- Beranda Hasil stays compact (1-line rows, summary only) with CTA linking to Bracket > Hasil
+- Same `/api/season-results` API used by both beranda and bracket views
