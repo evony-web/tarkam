@@ -333,8 +333,32 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
         className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-          {/* ── Header Banner (non-scrolling) ── */}
-          <div className="relative h-48 sm:h-56 md:h-64 shrink-0">
+          {/* ═══ Sticky Close Button — always visible, outside scroll area ═══ */}
+          <button
+            onClick={onClose}
+            aria-label="Kembali"
+            className="modal-close-dark modal-close-lg absolute top-3 left-3 z-[60]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+
+          {/* ═══ Share button — always visible, outside scroll area ═══ */}
+          <div className="absolute top-3 right-3 z-[60]">
+            <SharePopup
+              shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/?view=club&name=${encodeURIComponent(club.name)}` : ''}
+              title="Bagikan Klub"
+              subtitle={<>Klub <span className="font-semibold text-idm-gold-warm">{club.name}</span></>}
+              shareText={`Lihat klub ${club.name} di Tarkam IDM!`}
+              buttonLabel="Bagikan klub"
+              size="sm"
+            />
+          </div>
+
+          {/* ═══ Scrollable content — EVERYTHING scrolls together ═══ */}
+          <div className="relative z-10 bg-background min-h-0 flex-1 overflow-y-auto custom-scrollbar rounded-[inherit]">
+
+          {/* ── Header Banner ── */}
+          <div className="relative h-48 sm:h-56 md:h-64">
   {/* FIX: Jangan render bg-section.jpg sebagai fallback */}
   {(() => {
   const bannerSrc = unifiedData?.bannerImage || club.bannerImage;
@@ -364,29 +388,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               <Shield className="w-28 h-28 text-idm-gold-warm" />
             </div>
 
-            {/* Close button — prominent back action */}
-            <button
-              onClick={onClose}
-              aria-label="Kembali"
-              className="absolute top-3 left-3 z-20 modal-close-dark w-auto! h-auto! rounded-2xl! flex items-center gap-1.5 px-3 py-2 border border-white/10 shadow-lg backdrop-blur-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-xs font-semibold">Kembali</span>
-            </button>
-
-            {/* Share button — top right */}
-            <div className="absolute top-3 right-3 z-20">
-              <SharePopup
-                shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/?view=club&name=${encodeURIComponent(club.name)}` : ''}
-                title="Bagikan Klub"
-                subtitle={<>Klub <span className="font-semibold text-idm-gold-warm">{club.name}</span></>}
-                shareText={`Lihat klub ${club.name} di Tarkam IDM!`}
-                buttonLabel="Bagikan klub"
-                size="sm"
-              />
-            </div>
-
-            {/* Rank Badge — top left, below back button */}
+            {/* Rank Badge — top left */}
             {rank && rank <= 3 && (
               <div className="absolute top-14 left-3 z-10">
                 <Badge className={`text-xs font-bold border-0 ${
@@ -400,7 +402,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             )}
 
             {/* ── Large Club Logo ── */}
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-10">
+            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 z-10">
               <div className={`rounded-2xl border-4 border-background ${
                 isChampion ? 'bg-yellow-500/5' : ''
               }`}>
@@ -434,8 +436,8 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
             </div>
           </div>
 
-          {/* ── Content (scrollable) ── */}
-          <div className="modal-body-compact pt-14! custom-scrollbar">
+          {/* ── Content ── */}
+          <div className="modal-body-compact pt-16!">
             {/* Name & Division */}
             <div className="text-center mb-4">
               <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #F9CB25, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>
@@ -694,6 +696,8 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
               </div>
             </div>
           </div>
+          </div>
+          {/* end scrollable content */}
       </div>
     </div>
   );
