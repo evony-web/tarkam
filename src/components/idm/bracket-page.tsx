@@ -68,13 +68,8 @@ export function BracketPage() {
             </div>
           </div>
 
-          {/* Row 2: Division chips + Primary tabs in one line */}
-          <div className="flex items-center gap-2 py-2.5 overflow-x-auto">
-            <DivisionChips division={division} setDivision={setDivision} />
-
-            {/* Separator dot */}
-            <div className="w-px h-5 bg-idm-gold-warm/15 shrink-0" />
-
+          {/* Row 2: Primary tabs (left) + Division chips (right) in one line */}
+          <div className="flex items-center justify-between gap-2 py-2.5 overflow-x-auto">
             <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-auto shrink-0">
               <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
                 {[
@@ -92,6 +87,8 @@ export function BracketPage() {
                 ))}
               </TabsList>
             </Tabs>
+
+            <DivisionChips division={division} setDivision={setDivision} />
           </div>
         </div>
       </div>
