@@ -151,26 +151,15 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel, mode = 'public', ad
   const dt = useDivisionTheme();
   const isAdmin = mode === 'admin' && !!adminProps;
 
-  // BYE placeholder — compact card for missing bracket positions (no match was played)
+  // BYE placeholder — invisible spacer for proper connector alignment
   if (isByePlaceholder(match)) {
     return (
       <div
-        className="bracket-match-card rounded-xl overflow-hidden border border-dashed border-muted-foreground/20 opacity-40"
-        style={{ background: 'var(--card-bg, rgba(20,17,10,0.3))', minWidth: '180px' }}
+        className="bracket-match-card"
+        style={{ minWidth: '180px' }}
       >
-        <div className="flex items-center justify-between px-2.5 py-1 border-b border-dashed border-muted-foreground/15 bg-muted/20">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">BYE</span>
-          <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400/60 border border-amber-500/15 rounded">WALKOVER</span>
-        </div>
-        <div className="flex items-center px-2.5 py-2 gap-2 opacity-50">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black bg-muted/30 text-muted-foreground/40">-</div>
-          <span className="text-sm font-semibold text-muted-foreground/40 flex-1">BYE</span>
-          <span className="text-lg font-black text-muted-foreground/30 min-w-[28px] text-center">-</span>
-        </div>
-        <div className="flex items-center px-2.5 py-2 gap-2 opacity-50 border-t border-dashed border-muted-foreground/15">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black bg-muted/30 text-muted-foreground/40">-</div>
-          <span className="text-sm font-semibold text-muted-foreground/40 flex-1">-</span>
-          <span className="text-lg font-black text-muted-foreground/30 min-w-[28px] text-center">-</span>
+        <div className="flex items-center justify-center py-2">
+          <span className="text-xs text-muted-foreground/20 tracking-widest">BYE</span>
         </div>
       </div>
     );
