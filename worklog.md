@@ -2117,3 +2117,27 @@ Work Log:
 - `bun run lint` — No new errors (6 pre-existing errors in hero-section.tsx, shared.tsx, tournament-manager.tsx)
 - No lint errors in highlights-page.tsx
 - Dev server compiles successfully (✓ Compiled)
+
+---
+Task ID: 14
+Agent: Main Agent
+Task: Refactor Sultan of Season in Menu Juara to side-by-side Male + Female layout (MVP-style horizontal)
+
+Work Log:
+- Replaced old `SultanOfSeasonCardPage` (DIAMOND rhombus shape, single combined sultan) with new side-by-side layout matching Sultan of the Week pattern
+- Created `SultanSeasonDivisionCard` — MVP-style horizontal card (avatar panel left + stats panel right) with emerald/gem theme accents
+- Created `GhostSultanSeasonDivisionCard` — empty state for divisions without sultan data
+- Updated `SultanOfSeasonCardPage` to accept `maleSultans`, `femaleSultans`, `selectedDivision` props instead of combined `sultans`
+- Layout: Desktop shows side-by-side (lg:grid-cols-2) with Male (Cowo) on left, Female (Cewe) on right; Mobile stacks vertically
+- Division filter: When "Semua" selected → side-by-side; When specific division → single card
+- Refactored data computation: Split `seasonSultans` memo into `maleSeasonSultans` + `femaleSeasonSultans` (separate by data source)
+- Removed old `GhostSultanOfSeasonCard` (single combined ghost) — now uses per-division ghosts
+- Stats grid shows: Points, Season number, Tier
+- Emerald accent colors maintained (EMERALD=#43A047, EMERALD_LIGHT=#66BB6A)
+- Each division card has: Division label with gender symbol, Gem badge, Season badge, Avatar with hover scale, CTA "Lihat Profil" button
+
+Stage Summary:
+- Sultan of Season now shows Male and Female side-by-side in Menu Juara (like Sultan of the Week)
+- MVP-style horizontal layout replaces the old DIAMOND shape
+- Consistent with the design language of Sultan of the Week section
+- No lint errors, dev server compiles successfully

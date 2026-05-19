@@ -883,25 +883,26 @@ function GhostSultanOfWeekCard() {
 
 
 /* ═══════════════════════════════════════════
-   Sultan of Season Card — 💎 DIAMOND shape
-   Diamond/belah ketupat clip-path with emerald theme & facet effect
+   Sultan of Season — Side-by-side Male & Female (MVP-style horizontal layout)
+   Emerald theme with gem accents, matching Sultan of the Week layout pattern
    ═══════════════════════════════════════════ */
 const EMERALD = '#43A047';
 const EMERALD_LIGHT = '#66BB6A';
 
 function SultanOfSeasonCardPage({
-  sultans,
+  maleSultans,
+  femaleSultans,
+  selectedDivision,
   onPlayerClick,
 }: {
-  sultans: { seasonNumber: number; sultan: SultanPlayer }[];
+  maleSultans: { seasonNumber: number; sultan: SultanPlayer }[];
+  femaleSultans: { seasonNumber: number; sultan: SultanPlayer }[];
+  selectedDivision: DivisionFilter;
   onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
 }) {
   const ct = useCommunityTheme();
-  const latestSultan = sultans[0];
-  if (!latestSultan) return null;
-
-  const { sultan, seasonNumber } = latestSultan;
-  const sultanDivision = (sultan.division === 'female' ? 'female' : 'male') as 'male' | 'female';
+  const showMale = selectedDivision === 'all' || selectedDivision === 'male';
+  const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
 
   return (
     <div className="animate-fade-enter-sm">
@@ -919,13 +920,228 @@ function SultanOfSeasonCardPage({
           <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: EMERALD_LIGHT }}>
             Sultan of Season
           </span>
-          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
-            <Gem className="w-2.5 h-2.5 mr-0.5" />S{seasonNumber}
-          </Badge>
         </div>
 
-        {/* Body — 💎 Large DIAMOND shape layout with full-body avatar */}
-        <div className="p-4 sm:p-6">
+        {/* Content — side-by-side on desktop, stacked on mobile */}
+        {selectedDivision === 'all' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {showMale && (
+              <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
+                {maleSultans.length > 0 ? (
+                  <SultanSeasonDivisionCard
+                    sultanData={maleSultans[0]}
+                    division="male"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostSultanSeasonDivisionCard division="male" bare />
+                )}
+              </div>
+            )}
+            {showFemale && (
+              <div>
+                {femaleSultans.length > 0 ? (
+                  <SultanSeasonDivisionCard
+                    sultanData={femaleSultans[0]}
+                    division="female"
+                    onPlayerClick={onPlayerClick}
+                    bare
+                  />
+                ) : (
+                  <GhostSultanSeasonDivisionCard division="female" bare />
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {showMale && (
+              maleSultans.length > 0 ? (
+                <SultanSeasonDivisionCard
+                  sultanData={maleSultans[0]}
+                  division="male"
+                  onPlayerClick={onPlayerClick}
+                />
+              ) : (
+                <GhostSultanSeasonDivisionCard division="male" />
+              )
+            )}
+            {showFemale && (
+              femaleSultans.length > 0 ? (
+                <SultanSeasonDivisionCard
+                  sultanData={femaleSultans[0]}
+                  division="female"
+                  onPlayerClick={onPlayerClick}
+                />
+              ) : (
+                <GhostSultanSeasonDivisionCard division="female" />
+              )
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+/* ─── Sultan of Season — Division Card (MVP-style horizontal layout) ─── */
+function SultanSeasonDivisionCard({
+  sultanData,
+  division,
+  onPlayerClick,
+  bare = false,
+}: {
+  sultanData: { seasonNumber: number; sultan: SultanPlayer };
+  division: 'male' | 'female';
+  onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+  bare?: boolean;
+}) {
+  const dt = getDivisionTheme(division);
+  const DivisionIcon = division === 'male' ? Music : Shield;
+  const genderSymbol = division === 'male' ? '♂' : '♀';
+  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
+
+  const { sultan, seasonNumber } = sultanData;
+  const clubName = sultan.club?.name;
+  const cityInfo = sultan.city;
+  const locationText = [cityInfo, clubName].filter(Boolean).join(' · ');
+
+  const stats = [
+    { label: 'Points', value: `${sultan.points}`, icon: Zap, color: 'text-idm-gold-warm/80' },
+    { label: 'Season', value: `S${seasonNumber}`, icon: Calendar, color: 'text-idm-gold-warm/70' },
+    { label: 'Tier', value: sultan.tier || '-', icon: Gem, color: 'text-idm-gold-warm/80' },
+  ];
+
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode (side-by-side) */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: accentColor }}>
+            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
+          </span>
+          <Badge className="ml-auto text-[7px] font-bold border py-0 px-1.5"
+            style={{
+              color: EMERALD_LIGHT,
+              backgroundColor: hexToRgba(EMERALD, 0.08),
+              borderColor: hexToRgba(EMERALD, 0.15),
+            }}>
+            <Gem className="w-2 h-2 mr-0.5" />S{seasonNumber}
+          </Badge>
+        </div>
+      )}
+
+      <div className="flex gap-3 sm:gap-4 items-stretch">
+        {/* Avatar panel — LEFT */}
+        <div
+          className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden cursor-pointer group/sultan-season"
+          onClick={() => onPlayerClick({
+            id: sultan.id,
+            name: sultan.gamertag,
+            gamertag: sultan.gamertag,
+            avatar: sultan.avatar,
+            tier: sultan.tier,
+            points: sultan.points,
+            totalWins: 0,
+            streak: 0,
+            maxStreak: 0,
+            totalMvp: 0,
+            matches: 0,
+            division,
+            city: sultan.city ?? undefined,
+            club: sultan.club?.name ?? undefined,
+          }, division)}
+          style={{
+            aspectRatio: '3/4',
+            background: `linear-gradient(to bottom right, ${hexToRgba(EMERALD, 0.25)}, ${hexToRgba(EMERALD, 0.05)})`,
+          }}
+        >
+          <AvatarMedia
+            src={getAvatarUrl(sultan.gamertag, division, sultan.avatar)}
+            alt={sultan.gamertag}
+            width={128}
+            height={200}
+            className="w-full h-full object-cover object-top group-hover/sultan-season:scale-110 transition-transform duration-500"
+            loading="lazy"
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+          {/* Gem badge — top right */}
+          <div className="absolute top-2 right-2 z-10">
+            <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${EMERALD_LIGHT}, ${EMERALD})`,
+                boxShadow: `0 0 12px ${hexToRgba(EMERALD, 0.4)}`,
+              }}>
+              <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" />
+            </div>
+          </div>
+          {/* Season badge — bottom */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10">
+            <Badge className="text-[7px] lg:text-[8px] font-black border py-0 px-1.5 whitespace-nowrap"
+              style={{
+                color: EMERALD_LIGHT,
+                backgroundColor: hexToRgba(EMERALD, 0.15),
+                borderColor: hexToRgba(EMERALD, 0.3),
+              }}>
+              <Gem className="w-2 h-2 mr-0.5" />S{seasonNumber}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Stats panel — RIGHT */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          {/* Player name + location */}
+          <div>
+            <h3 className="text-sm lg:text-base font-black truncate" style={{ color: EMERALD_LIGHT }}>
+              {sultan.gamertag}
+            </h3>
+            <div className="flex items-center gap-1.5 mb-1">
+              {locationText && (
+                <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{locationText}</span>
+              )}
+              <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5`}>
+                {division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
+              </Badge>
+            </div>
+            {/* Tier badge */}
+            {sultan.tier && (
+              <Badge className="text-[7px] font-bold border py-0 px-1.5 mb-2"
+                style={{
+                  color: EMERALD_LIGHT,
+                  backgroundColor: hexToRgba(EMERALD, 0.08),
+                  borderColor: hexToRgba(EMERALD, 0.15),
+                }}>
+                <Gem className="w-2 h-2 mr-0.5" style={{ color: EMERALD_LIGHT }} />
+                {sultan.tier}
+              </Badge>
+            )}
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}
+              >
+                <stat.icon className={`w-3 h-3 shrink-0 ${stat.color}`} />
+                <div className="min-w-0">
+                  <p className={`text-[10px] sm:text-xs font-black tabular-nums ${stat.color} leading-tight`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA button */}
           <button
             onClick={() => onPlayerClick({
               id: sultan.id,
@@ -939,134 +1155,120 @@ function SultanOfSeasonCardPage({
               maxStreak: 0,
               totalMvp: 0,
               matches: 0,
-              division: sultanDivision,
+              division,
               city: sultan.city ?? undefined,
               club: sultan.club?.name ?? undefined,
-            }, sultanDivision)}
-            className="flex flex-col items-center w-full cursor-pointer group/sultan-season"
+            }, division)}
+            className="w-full py-1.5 rounded-lg border text-[9px] sm:text-[10px] font-bold hover:brightness-110 transition-all flex items-center justify-center gap-1 cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD_LIGHT, 0.08)})`,
+              borderColor: hexToRgba(EMERALD, 0.2),
+              color: EMERALD_LIGHT,
+            }}
           >
-            {/* 💎 Large Diamond Container — full-body avatar */}
-            <div className="relative">
-              {/* Outer glow / facet reflection */}
-              <div className="absolute inset-0 scale-125"
-                style={{
-                  clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                  background: `conic-gradient(from 45deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD}, transparent, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})`,
-                  opacity: 0.25,
-                  filter: 'blur(8px)',
-                }} />
-
-              {/* Emerald radial glow behind diamond */}
-              <div className="absolute inset-0 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 50%, rgba(67,160,71,0.12), transparent 60%)` }} />
-
-              {/* Diamond frame — the outer faceted border */}
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56"
-                style={{
-                  clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                  background: `linear-gradient(135deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})`,
-                  boxShadow: `0 0 30px ${hexToRgba(EMERALD, 0.3)}, 0 6px 20px rgba(0,0,0,0.15)`,
-                  padding: '4px',
-                }}>
-                {/* Inner diamond — full-body avatar */}
-                <div className="w-full h-full overflow-hidden"
-                  style={{
-                    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                  }}>
-                  <AvatarMedia
-                    src={getAvatarUrl(sultan.gamertag, sultanDivision, sultan.avatar)}
-                    alt={sultan.gamertag}
-                    fill
-                    sizes="(max-width: 640px) 176px, 224px"
-                    className="object-cover object-top group-hover/sultan-season:scale-110 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  {/* Facet overlay — prism/light reflection effect */}
-                  <div className="absolute inset-0 pointer-events-none"
-                    style={{
-                      clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                      background: `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)`,
-                    }} />
-                </div>
-              </div>
-
-              {/* Gem badge — top center (crown of diamond) */}
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg border-2"
-                  style={{
-                    background: `linear-gradient(135deg, ${EMERALD_LIGHT}, ${EMERALD})`,
-                    borderColor: hexToRgba(EMERALD_LIGHT, 0.5),
-                    boxShadow: `0 2px 8px ${hexToRgba(EMERALD, 0.4)}`,
-                  }}>
-                  <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
-              </div>
-            </div>
-
-            {/* Name — below diamond */}
-            <p className="text-base sm:text-lg font-black mt-4 group-hover/sultan-season:text-idm-gold-warm transition-colors text-center"
-              style={{ color: EMERALD_LIGHT }}>
-              {sultan.gamertag}
-            </p>
-            <p className="text-[9px] text-muted-foreground/60 mt-0.5">Top Penyawer Season {seasonNumber}</p>
-            {sultan.club?.name && (
-              <p className="text-[8px] text-muted-foreground/40 truncate mt-0.5 max-w-[200px]">{sultan.club.name}</p>
-            )}
-
-            {/* Certificate bar — stats */}
-            <div className="flex items-center gap-2 mt-2.5">
-              <span className="text-[10px] font-black tabular-nums px-2.5 py-1 rounded-full"
-                style={{ color: EMERALD_LIGHT, backgroundColor: hexToRgba(EMERALD, 0.1), border: `1px solid ${hexToRgba(EMERALD, 0.2)}` }}>
-                💎 S{seasonNumber}
-              </span>
-              <span className="text-[9px] text-muted-foreground/50">{sultan.points}pts</span>
-            </div>
+            <Gem className="w-2.5 h-2.5" />
+            Lihat Profil
           </button>
         </div>
       </div>
     </div>
   );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} dashboard-card-glow overflow-hidden`}
+        style={{ borderColor: hexToRgba(EMERALD, 0.15) }}>
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 }
 
 
-/* ─── Ghost Sultan of Season — Empty state (diamond shape) ─── */
-function GhostSultanOfSeasonCard() {
-  const ct = useCommunityTheme();
+/* ─── Ghost Sultan of Season — Division Card (empty state) ─── */
+function GhostSultanSeasonDivisionCard({
+  division,
+  bare = false,
+}: {
+  division: 'male' | 'female';
+  bare?: boolean;
+}) {
+  const dt = getDivisionTheme(division);
+  const DivisionIcon = division === 'male' ? Music : Shield;
+  const genderSymbol = division === 'male' ? '♂' : '♀';
+  const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
 
-  return (
-    <div className="animate-fade-enter-sm">
-      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden opacity-55`}
-        style={{ borderColor: hexToRgba(EMERALD, 0.1) }}>
-        {/* Emerald accent bar — dimmed */}
-        <div className="h-1" style={{ background: `linear-gradient(90deg, ${hexToRgba(EMERALD, 0.3)}, ${hexToRgba(EMERALD_LIGHT, 0.3)}, ${hexToRgba(EMERALD, 0.3)})` }} />
-
-        {/* Header */}
-        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
-          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-            style={{ backgroundColor: hexToRgba(EMERALD, 0.08), border: `1px solid ${hexToRgba(EMERALD, 0.12)}` }}>
-            <Gem className="w-3 h-3" style={{ color: hexToRgba(EMERALD_LIGHT, 0.3) }} />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: hexToRgba(EMERALD_LIGHT, 0.4) }}>
-            Sultan of Season
+  const content = (
+    <div className="p-4 lg:p-6">
+      {/* Division label — only in bare mode */}
+      {bare && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <DivisionIcon className="w-3.5 h-3.5 shrink-0" style={{ color: hexToRgba(accentColor, 0.4) }} />
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: hexToRgba(accentColor, 0.4) }}>
+            {division === 'male' ? 'COWO' : 'CEWE'} {genderSymbol}
           </span>
-          <Badge className="bg-muted/20 text-muted-foreground/30 border-border/10 ml-auto text-[8px] font-bold">TBA</Badge>
+          <Badge className="ml-auto text-[7px] font-bold border py-0 px-1.5 bg-muted/20 text-muted-foreground/30 border-border/10">
+            TBA
+          </Badge>
+        </div>
+      )}
+
+      <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
+        {/* Ghost avatar panel */}
+        <div
+          className="relative w-28 sm:w-36 lg:w-40 shrink-0 rounded-2xl overflow-hidden border"
+          style={{
+            aspectRatio: '3/4',
+            background: `linear-gradient(to bottom right, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD, 0.03)})`,
+            borderColor: hexToRgba(EMERALD, 0.1),
+          }}
+        >
+          <Gem className="w-10 h-10 mx-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20" style={{ color: EMERALD_LIGHT }} />
         </div>
 
-        {/* Ghost body — large diamond shape */}
-        <div className="p-4 sm:p-6 flex flex-col items-center">
-          <div className="w-44 h-44 sm:w-56 sm:h-56 flex items-center justify-center"
-            style={{
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-              background: `linear-gradient(135deg, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD_LIGHT, 0.1)})`,
-            }}>
-            <Gem className="w-12 h-12 sm:w-14 sm:h-14" style={{ color: hexToRgba(EMERALD, 0.2) }} />
+        {/* Ghost stats panel */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          <div>
+            <div className="h-5 w-24 rounded bg-muted/35 mb-2" />
+            <div className="h-3 w-16 rounded bg-muted/25 mb-4" />
           </div>
-          <div className="h-4 w-24 rounded bg-muted/30 mt-4 mb-1.5" />
-          <div className="h-3 w-32 rounded bg-muted/20" />
+
+          {/* Ghost stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {[
+              { color: 'bg-idm-gold-warm/15' },
+              { color: 'bg-idm-gold-warm/12' },
+              { color: 'bg-idm-gold-warm/10' },
+            ].map((stat, idx) => (
+              <div key={idx} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className={`w-3 h-3 rounded ${stat.color} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="h-3 w-6 rounded bg-muted/30 mb-0.5" />
+                  <div className="h-2 w-8 rounded bg-muted/20" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ghost CTA button */}
+          <div className="w-full h-7 rounded-lg bg-muted/20 border border-border/10" />
         </div>
       </div>
     </div>
   );
+
+  if (bare) {
+    return (
+      <div className={`rounded-2xl border ${dt.borderSubtle} ${dt.bgSubtle} overflow-hidden opacity-55`}
+        style={{ borderColor: hexToRgba(EMERALD, 0.08) }}>
+        {content}
+      </div>
+    );
+  }
+
+  return <div className="opacity-55">{content}</div>;
 }
 
 
@@ -1722,24 +1924,33 @@ export function HighlightsPage() {
   const showMaleSultan = selectedDivision === 'all' || selectedDivision === 'male';
   const showFemaleSultan = selectedDivision === 'all' || selectedDivision === 'female';
 
-  // ─── Sultan of Season data ───
-  const seasonSultans = React.useMemo(() => {
-    const sultans: { seasonNumber: number; sultan: SultanPlayer }[] = [];
-    const seenSeasonNumbers = new Set<number>();
-    const allSeasons = [...(maleData?.allSeasons || []), ...(femaleData?.allSeasons || [])];
-    for (const season of allSeasons) {
-      if (season.status === 'completed' && season.sultanPlayer && !seenSeasonNumbers.has(season.number)) {
-        seenSeasonNumbers.add(season.number);
-        sultans.push({ seasonNumber: season.number, sultan: season.sultanPlayer });
+  // ─── Sultan of Season data (separated by division) ───
+  const { maleSeasonSultans, femaleSeasonSultans } = React.useMemo(() => {
+    const maleSultans: { seasonNumber: number; sultan: SultanPlayer }[] = [];
+    const femaleSultans: { seasonNumber: number; sultan: SultanPlayer }[] = [];
+
+    // Male seasons
+    const seenMale = new Set<number>();
+    for (const season of (maleData?.allSeasons || [])) {
+      if (season.status === 'completed' && season.sultanPlayer && !seenMale.has(season.number)) {
+        seenMale.add(season.number);
+        maleSultans.push({ seasonNumber: season.number, sultan: season.sultanPlayer });
       }
     }
-    sultans.sort((a, b) => b.seasonNumber - a.seasonNumber);
-    // Filter by division
-    if (selectedDivision !== 'all') {
-      return sultans.filter(s => s.sultan.division === selectedDivision);
+    maleSultans.sort((a, b) => b.seasonNumber - a.seasonNumber);
+
+    // Female seasons
+    const seenFemale = new Set<number>();
+    for (const season of (femaleData?.allSeasons || [])) {
+      if (season.status === 'completed' && season.sultanPlayer && !seenFemale.has(season.number)) {
+        seenFemale.add(season.number);
+        femaleSultans.push({ seasonNumber: season.number, sultan: season.sultanPlayer });
+      }
     }
-    return sultans;
-  }, [maleData, femaleData, selectedDivision]);
+    femaleSultans.sort((a, b) => b.seasonNumber - a.seasonNumber);
+
+    return { maleSeasonSultans: maleSultans, femaleSeasonSultans: femaleSultans };
+  }, [maleData, femaleData]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1771,15 +1982,13 @@ export function HighlightsPage() {
             selectedDivision={selectedDivision}
           />
 
-          {/* Sultan of Season — below Season Club Champion */}
-          {seasonSultans.length > 0 ? (
-            <SultanOfSeasonCardPage
-              sultans={seasonSultans}
-              onPlayerClick={handlePlayerClick}
-            />
-          ) : (
-            <GhostSultanOfSeasonCard />
-          )}
+          {/* Sultan of Season — side-by-side Male & Female */}
+          <SultanOfSeasonCardPage
+            maleSultans={maleSeasonSultans}
+            femaleSultans={femaleSeasonSultans}
+            selectedDivision={selectedDivision}
+            onPlayerClick={handlePlayerClick}
+          />
 
           {/* Weekly Champions */}
           <div className="animate-fade-enter-sm">
