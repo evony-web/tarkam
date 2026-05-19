@@ -650,6 +650,41 @@ Work Log:
 - Moved marquee @keyframes from inline <style> JSX to globals.css (already existed, removed duplicate)
 - Added loading placeholder for marquee ticker when empty (CLS fix: null → div with h-10)
 - Fixed dashboard admin-only guard: replaced setTimeout(() => setCurrentView('landing'), 0) with AdminRedirectGuard component that uses useEffect — no more visible flash
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Redesign bracket to MPL (Mobile Premier League) style with professional visual and connecting lines
+
+Work Log:
+- Redesigned BracketMatchCard component with MPL premium styling:
+  - Added matchLabel prop for match number badges (M1, M2, etc.)
+  - Bigger team abbreviation avatars (w-8 h-8 rounded-lg text-xs instead of w-7 h-7 text-[11px])
+  - Score with background pill for emphasis (text-lg font-black with division-colored bg for winners)
+  - Thicker winner accent bar (w-1 = 4px instead of w-[3px] = 3px)
+  - New match label bar at top showing match number, LIVE indicator, and WALKOVER badge
+  - More prominent Grand Final styling (stronger gold glow, bigger champion crown w-8 h-8)
+  - Stronger winner gradient backgrounds (25% opacity instead of 20%)
+- Enhanced BracketConnectors SVG rendering:
+  - Three-layer junction dots (outer glow r=8 + inner glow r=5 + bright center r=2.5 for winners)
+  - Wider glow layer (strokeWidth 8, was 6)
+  - Thicker main line (strokeWidth 2.5, was 2)
+  - NEW winner path bright center line (strokeWidth 1, opacity 0.9) creating triple-layer neon effect
+  - Removed unused isRail/isArm variables
+- Improved bracket layout (bracketContent section):
+  - Wider round gap (gap-12 instead of gap-10) for better connector visibility
+  - Grand Final header: gradient background (from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20), larger text (text-sm font-black), stronger glow shadow
+  - Regular round headers: rounded-xl with Swords icon prefix (text-sm font-bold)
+  - Match cards now receive matchLabel prop (M1, M2... for regular rounds, "Grand Final" for GF)
+  - Tighter first-round spacing (20px instead of 24px)
+
+Stage Summary:
+- Bracket now looks like MPL esports tournament brackets with premium card styling
+- Connecting lines have triple-layer neon glow effect (glow + main + bright center for winners)
+- Match cards show match number badges, bigger avatars, score pills with division colors
+- Grand Final gets special gold treatment with prominent champion crown
+- Professional esports font sizes: scores 18px (text-lg), team names 14px (text-sm), avatars 12px (text-xs)
+- Lint passes clean (pre-existing errors in other files unchanged)
 - Removed dead code: `_pusherRealtime` variable assignment → direct call, `STATS_CACHE_HEADERS_SHORT` → consolidated to STATS_CACHE_HEADERS
 - Added IntersectionObserver to useParallax hook — only runs transforms when hero section is visible (saves GPU cycles)
 - Increased /api/stats CDN cache s-maxage from 60s to 120s (data is cached client-side for 2-5min anyway)
@@ -1451,3 +1486,56 @@ Stage Summary:
 - Grand Final has special gold treatment with champion crown indicator
 - Live matches show pulsing red dot indicator
 - Mobile-first design maintained (ZoomableContainer for pinch-zoom + horizontal scroll)
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Redesign elimination bracket component to MPL esports tournament bracket style with professional styling
+
+## Date: 2026-03-05
+
+## Changes Applied to `/home/z/my-project/src/components/idm/bracket-view.tsx`
+
+### 1. BracketMatchCard — MPL Premium Redesign (was lines 57-209)
+- **Function signature**: Added `matchLabel?: string` prop for match number labels
+- **Team abbreviation avatars**: Upgraded from `w-7 h-7 rounded-md text-[11px]` → `w-8 h-8 rounded-lg text-xs` (bigger, more prominent)
+- **Score styling**: Upgraded from `text-base min-w-[24px] text-right` → `text-lg min-w-[28px] text-center px-1.5 py-0.5 rounded` (larger score with background pill)
+- **Winner score pill**: Added division-colored background pill behind winner scores (`bg-idm-male/15 text-idm-male` or `bg-idm-female/15 text-idm-female`)
+- **Left accent bar**: Changed from `w-[3px]` → `w-1` (4px, more MPL-prominent)
+- **Winner gradient**: Stronger gradient from `from-idm-male/20` → `from-idm-male/25` 
+- **Match label bar**: New top bar showing match number (M1, M2, etc.) or "Grand Final" with LIVE indicator and WALKOVER badge — MPL-style layout
+- **LIVE indicator**: Redesigned from absolute positioned dot to integrated match label bar with smaller pulsing dot (h-1.5 w-1.5) and `text-[9px]` label
+- **WALKOVER badge**: Moved from absolute positioned to match label bar right side, smaller and more integrated
+- **Grand Final card**: Stronger gold glow (`shadow-[0_0_24px_rgba(239,249,35,0.15)]`), gold border `border-idm-gold-warm/40`, `minWidth: 200px`, background `rgba(239,249,35,0.04)`
+- **Champion crown**: More prominent — `w-8 h-8` circle (was `w-6 h-6`), `border-2 border-idm-gold-warm/50`, stronger glow `shadow-[0_0_16px_rgba(239,249,35,0.4)]`, positioned at `-top-4` (was `-top-3`)
+- **Card minWidth**: Normal cards `180px`, Grand Final `200px` (was inline style on container only)
+- **Team name**: Removed `max-w-[110px]` constraint, uses `flex-1 truncate` for natural width
+- **Row padding**: Changed from `px-3 py-2.5` → `px-2.5 py-2 gap-2` for tighter MPL look
+
+### 2. BracketConnectors — Enhanced MPL Glow Connectors (was lines 211-286)
+- **Removed unused variables**: `isRail` and `isArm` (were declared but never used)
+- **Junction dots**: Three-layer rendering instead of two:
+  - Outer glow: `r="8"` (was `r="7"`), opacity `0.12` (was `0.1`)
+  - Inner glow: `r="5"` (was `r="4"`), winner `opacity 0.6` (was `0.8`), non-winner `opacity 0.3` (was `0.5`)
+  - Bright center: NEW — winner dots get a bright `r="2.5"` circle at `opacity 0.9`
+- **Glow layer**: `strokeWidth="8"` (was `6`), `opacity="0.1"` (was `0.15`) — wider, more subtle neon glow
+- **Main line**: `strokeWidth="2.5"` (was `2`), winner `opacity 0.6` (was `0.7`), non-winner `opacity 0.25` (was `0.3`) — thicker for mobile readability
+- **Winner path bright center**: NEW — thin bright line (`strokeWidth="1"`, `opacity="0.9"`) rendered on winner paths only, creating a triple-layer neon effect
+
+### 3. bracketContent — MPL Layout Improvements (was lines 1915-1965)
+- **Round gap**: Changed from `gap-10` → `gap-12` for more connector line visibility
+- **Container padding**: Changed from `px-1` → `px-2` for better spacing
+- **Grand Final header**: Upgraded from `rounded-full px-4 py-2 text-xs` pill → `rounded-xl px-5 py-2.5 text-sm font-black` with gradient background (`bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20`) and stronger glow (`shadow-[0_0_24px_rgba(239,249,35,0.2)]`), Trophy icon `w-4 h-4` (was `w-3.5 h-3.5`)
+- **Regular round header**: Upgraded from `rounded-full px-3.5 py-1.5 text-xs` pill → `rounded-xl px-4 py-2 text-sm font-bold` with Swords icon prefix (`<Swords className="w-3.5 h-3.5 opacity-60" />`)
+- **Match cards**: Now receive `matchLabel` prop — Grand Final gets "Grand Final", other matches get `M{index+1}` (M1, M2, etc.)
+- **Round 1 gap**: Changed from `24px` → `20px` for tighter first-round spacing
+- **Match iteration**: Changed from `.map((m) =>` → `.map((m, mi) =>` to use match index for labels
+
+### 4. No changes to other components
+- GroupStageView, SwissView, UpperSemiView, ZoomableContainer — untouched
+- Connector calculation logic (calculateConnectors) — untouched
+- alignBracketCards function — untouched
+
+## Verification
+- `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx)
+- Dev server compiles successfully (no bracket-view.tsx errors)

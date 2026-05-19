@@ -53,8 +53,8 @@ function getRoundLabel(roundIdx: number, totalRounds: number): string {
   return `Ronde ${roundIdx + 1}`;
 }
 
-/* ─── Single bracket match card — MPL premium style ─── */
-function BracketMatchCard({ match, isGrandFinal }: { match: Match; isGrandFinal?: boolean }) {
+/* ─── Single bracket match card — MPL Premium Style ─── */
+function BracketMatchCard({ match, isGrandFinal, matchLabel }: { match: Match; isGrandFinal?: boolean; matchLabel?: string }) {
   const dt = useDivisionTheme();
   const hasScore = match.score1 !== null && match.score2 !== null;
   const winner1 = hasScore && match.score1! > match.score2!;
@@ -64,12 +64,12 @@ function BracketMatchCard({ match, isGrandFinal }: { match: Match; isGrandFinal?
   const isByeMatch = (!match.team1 || !match.team2) && (match.team1 || match.team2) && !isCompleted;
 
   // Division accent colors for winner highlight
-  const divisionAccentFrom = dt.division === 'male' ? 'from-idm-male/20' : 'from-idm-female/20';
+  const divisionAccentFrom = dt.division === 'male' ? 'from-idm-male/25' : 'from-idm-female/25';
   const divisionAccentTo = dt.division === 'male' ? 'to-idm-male-light/10' : 'to-idm-female-light/10';
   const divisionAccentBar = dt.division === 'male' ? 'bg-idm-male' : 'bg-idm-female';
   const divisionAccentText = dt.division === 'male' ? 'text-idm-male' : 'text-idm-female';
 
-  // Helper to get team display name: always TBD for null teams
+  // Helper to get team display name
   const getTeamLabel = (team: { id: string; name: string } | null) => {
     if (team) return team.name;
     return 'TBD';
@@ -92,59 +92,73 @@ function BracketMatchCard({ match, isGrandFinal }: { match: Match; isGrandFinal?
         isCompleted ? `border ${dt.border}` :
         `border ${dt.borderSubtle}`
       } transition-all hover:shadow-lg relative ${
-        isGrandFinal ? 'shadow-[0_0_20px_rgba(239,249,35,0.12)] border-idm-gold-warm/30' : ''
+        isGrandFinal ? 'shadow-[0_0_24px_rgba(239,249,35,0.15)] border-idm-gold-warm/40' : ''
       }`}
-      style={{ background: isGrandFinal ? 'rgba(239,249,35,0.03)' : 'var(--card-bg, rgba(20,17,10,0.6))' }}
+      style={{ 
+        background: isGrandFinal ? 'rgba(239,249,35,0.04)' : 'var(--card-bg, rgba(20,17,10,0.6))',
+        minWidth: isGrandFinal ? '200px' : '180px'
+      }}
     >
-      {/* LIVE indicator — pulsing red dot + badge */}
-      {isLive && (
-        <div className="absolute top-1.5 left-3 flex items-center gap-1.5 z-10">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-          </span>
-          <span className="text-[10px] font-black uppercase tracking-widest text-red-500">LIVE</span>
-        </div>
-      )}
-
-      {/* BYE/WALKOVER badge */}
-      {isByeMatch && (
-        <div className="absolute top-1 right-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/25 rounded-md z-10">
-          WALKOVER
+      {/* Match label bar — MPL style round indicator */}
+      {(matchLabel || isLive || isByeMatch) && (
+        <div className={`flex items-center justify-between px-2.5 py-1 border-b ${dt.borderSubtle} ${
+          isGrandFinal ? 'bg-idm-gold-warm/10' : 'bg-muted/30'
+        }`}>
+          <div className="flex items-center gap-1.5">
+            {matchLabel && (
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                isGrandFinal ? 'text-idm-gold-warm' : 'text-muted-foreground/70'
+              }`}>{matchLabel}</span>
+            )}
+            {isLive && (
+              <div className="flex items-center gap-1">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-red-500">LIVE</span>
+              </div>
+            )}
+          </div>
+          {isByeMatch && (
+            <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/25 rounded">WALKOVER</span>
+          )}
         </div>
       )}
 
       {/* Team 1 row */}
-      <div className={`relative flex items-center px-0 py-0 border-b ${dt.borderSubtle} ${
+      <div className={`relative flex items-center border-b ${dt.borderSubtle} ${
         !match.team1 ? 'opacity-40' : ''
       }`}>
-        {/* Left accent bar — winner highlight */}
+        {/* Left accent bar — winner highlight (4px for MPL prominence) */}
         {winner1 && (
-          <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl ${divisionAccentBar}`} />
+          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${divisionAccentBar}`} />
         )}
         {/* Winner gradient background */}
         {winner1 && (
           <div className={`absolute inset-0 bg-gradient-to-r ${divisionAccentFrom} ${divisionAccentTo} pointer-events-none`} />
         )}
-        <div className="relative flex items-center px-3 py-2.5 w-full">
-          {/* Team abbreviation avatar */}
-          <div className={`w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-black mr-2.5 shrink-0 ${
+        <div className="relative flex items-center px-2.5 py-2 w-full gap-2">
+          {/* Team abbreviation avatar — bigger for MPL */}
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
             winner1 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white shadow-sm` :
             `${dt.iconBg} ${dt.text}`
           }`}>
             {getTeamLabel(match.team1).slice(0, 2).toUpperCase()}
           </div>
           {/* Team name */}
-          <span className={`text-sm font-semibold truncate flex-1 max-w-[110px] ${
+          <span className={`text-sm font-semibold truncate flex-1 ${
             winner1 ? divisionAccentText :
             !match.team1 ? 'text-muted-foreground italic' :
             'text-foreground/80'
           }`}>
             {getTeamLabel(match.team1)}
           </span>
-          {/* Score */}
-          <span className={`text-base font-black tabular-nums min-w-[24px] text-right ${
-            winner1 ? divisionAccentText : 'text-muted-foreground'
+          {/* Score with background pill — MPL style */}
+          <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
+            winner1 
+              ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
+              : 'text-muted-foreground'
           }`}>
             {getTeamScore(match.team1, match.score1)}
           </span>
@@ -152,36 +166,38 @@ function BracketMatchCard({ match, isGrandFinal }: { match: Match; isGrandFinal?
       </div>
 
       {/* Team 2 row */}
-      <div className={`relative flex items-center px-0 py-0 ${
+      <div className={`relative flex items-center ${
         !match.team2 ? 'opacity-40' : ''
       }`}>
         {/* Left accent bar — winner highlight */}
         {winner2 && (
-          <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-b-xl ${divisionAccentBar}`} />
+          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-b-xl ${divisionAccentBar}`} />
         )}
         {/* Winner gradient background */}
         {winner2 && (
           <div className={`absolute inset-0 bg-gradient-to-r ${divisionAccentFrom} ${divisionAccentTo} pointer-events-none`} />
         )}
-        <div className="relative flex items-center px-3 py-2.5 w-full">
+        <div className="relative flex items-center px-2.5 py-2 w-full gap-2">
           {/* Team abbreviation avatar */}
-          <div className={`w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-black mr-2.5 shrink-0 ${
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
             winner2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white shadow-sm` :
             `${dt.iconBg} ${dt.text}`
           }`}>
             {getTeamLabel(match.team2).slice(0, 2).toUpperCase()}
           </div>
           {/* Team name */}
-          <span className={`text-sm font-semibold truncate flex-1 max-w-[110px] ${
+          <span className={`text-sm font-semibold truncate flex-1 ${
             winner2 ? divisionAccentText :
             !match.team2 ? 'text-muted-foreground italic' :
             'text-foreground/80'
           }`}>
             {getTeamLabel(match.team2)}
           </span>
-          {/* Score */}
-          <span className={`text-base font-black tabular-nums min-w-[24px] text-right ${
-            winner2 ? divisionAccentText : 'text-muted-foreground'
+          {/* Score with background pill */}
+          <span className={`text-lg font-black tabular-nums min-w-[28px] text-center px-1.5 py-0.5 rounded ${
+            winner2 
+              ? `${dt.division === 'male' ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'}` 
+              : 'text-muted-foreground'
           }`}>
             {getTeamScore(match.team2, match.score2)}
           </span>
@@ -190,17 +206,17 @@ function BracketMatchCard({ match, isGrandFinal }: { match: Match; isGrandFinal?
 
       {/* MVP indicator */}
       {match.mvpPlayer && (
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 border-t ${dt.borderSubtle} bg-yellow-500/[0.03]`}>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle} bg-yellow-500/[0.04]`}>
           <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
           <span className="text-[11px] text-yellow-500/80 font-semibold truncate">MVP: {match.mvpPlayer.gamertag}</span>
         </div>
       )}
 
-      {/* Grand Final champion crown indicator */}
+      {/* Grand Final champion crown — more prominent */}
       {isGrandFinal && isCompleted && (winner1 || winner2) && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-idm-gold-warm/20 border border-idm-gold-warm/40 shadow-[0_0_8px_rgba(239,249,35,0.3)]">
-            <Crown className="w-3.5 h-3.5 text-idm-gold-warm" />
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-idm-gold-warm/25 border-2 border-idm-gold-warm/50 shadow-[0_0_16px_rgba(239,249,35,0.4)]">
+            <Crown className="w-4 h-4 text-idm-gold-warm" />
           </div>
         </div>
       )}
@@ -224,33 +240,20 @@ function BracketConnectors({ paths }: { paths: ConnectorPath[] }) {
     >
       {paths.map((p) => {
         const isDot = p.key.endsWith('-dot');
-        const isRail = p.key.endsWith('-rail');
-        const isArm = p.key.endsWith('-arm1') || p.key.endsWith('-arm2');
 
         if (isDot) {
-          // Junction dot — larger filled circle for MPL prominence
           const dotMatch = p.d.match(/M ([\d.]+) ([\d.]+) h ([\d.]+)/);
           if (dotMatch) {
             const cx = parseFloat(dotMatch[1]) + parseFloat(dotMatch[3]) / 2;
             const cy = parseFloat(dotMatch[2]);
             return (
               <g key={p.key}>
-                {/* Dot glow */}
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r="7"
-                  fill={p.color}
-                  opacity="0.1"
-                />
-                {/* Dot main */}
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r="4"
-                  fill={p.color}
-                  opacity={p.isWinner ? "0.8" : "0.5"}
-                />
+                {/* Dot outer glow — MPL prominent */}
+                <circle cx={cx} cy={cy} r="8" fill={p.color} opacity="0.12" />
+                {/* Dot inner glow */}
+                <circle cx={cx} cy={cy} r="5" fill={p.color} opacity={p.isWinner ? "0.6" : "0.3"} />
+                {/* Dot bright center */}
+                {p.isWinner && <circle cx={cx} cy={cy} r="2.5" fill={p.color} opacity="0.9" />}
               </g>
             );
           }
@@ -258,26 +261,38 @@ function BracketConnectors({ paths }: { paths: ConnectorPath[] }) {
 
         return (
           <g key={p.key}>
-            {/* Glow layer — thick, faded for MPL neon effect */}
+            {/* Glow layer — wide, faded for MPL neon */}
             <path
               d={p.d}
               stroke={p.color}
-              strokeWidth="6"
+              strokeWidth="8"
               fill="none"
-              opacity="0.15"
+              opacity="0.1"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Main line — thicker for mobile readability */}
+            {/* Main line — solid for mobile readability */}
             <path
               d={p.d}
               stroke={p.color}
-              strokeWidth="2"
+              strokeWidth="2.5"
               fill="none"
-              opacity={p.isWinner ? "0.7" : "0.3"}
+              opacity={p.isWinner ? "0.6" : "0.25"}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
+            {/* Winner path bright center — thin bright line */}
+            {p.isWinner && (
+              <path
+                d={p.d}
+                stroke={p.color}
+                strokeWidth="1"
+                fill="none"
+                opacity="0.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           </g>
         );
       })}
@@ -1914,45 +1929,50 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
 
   const bracketContent = (
     <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
-      <div className="relative min-w-max px-1" ref={containerRef}>
-        {/* SVG connector overlay — inside scrollable area so lines move with cards */}
+      <div className="relative min-w-max px-2" ref={containerRef}>
+        {/* SVG connector overlay */}
         {connectors.length > 0 && <BracketConnectors paths={connectors} />}
 
-        {/* Bracket columns — MPL horizontal layout with position-based alignment */}
-        <div className="flex gap-10">
+        {/* Bracket columns — MPL horizontal layout */}
+        <div className="flex gap-12">
           {roundsData.map((round, roundIdx) => {
             const isGF = isFinalRound(roundIdx);
             return (
               <div key={round.round} className="flex flex-col" style={{ minWidth: isGF ? '220px' : '200px' }}>
-                {/* Round label — MPL pill style */}
+                {/* Round label — MPL premium header */}
                 <div className={`text-center mb-4 ${isGF ? 'mt-2' : ''}`}>
                   {isGF ? (
-                    /* Grand Final special header with gold glow */
                     <div className="inline-flex flex-col items-center gap-1">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-idm-gold-warm/30 shadow-[0_0_16px_rgba(239,249,35,0.15)]">
-                        <Trophy className="w-3.5 h-3.5" />
+                      {/* Grand Final special header with gold glow */}
+                      <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20 text-idm-gold-warm text-sm font-black uppercase tracking-wider border border-idm-gold-warm/40 shadow-[0_0_24px_rgba(239,249,35,0.2)]">
+                        <Trophy className="w-4 h-4" />
                         {round.label}
                       </div>
                     </div>
                   ) : (
-                    /* Regular round pill */
-                    <div className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider border ${dt.borderSubtle}`}>
+                    /* Regular round header — MPL gradient pill */
+                    <div className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl ${dt.bg} ${dt.text} text-sm font-bold uppercase tracking-wider border ${dt.borderSubtle}`}>
+                      <Swords className="w-3.5 h-3.5 opacity-60" />
                       {round.label}
                     </div>
                   )}
                 </div>
-                {/* Match cards container — R1 uses flex gap, R2+ uses margin-top set by alignBracketCards() */}
+                {/* Match cards container */}
                 <div
                   className="flex-1 flex flex-col"
                   data-round={roundIdx}
-                  style={{ gap: roundIdx === 0 ? '24px' : '0px' }}
+                  style={{ gap: roundIdx === 0 ? '20px' : '0px' }}
                 >
-                  {round.matches.map((m) => (
+                  {round.matches.map((m, mi) => (
                     <div
                       key={m.id}
                       ref={(el) => setCardRef(`round-${roundIdx}-match-${m.id}`, el)}
                     >
-                      <BracketMatchCard match={m} isGrandFinal={isGF} />
+                      <BracketMatchCard 
+                        match={m} 
+                        isGrandFinal={isGF}
+                        matchLabel={roundIdx === roundsData.length - 1 && isGF ? 'Grand Final' : `M${mi + 1}`}
+                      />
                     </div>
                   ))}
                 </div>
