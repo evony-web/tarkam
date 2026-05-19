@@ -213,7 +213,8 @@ function TournamentCard({
   isRegOpen?: boolean;
 }) {
   const Icon = division.icon;
-  const weeklyCount = data?.seasonProgress?.completedWeeks || 0;
+  // Show current running week (not completed count) — e.g. "Week 2" when week 2 is active
+  const currentWeek = data?.activeTournament?.weekNumber || (data?.seasonProgress?.completedWeeks ? data.seasonProgress.completedWeeks + 1 : 0);
   const totalPlayers = data?.totalPlayers || 0;
   const totalClubs = data?.clubs?.length || 0;
   const totalMatches = data?.recentMatches?.length || 0;
@@ -314,7 +315,7 @@ function TournamentCard({
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-foreground/5 dark:bg-black/50 border border-border/40">
             <Gamepad2 className="w-3 h-3 text-idm-gold-warm" />
             <span className="text-[10px] font-bold text-foreground/80">
-              {weeklyCount} Week{weeklyCount !== 1 ? 's' : ''}
+              {currentWeek > 0 ? `Week ${currentWeek}` : 'TBA'}
             </span>
           </div>
         </div>
