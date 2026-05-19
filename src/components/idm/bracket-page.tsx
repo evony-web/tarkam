@@ -54,46 +54,53 @@ export function BracketPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Title Banner */}
-      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent px-4 py-5 sm:py-6">
-        <div className="max-w-7xl mx-auto flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-            <Radio className="w-4 h-4 text-idm-gold-warm" />
+      {/* ═══ Header: Title + Primary Tabs in one row ═══ */}
+      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          {/* Row 1: Title + Hasil/Bracket tabs */}
+          <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
+            {/* Title */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
+                <Radio className="w-4 h-4 text-idm-gold-warm" />
+              </div>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">Bracket</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight hidden sm:block">Hasil & bracket tarkam</p>
+              </div>
+            </div>
+
+            {/* Primary Tabs: Hasil | Bracket — inline with title */}
+            <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-auto">
+              <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
+                {[
+                  { value: 'results', label: 'Hasil', icon: Swords },
+                  { value: 'bracket', label: 'Bracket', icon: Trophy },
+                ].map(tab => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="relative px-3 py-2 sm:px-4 text-[11px] sm:text-xs font-semibold rounded-none border-b-2 border-transparent data-[state=active]:border-idm-gold-warm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-idm-gold-warm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 inline" />
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold text-foreground">Bracket</h1>
-            <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">Hasil & bracket tarkam</p>
+
+          {/* Row 2: Division filter chips — full width, left-aligned */}
+          <div className="pb-2.5">
+            <DivisionChips division={division} setDivision={setDivision} />
           </div>
         </div>
       </div>
 
-      {/* Primary Tabs: Hasil | Bracket */}
+      {/* ═══ Tab Content ═══ */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-full">
-          {/* Tab bar with integrated division chips */}
-          <div className="flex items-center justify-between border-b border-border/50 py-0 sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-            <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
-              {[
-                { value: 'results', label: 'Hasil', icon: Swords },
-                { value: 'bracket', label: 'Bracket', icon: Trophy },
-              ].map(tab => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="relative px-4 py-3 text-xs sm:text-sm font-semibold rounded-none border-b-2 border-transparent data-[state=active]:border-idm-gold-warm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-idm-gold-warm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <tab.icon className="w-4 h-4 mr-1.5 inline" />
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {/* Division filter chips — right-aligned */}
-            <DivisionChips division={division} setDivision={setDivision} />
-          </div>
-
-          {/* ═══ HASIL TAB ═══ */}
-          <TabsContent value="results" className="mt-4 pb-6 space-y-4">
+        {primaryTab === 'results' ? (
+          <div className="mt-4 pb-6 space-y-4">
             {showBoth ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <ResultsContent divisionProp="male" />
@@ -102,10 +109,9 @@ export function BracketPage() {
             ) : (
               <ResultsContent divisionProp={divisionProp} />
             )}
-          </TabsContent>
-
-          {/* ═══ BRACKET TAB ═══ */}
-          <TabsContent value="bracket" className="mt-4 pb-6 space-y-4">
+          </div>
+        ) : (
+          <div className="mt-4 pb-6 space-y-4">
             {showBoth ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <BracketContent divisionProp="male" />
@@ -114,8 +120,8 @@ export function BracketPage() {
             ) : (
               <BracketContent divisionProp={divisionProp} />
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </div>
   );

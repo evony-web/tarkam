@@ -265,3 +265,22 @@ Stage Summary:
 - Hero Banner remains in Hasil tab (correct — shows scores/results)
 - ResultsContent no longer contains sponsor components
 - BracketContent now contains: Format selector → BracketView → SponsorBanner → PresentedBy → SponsoredPrizes
+---
+Task ID: 4
+Agent: main
+Task: Move sponsor above bracket + fix crowded tab layout on mobile
+
+Work Log:
+- Moved sponsor (SponsorBanner, PresentedBy, SponsoredPrizes) from BELOW bracket to ABOVE bracket in BracketContent
+- Redesigned bracket-page.tsx header layout:
+  - Row 1: Title (Bracket) + Hasil/Bracket tabs in SAME ROW — saves vertical space
+  - Row 2: Division filter chips (Semua/Cowo/Cewe) — full width, left-aligned
+  - Removed sticky tab bar (tabs are now in the header, always visible)
+  - Switched from Tabs/TabsContent to conditional rendering for simpler logic
+- Made tab triggers smaller on mobile (text-[11px], px-3, w-3.5 icons)
+- All spacing and fonts are mobile-responsive with sm: breakpoints
+
+Stage Summary:
+- Sponsor now appears ABOVE bracket tree (Sponsor → Format selector → BracketView)
+- Tab layout no longer crowded: title + tabs share one row, division chips on second row
+- Cleaner mobile experience with compact tab sizing

@@ -855,6 +855,15 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
 
   return (
     <div className="space-y-4 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
+      {/* Sponsor Banner — above bracket */}
+      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
+      {data?.activeTournament?.id && (
+        <div className="space-y-3">
+          <PresentedBy tournamentId={data.activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={data.activeTournament.id} />
+        </div>
+      )}
+
       {/* Bracket Type Selector */}
       <div className="flex items-center gap-1.5 px-1 overflow-x-auto scrollbar-none">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1.5 shrink-0">Format:</span>
@@ -897,14 +906,6 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
         />
       )}
 
-      {/* Sponsor Banner — stays in Bracket tab */}
-      <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
-      {data?.activeTournament?.id && (
-        <div className="space-y-3">
-          <PresentedBy tournamentId={data.activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={data.activeTournament.id} />
-        </div>
-      )}
     </div>
   );
 }
