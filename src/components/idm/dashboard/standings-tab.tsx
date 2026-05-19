@@ -28,7 +28,7 @@ const DIVISION_BADGE: Record<Division, { bg: string; text: string; icon: string;
 /* ─── Rank badge component ─── */
 function RankBadge({ rank }: { rank: number }) {
   return (
-    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shrink-0 ${
       rank === 1
         ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
         : rank === 2
@@ -122,10 +122,10 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Award className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
             <div className="ml-auto flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.male.bg, color: DIVISION_BADGE.male.text }}>♂ {maleCount}</span>
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.female.bg, color: DIVISION_BADGE.female.text }}>♀ {femaleCount}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.male.bg, color: DIVISION_BADGE.male.text }}>♂ {maleCount}</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.female.bg, color: DIVISION_BADGE.female.text }}>♀ {femaleCount}</span>
             </div>
           </div>
 
@@ -173,19 +173,19 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <SkinName skin={primarySkin}>
-                          <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                          <p className="text-sm sm:text-base font-medium truncate">{p.gamertag}</p>
                         </SkinName>
                         {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span
-                          className="inline-flex items-center gap-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                           style={{ background: divBadge.bg, color: divBadge.text }}
                         >
                           {divBadge.icon} {divBadge.label}
                         </span>
                         {clubToString(p.club as any) && (
-                          <span className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</span>
+                          <span className="text-xs text-muted-foreground truncate">{clubToString(p.club as any)}</span>
                         )}
                       </div>
                     </div>
@@ -195,18 +195,18 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                       {/* Points */}
                       <div className="text-center min-w-[36px]">
                         <p className={`text-sm sm:text-base font-bold ${isTop ? dt.neonText : ''}`}>{p.points}</p>
-                        <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                       </div>
 
                       {/* W/L — Visible on sm+ */}
                       <div className="hidden sm:flex items-center gap-2">
                         <div className="text-center min-w-[20px]">
                           <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
-                          <p className="text-[7px] text-muted-foreground">W</p>
+                          <p className="text-[10px] text-muted-foreground">W</p>
                         </div>
                         <div className="text-center min-w-[20px]">
                           <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
-                          <p className="text-[7px] text-muted-foreground">L</p>
+                          <p className="text-[10px] text-muted-foreground">L</p>
                         </div>
                       </div>
 
@@ -217,7 +217,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                         ) : (
                           <span className="text-muted-foreground text-xs">—</span>
                         )}
-                        <p className="text-[7px] text-muted-foreground">streak</p>
+                        <p className="text-[10px] text-muted-foreground">streak</p>
                       </div>
 
                       {/* MVP — Visible on sm+ */}
@@ -227,7 +227,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                         ) : (
                           <p className="text-muted-foreground text-xs">0</p>
                         )}
-                        <p className="text-[7px] text-muted-foreground">mvp</p>
+                        <p className="text-[10px] text-muted-foreground">mvp</p>
                       </div>
 
                       {/* Chevron */}
@@ -244,7 +244,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
             <div className="flex items-center justify-center pt-1">
               <button
                 onClick={() => setShowAllPlayers(!showAllPlayers)}
-                className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
               >
                 {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({allPlayers.length})</>}
               </button>
@@ -269,8 +269,8 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Shield className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
-            <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.clubs?.length || 0} Clubs</Badge>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
+            <Badge className={`${dt.casinoBadge} ml-auto text-[10px]`}>{data.clubs?.length || 0} Clubs</Badge>
           </div>
 
           {data.clubs?.length > 0 ? (
@@ -311,14 +311,14 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                           )}
                           {isSeasonChampion && championSeason && (
                             <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-border/20">
-                              <span className="text-[6px] font-black text-mid leading-none">S{championSeason.number}</span>
+                              <span className="text-[9px] font-black text-mid leading-none">S{championSeason.number}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Club info */}
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs sm:text-sm font-semibold truncate">{club.name}</p>
+                          <p className="text-sm sm:text-base font-semibold truncate">{club.name}</p>
                         </div>
 
                         {/* Stats — Right side with divider */}
@@ -327,11 +327,11 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                           <div className="hidden sm:flex items-center gap-2">
                             <div className="text-center min-w-[20px]">
                               <p className="text-xs text-green-500 font-semibold">{club.wins}</p>
-                              <p className="text-[7px] text-muted-foreground">W</p>
+                              <p className="text-[10px] text-muted-foreground">W</p>
                             </div>
                             <div className="text-center min-w-[20px]">
                               <p className="text-xs text-red-500 font-semibold">{club.losses}</p>
-                              <p className="text-[7px] text-muted-foreground">L</p>
+                              <p className="text-[10px] text-muted-foreground">L</p>
                             </div>
                           </div>
 
@@ -340,13 +340,13 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                             <span className={`text-xs font-semibold ${club.gameDiff > 0 ? 'text-green-500' : club.gameDiff < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
                               {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
                             </span>
-                            <p className="text-[7px] text-muted-foreground">selisih</p>
+                            <p className="text-[10px] text-muted-foreground">selisih</p>
                           </div>
 
                           {/* Total points */}
                           <div className="text-center min-w-[36px]">
                             <p className={`text-sm sm:text-base font-bold ${idx === 0 ? dt.neonGradient : isTop ? dt.neonText : ''}`}>{club.points}</p>
-                            <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                            <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                           </div>
 
                           {/* Chevron */}
@@ -362,7 +362,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                 <div className="flex items-center justify-center pt-1">
                   <button
                     onClick={() => setShowAllClubs(!showAllClubs)}
-                    className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                    className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                   >
                     {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
                   </button>
@@ -373,7 +373,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
             <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
               <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
               <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
-              <p className="text-[10px] text-muted-foreground/80 mt-1">Club akan muncul setelah pendaftaran</p>
+              <p className="text-xs text-muted-foreground/80 mt-1">Club akan muncul setelah pendaftaran</p>
             </div>
           )}
         </div>

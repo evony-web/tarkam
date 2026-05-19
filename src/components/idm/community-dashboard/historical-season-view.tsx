@@ -101,18 +101,18 @@ function HistoricalBanner({ season }: { season: SelectedSeason }) {
             <h3 className="text-sm font-bold text-amber-400">
               Season {season.number} (Completed)
             </h3>
-            <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/25 text-[8px]">
+            <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/25 text-[10px]">
               🏆 Historical Data
             </Badge>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Viewing archived results from {season.name}
             {season.startDate && season.endDate && (
               <> · {new Date(season.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(season.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</>
             )}
           </p>
         </div>
-        <Badge className={`${season.division === 'male' ? 'bg-idm-male/15 text-idm-male border-idm-male/25' : 'bg-idm-female/15 text-idm-female border-idm-female/25'} text-[9px] border shrink-0`}>
+        <Badge className={`${season.division === 'male' ? 'bg-idm-male/15 text-idm-male border-idm-male/25' : 'bg-idm-female/15 text-idm-female border-idm-female/25'} text-[10px] border shrink-0`}>
           {season.division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
         </Badge>
       </div>
@@ -137,7 +137,7 @@ function ChampionCard({ season, championPoints }: { season: SeasonDetailResponse
       <CardContent className="p-5 relative z-10">
         <div className="flex items-center gap-2 mb-4">
           <Crown className="w-4 h-4 text-amber-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider">Season {season.number} Champion</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider">Season {season.number} Champion</h3>
         </div>
 
         {season.championPlayer || season.championPlayerSnapshot ? (
@@ -148,7 +148,7 @@ function ChampionCard({ season, championPoints }: { season: SeasonDetailResponse
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-base font-bold truncate">{championGamertag}</span>
-                <Badge className="bg-amber-500/15 text-amber-400 border-0 text-[9px]">
+                <Badge className="bg-amber-500/15 text-amber-400 border-0 text-[10px]">
                   🏆 Champion
                 </Badge>
               </div>
@@ -157,7 +157,7 @@ function ChampionCard({ season, championPoints }: { season: SeasonDetailResponse
                   <span className={`text-lg font-black ${isMale ? 'text-idm-male' : 'text-idm-female'}`}>
                     {championPoints}
                   </span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Points</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Points</span>
                 </div>
               )}
               {championClub && (
@@ -213,7 +213,7 @@ function StandingsTable({ standings, division }: { standings: StandingPlayer[]; 
           >
             <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
               {/* Rank */}
-              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shrink-0 ${
                 rank === 1
                   ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
                   : rank === 2
@@ -226,12 +226,12 @@ function StandingsTable({ standings, division }: { standings: StandingPlayer[]; 
               {/* Player info */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-xs sm:text-sm font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
+                  <span className={`text-sm sm:text-base font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
                     {player.gamertag}
                   </span>
                   {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
                 </div>
-                {player.club && <p className="text-[9px] text-muted-foreground truncate">{player.club}</p>}
+                {player.club && <p className="text-xs text-muted-foreground truncate">{player.club}</p>}
               </div>
 
               {/* Points */}
@@ -240,7 +240,7 @@ function StandingsTable({ standings, division }: { standings: StandingPlayer[]; 
                   <p className={`text-sm sm:text-base font-bold tabular-nums ${isTop3 ? (isMale ? 'text-idm-male' : 'text-idm-female') : 'text-foreground/70'}`}>
                     {player.points}
                   </p>
-                  <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                 </div>
               </div>
             </div>
@@ -287,7 +287,7 @@ function ClubRankingsTable({ clubs }: { clubs: StandingClub[] }) {
           >
             <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
               {/* Rank */}
-              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shrink-0 ${
                 rank === 1
                   ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
                   : rank === 2
@@ -309,7 +309,7 @@ function ClubRankingsTable({ clubs }: { clubs: StandingClub[] }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-xs sm:text-sm font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
+                  <span className={`text-sm sm:text-base font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
                     {club.profile?.name || 'Unknown'}
                   </span>
                   {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
@@ -320,13 +320,13 @@ function ClubRankingsTable({ clubs }: { clubs: StandingClub[] }) {
               <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
                 <div className="hidden sm:block text-center min-w-[36px]">
                   <p className="text-xs text-muted-foreground tabular-nums">{club.wins}/{club.losses}</p>
-                  <p className="text-[7px] text-muted-foreground">W/L</p>
+                  <p className="text-[10px] text-muted-foreground">W/L</p>
                 </div>
                 <div className="text-center min-w-[36px]">
                   <p className={`text-sm sm:text-base font-bold tabular-nums ${isTop3 ? 'text-idm-gold-warm' : 'text-foreground/70'}`}>
                     {club.points}
                   </p>
-                  <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                 </div>
               </div>
             </div>
@@ -447,8 +447,8 @@ export const HistoricalSeasonView = React.memo(function HistoricalSeasonView({ s
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
             <Medal className={`w-4 h-4 ${isMale ? 'text-idm-male' : 'text-idm-female'}`} />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Pemain</h3>
-            <Badge className={`${isMale ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'} border-0 text-[9px] ml-auto`}>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Peringkat Pemain</h3>
+            <Badge className={`${isMale ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'} border-0 text-[10px] ml-auto`}>
               {standings.length} Players
             </Badge>
           </div>
@@ -461,8 +461,8 @@ export const HistoricalSeasonView = React.memo(function HistoricalSeasonView({ s
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
             <Shield className="w-4 h-4 text-idm-gold-warm" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Klub</h3>
-            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border-0 text-[9px] ml-auto">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Peringkat Klub</h3>
+            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border-0 text-[10px] ml-auto">
               {clubs.length} Clubs
             </Badge>
           </div>
@@ -475,19 +475,19 @@ export const HistoricalSeasonView = React.memo(function HistoricalSeasonView({ s
         <CardContent className="p-4 sm:p-6 relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Info Season</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Info Season</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Season</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Season</p>
               <p className="text-sm font-bold">Season {data.number}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Divisi</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Divisi</p>
               <p className="text-sm font-bold">{data.division === 'male' ? '🕺 Cowo' : '💃 Cewe'}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Periode</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Periode</p>
               <p className="text-xs font-semibold">
                 {data.startDate ? new Date(data.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                 {' — '}
@@ -495,7 +495,7 @@ export const HistoricalSeasonView = React.memo(function HistoricalSeasonView({ s
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Turnamen</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Turnamen</p>
               <p className="text-sm font-bold">{data._count?.tournaments || 0}</p>
             </div>
           </div>

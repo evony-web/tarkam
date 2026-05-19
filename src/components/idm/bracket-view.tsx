@@ -95,37 +95,37 @@ function BracketMatchCard({ match }: { match: Match }) {
     >
       {/* BYE/WALKOVER badge — shows when one team got a bye to this round */}
       {isByeMatch && (
-        <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
+        <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
           WALKOVER
         </div>
       )}
       {/* Team 1 */}
       <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!match.team1 ? 'opacity-50' : ''}`}>
-        <div className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold mr-2 shrink-0 ${
+        <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold mr-2 shrink-0 ${
           winner1 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
           {getTeamLabel(match.team1).slice(0, 2).toUpperCase()}
         </div>
-        <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !match.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+        <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !match.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
           {getTeamLabel(match.team1)}
         </span>
-        <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
           {getTeamScore(match.team1, match.score1)}
         </span>
       </div>
       {/* Team 2 */}
       <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!match.team2 ? 'opacity-50' : ''}`}>
-        <div className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold mr-2 shrink-0 ${
+        <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold mr-2 shrink-0 ${
           winner2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
           `${dt.iconBg} ${dt.text}`
         }`}>
           {getTeamLabel(match.team2).slice(0, 2).toUpperCase()}
         </div>
-        <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !match.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+        <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !match.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
           {getTeamLabel(match.team2)}
         </span>
-        <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
           {getTeamScore(match.team2, match.score2)}
         </span>
       </div>
@@ -133,7 +133,7 @@ function BracketMatchCard({ match }: { match: Match }) {
       {match.mvpPlayer && (
         <div className={`flex items-center gap-1 px-3 py-1 border-t ${dt.borderSubtle}`}>
           <Crown className="w-2.5 h-2.5 text-yellow-500" />
-          <span className="text-[9px] text-yellow-500 font-medium truncate">MVP: {match.mvpPlayer.gamertag}</span>
+          <span className="text-[10px] text-yellow-500 font-medium truncate">MVP: {match.mvpPlayer.gamertag}</span>
         </div>
       )}
     </div>
@@ -416,7 +416,7 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
         >
           <ZoomOut className="w-4 h-4 text-foreground" />
         </button>
-        <div className="px-2.5 py-1 rounded-md bg-background/90 border border-border/60 text-[10px] font-semibold tabular-nums min-w-[3.2rem] text-center shadow-sm">
+        <div className="px-2.5 py-1 rounded-md bg-background/90 border border-border/60 text-xs font-semibold tabular-nums min-w-[3.2rem] text-center shadow-sm">
           {Math.round(displayState.scale * 100)}%
         </div>
         <button
@@ -433,24 +433,24 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
         >
           <Maximize2 className="w-3.5 h-3.5 text-foreground" />
         </button>
-        <span className="text-[9px] text-muted-foreground ml-2">Pinch to zoom • Drag to pan</span>
+        <span className="text-[10px] text-muted-foreground ml-2">Pinch to zoom • Drag to pan</span>
       </div>
 
       {/* Desktop zoom hint — shown when zoomed in */}
       {displayState.scale > 1 && (
         <div className="hidden lg:flex items-center gap-1.5 mb-2 px-1">
-          <div className="px-2.5 py-1 rounded-md bg-background/90 border border-border/60 text-[10px] font-semibold tabular-nums min-w-[3.2rem] text-center shadow-sm">
+          <div className="px-2.5 py-1 rounded-md bg-background/90 border border-border/60 text-xs font-semibold tabular-nums min-w-[3.2rem] text-center shadow-sm">
             {Math.round(displayState.scale * 100)}%
           </div>
           <button
             onClick={resetZoom}
-            className="flex items-center justify-center h-7 px-2 rounded-md bg-background/90 hover:bg-muted border border-border/60 text-[10px] font-medium shadow-sm transition-colors"
+            className="flex items-center justify-center h-7 px-2 rounded-md bg-background/90 hover:bg-muted border border-border/60 text-xs font-medium shadow-sm transition-colors"
             aria-label="Reset zoom"
           >
             <Maximize2 className="w-3 h-3 text-foreground mr-1" />
             Reset
           </button>
-          <span className="text-[9px] text-muted-foreground ml-1">Ctrl+Scroll to zoom • Drag to pan</span>
+          <span className="text-[10px] text-muted-foreground ml-1">Ctrl+Scroll to zoom • Drag to pan</span>
         </div>
       )}
 
@@ -535,10 +535,10 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
         <div key={label} className={`rounded-2xl overflow-hidden border ${dt.border}`}>
           <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b ${dt.borderSubtle}`}>
             <Trophy className={`w-4 h-4 ${dt.neonText}`} />
-            <h3 className="text-xs font-semibold uppercase tracking-wider">Grup {label}</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Grup {label}</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr className={`border-b ${dt.borderSubtle} bg-muted/20`}>
                   <th className="w-8 text-center py-2 font-semibold">#</th>
@@ -555,7 +555,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                 {teamStats.map((t, i) => (
                   <tr key={t.name} className={`border-b ${dt.borderSubtle} ${i < 2 ? dt.bgSubtle : ''} ${dt.hoverBgSubtle} transition-colors`}>
                     <td className="text-center py-2">
-                      <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] font-bold ${
+                      <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
                         i === 0 ? 'bg-yellow-500/20 text-yellow-500' :
                         i === 1 ? 'bg-green-500/20 text-green-500' :
                         'text-muted-foreground'
@@ -563,7 +563,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                     </td>
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded flex items-center justify-center text-[8px] font-bold ${
+                        <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
                           i < 2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
                           `${dt.iconBg} ${dt.text}`
                         }`}>{t.name.slice(0, 2).toUpperCase()}</div>
@@ -588,11 +588,11 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
       {Object.entries(groupsByLabel).map(([label, gMatches]) => (
         <div key={`matches-${label}`}>
           <div className="flex items-center gap-2 mb-3">
-            <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-[10px] font-bold uppercase tracking-wider`}>
+            <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider`}>
               Grup {label}
             </div>
             <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-            <span className="text-[10px] text-muted-foreground">{gMatches.length} pertandingan</span>
+            <span className="text-xs text-muted-foreground">{gMatches.length} pertandingan</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {gMatches.map((m) => {
@@ -608,23 +608,23 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
                   {(!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed' && (
-                    <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
+                    <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
                       WALKOVER
                     </div>
                   )}
                   <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                    <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                       {m.team1?.name || 'TBD'}
                     </span>
-                    <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                       {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
                     </span>
                   </div>
                   <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
-                    <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                    <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                       {m.team2?.name || 'TBD'}
                     </span>
-                    <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                       {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                     </span>
                   </div>
@@ -667,7 +667,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               }`}
               style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
             >
-              <div className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider flex items-center justify-between ${
+              <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between ${
                 isGrandFinal ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
                 is3rd ? 'bg-orange-500/5 text-orange-400' :
                 `${dt.neonText} bg-idm-gold-warm/5`
@@ -678,22 +678,22 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                   {matchLabel}
                 </span>
                 {isByeMatch && (
-                  <span className="px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
                 )}
               </div>
               <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
-                <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                   {m.team1?.name || 'TBD'}
                 </span>
-                <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
                   {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
                 </span>
               </div>
               <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
-                <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                   {m.team2?.name || 'TBD'}
                 </span>
-                <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
                   {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                 </span>
               </div>
@@ -707,11 +707,11 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
             {semiFinals.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider`}>
+                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider`}>
                     ⚔️ Semi Final
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-[9px] text-muted-foreground">Pemenang lolos Grand Final</span>
+                  <span className="text-[10px] text-muted-foreground">Pemenang lolos Grand Final</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {sf1 && renderPlayoffCard(sf1, 'SF1')}
@@ -725,7 +725,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               <div className="flex items-center justify-center gap-2 py-1">
                 <div className="flex-1 flex items-center justify-end">
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
+                    <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
                     <div className="h-px w-8 bg-idm-gold-warm/30" />
                   </div>
                 </div>
@@ -739,7 +739,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                 <div className="flex-1 flex items-center">
                   <div className="flex items-center gap-1">
                     <div className="h-px w-8 bg-orange-500/20" />
-                    <span className="text-[8px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
+                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
                   </div>
                 </div>
               </div>
@@ -749,7 +749,7 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
             {finals.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider border border-idm-gold-warm/20">
+                  <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-idm-gold-warm/20">
                     🏆 Grand Final
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
@@ -885,11 +885,11 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
         {/* Header */}
         <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b ${dt.borderSubtle}`}>
           <Trophy className={`w-4 h-4 ${dt.neonText}`} />
-          <h3 className="text-xs font-semibold uppercase tracking-wider">🇨🇭 Swiss Standings</h3>
-          <span className="text-[9px] text-muted-foreground ml-auto">Top 4 qualify for playoff</span>
+          <h3 className="text-sm font-bold uppercase tracking-wider">🇨🇭 Swiss Standings</h3>
+          <span className="text-[10px] text-muted-foreground ml-auto">Top 4 qualify for playoff</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-sm">
             <thead>
               <tr className={`border-b ${dt.borderSubtle} bg-muted/20`}>
                 <th className="w-8 text-center py-2 font-semibold">#</th>
@@ -913,7 +913,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                 >
                   {/* Rank */}
                   <td className="text-center py-2">
-                    <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[9px] font-bold ${
+                    <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
                       i === 0 ? 'bg-yellow-500/20 text-yellow-500' :
                       i === 1 ? 'bg-green-500/20 text-green-500' :
                       i === 2 ? 'bg-emerald-500/15 text-emerald-500' :
@@ -926,12 +926,12 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                   {/* Team name with optional trophy badge for qualifying teams */}
                   <td className="py-2 px-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded flex items-center justify-center text-[8px] font-bold ${
+                      <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
                         i < 4 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
                         `${dt.iconBg} ${dt.text}`
                       }`}>{t.name.slice(0, 2).toUpperCase()}</div>
                       <span className={`font-semibold truncate ${i < 4 ? dt.neonText : ''}`}>{t.name}</span>
-                      {i < 4 && <span className="text-[10px]" title="Qualified for playoff">🏆</span>}
+                      {i < 4 && <span className="text-xs" title="Qualified for playoff">🏆</span>}
                     </div>
                   </td>
                   {/* W / D / L */}
@@ -953,7 +953,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                   <td colSpan={9} className="py-0">
                     <div className="relative h-4 flex items-center">
                       <div className="absolute inset-x-3 border-t-2 border-dashed border-idm-gold-warm/25" />
-                      <span className="mx-auto px-2 text-[8px] font-bold text-idm-gold-warm/60 uppercase tracking-wider bg-background relative z-10">
+                      <span className="mx-auto px-2 text-[10px] font-bold text-idm-gold-warm/60 uppercase tracking-wider bg-background relative z-10">
                         ── Cut Line ──
                       </span>
                     </div>
@@ -964,8 +964,8 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
           </table>
         </div>
         {/* Legend */}
-        <div className={`flex items-center gap-4 px-4 py-1.5 border-t ${dt.borderSubtle} text-[8px] text-muted-foreground`}>
-          <span><span className="text-[10px]">🏆</span> = Qualified</span>
+        <div className={`flex items-center gap-4 px-4 py-1.5 border-t ${dt.borderSubtle} text-[10px] text-muted-foreground`}>
+          <span><span className="text-xs">🏆</span> = Qualified</span>
           <span><strong className="text-idm-gold-warm">BH</strong> = Buchholz</span>
           <span><strong>GW</strong> = Games Won</span>
           <span><strong>GL</strong> = Games Lost</span>
@@ -982,7 +982,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
               onClick={() => toggleRound(round)}
               className={`w-full flex items-center gap-2 mb-2 group`}
             >
-              <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5`}>
+              <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider flex items-center gap-1.5`}>
                 {label}
                 <span className="text-muted-foreground">{roundMatches.length} match</span>
               </div>
@@ -1013,12 +1013,12 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                     >
                       {/* Team 1 row */}
                       <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
-                        <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                        <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                           {m.team1?.name || 'TBD'}
                         </span>
                         {/* Score badge: W/L for completed, score otherwise */}
                         {hasScore && m.team1 && (
-                          <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                          <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                             winner1 ? 'bg-green-500/15 text-green-500' :
                             isDraw ? 'bg-yellow-500/15 text-yellow-500' :
                             'bg-red-500/15 text-red-500'
@@ -1026,18 +1026,18 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                             {winner1 ? 'W' : isDraw ? 'D' : 'L'}
                           </span>
                         )}
-                        <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                           {m.team1 ? (hasScore ? m.score1 : '-') : '-'}
                         </span>
                       </div>
                       {/* Team 2 row */}
                       <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
-                        <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                        <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                           {m.team2?.name || 'TBD'}
                         </span>
                         {/* Score badge: W/L for completed, score otherwise */}
                         {hasScore && m.team2 && (
-                          <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                          <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                             winner2 ? 'bg-green-500/15 text-green-500' :
                             isDraw ? 'bg-yellow-500/15 text-yellow-500' :
                             'bg-red-500/15 text-red-500'
@@ -1045,7 +1045,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                             {winner2 ? 'W' : isDraw ? 'D' : 'L'}
                           </span>
                         )}
-                        <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
                           {m.team2 ? (hasScore ? m.score2 : '-') : '-'}
                         </span>
                       </div>
@@ -1093,7 +1093,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
               }`}
               style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
             >
-              <div className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider flex items-center justify-between ${
+              <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between ${
                 isGrandFinal ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
                 is3rd ? 'bg-orange-500/5 text-orange-400' :
                 `${dt.neonText} bg-idm-gold-warm/5`
@@ -1104,22 +1104,22 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                   {matchLabel}
                 </span>
                 {isByeMatch && (
-                  <span className="px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
                 )}
               </div>
               <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
-                <span className={`text-[11px] font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                   {m.team1?.name || 'TBD'}
                 </span>
-                <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
                   {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
                 </span>
               </div>
               <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
-                <span className={`text-[11px] font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                   {m.team2?.name || 'TBD'}
                 </span>
-                <span className={`text-xs font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
                   {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
                 </span>
               </div>
@@ -1133,11 +1133,11 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
             {semiFinals.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider`}>
+                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider`}>
                     ⚔️ Semi Final
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-[9px] text-muted-foreground">Pemenang lolos Grand Final</span>
+                  <span className="text-[10px] text-muted-foreground">Pemenang lolos Grand Final</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {semiFinals.map(m => renderPlayoffCard(m))}
@@ -1151,7 +1151,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                 {/* Winner path */}
                 <div className="flex-1 flex items-center justify-end">
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
+                    <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
                     <div className="h-px w-8 bg-idm-gold-warm/30" />
                   </div>
                 </div>
@@ -1166,7 +1166,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                 <div className="flex-1 flex items-center">
                   <div className="flex items-center gap-1">
                     <div className="h-px w-8 bg-orange-500/20" />
-                    <span className="text-[8px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
+                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
                   </div>
                 </div>
               </div>
@@ -1176,7 +1176,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
             {finals.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider border border-idm-gold-warm/20">
+                  <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-idm-gold-warm/20">
                     🏆 Grand Final
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
@@ -1194,7 +1194,7 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
             {otherPlayoff.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] font-bold uppercase tracking-wider`}>
+                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider`}>
                     🏆 Playoff
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
@@ -1291,19 +1291,19 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Swords className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider">⬆️ Upper Bracket</h3>
-            <span className="text-[9px] text-muted-foreground ml-auto">{upperMatches.length} pertandingan</span>
+            <h3 className="text-sm font-bold uppercase tracking-wider">⬆️ Upper Bracket</h3>
+            <span className="text-[10px] text-muted-foreground ml-auto">{upperMatches.length} pertandingan</span>
           </div>
           <div className="p-4 space-y-4">
             {upperRounds.map((roundData) => (
               <div key={`ub-r${roundData.round}`}>
                 {/* Round label */}
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-[10px] font-bold uppercase tracking-wider`}>
+                  <div className={`px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider`}>
                     {roundData.label}
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-[10px] text-muted-foreground">{roundData.matches.length} match</span>
+                  <span className="text-xs text-muted-foreground">{roundData.matches.length} match</span>
                 </div>
                 {/* Match cards grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1322,7 +1322,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
         <div className="flex items-center justify-center gap-2 py-1">
           <div className="flex-1 flex items-center justify-end">
             <div className="flex items-center gap-1">
-              <span className="text-[8px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
+              <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
               <div className="h-px w-6 bg-red-400/20" />
             </div>
           </div>
@@ -1332,7 +1332,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
           <div className="flex-1 flex items-center">
             <div className="flex items-center gap-1">
               <div className="h-px w-6 bg-red-400/20" />
-              <span className="text-[8px] font-bold text-red-400/80 uppercase tracking-wider">turun ke Lower Bracket</span>
+              <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">turun ke Lower Bracket</span>
             </div>
           </div>
         </div>
@@ -1346,19 +1346,19 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
             <div className="w-5 h-5 rounded bg-orange-500/15 flex items-center justify-center shrink-0">
               <Swords className="w-3 h-3 text-orange-400" />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-orange-400">↘️ Lower Bracket</h3>
-            <span className="text-[9px] text-muted-foreground ml-auto">{lowerMatches.length} pertandingan</span>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-orange-400">↘️ Lower Bracket</h3>
+            <span className="text-[10px] text-muted-foreground ml-auto">{lowerMatches.length} pertandingan</span>
           </div>
           <div className="p-4 space-y-4">
             {lowerRounds.map((roundData) => (
               <div key={`lb-r${roundData.round}`}>
                 {/* Round label */}
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-[10px] font-bold uppercase tracking-wider">
+                  <div className="px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-bold uppercase tracking-wider">
                     {roundData.label}
                   </div>
                   <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-[10px] text-muted-foreground">{roundData.matches.length} match</span>
+                  <span className="text-xs text-muted-foreground">{roundData.matches.length} match</span>
                 </div>
                 {/* Match cards grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1377,7 +1377,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
         <div className="flex items-center justify-center gap-2 py-1">
           <div className="flex-1 flex items-center justify-end">
             <div className="flex items-center gap-1">
-              <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang Lower Bracket</span>
+              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang Lower Bracket</span>
               <div className="h-px w-8 bg-idm-gold-warm/30" />
             </div>
           </div>
@@ -1391,7 +1391,7 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
           <div className="flex-1 flex items-center">
             <div className="flex items-center gap-1">
               <div className="h-px w-8 bg-idm-gold-warm/30" />
-              <span className="text-[8px] font-bold text-idm-gold-warm uppercase tracking-wider">→ Grand Final</span>
+              <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">→ Grand Final</span>
             </div>
           </div>
         </div>
@@ -1405,8 +1405,8 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
             <div className="w-5 h-5 rounded bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
               <Trophy className="w-3 h-3 text-idm-gold-warm" />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-idm-gold-warm">🏆 Grand Final</h3>
-            <span className="text-[9px] text-idm-gold-warm/60 ml-auto">UB Winner vs LB Winner</span>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-idm-gold-warm">🏆 Grand Final</h3>
+            <span className="text-[10px] text-idm-gold-warm/60 ml-auto">UB Winner vs LB Winner</span>
           </div>
           <div className="p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1425,8 +1425,8 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
       {!hasUpper && !hasLower && !hasGF && (
         <div className="p-8 text-center">
           <Swords className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-          <h3 className="text-xs font-bold text-muted-foreground mb-0.5">Belum Ada Bracket</h3>
-          <p className="text-[10px] text-muted-foreground/60">Bracket akan muncul setelah pertandingan dimulai</p>
+          <h3 className="text-sm font-bold text-muted-foreground mb-0.5">Belum Ada Bracket</h3>
+          <p className="text-xs text-muted-foreground/60">Bracket akan muncul setelah pertandingan dimulai</p>
         </div>
       )}
     </div>
@@ -1845,7 +1845,7 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
               <div key={round.round} className="flex flex-col" style={{ minWidth: '200px' }}>
                 {/* Round label — MPL pill style */}
                 <div className="text-center mb-4">
-                  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-[10px] font-bold uppercase tracking-wider`}>
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider`}>
                     {roundIdx === roundsData.length - 1 && <span>🏆</span>}
                     {round.label}
                   </div>

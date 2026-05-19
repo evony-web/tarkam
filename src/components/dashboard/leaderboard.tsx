@@ -160,14 +160,14 @@ export function Leaderboard({ rankings, division, title }: LeaderboardProps) {
                   <Trophy className={`h-5 w-5 ${headerAccent.iconColor}`} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-foreground tracking-tight">
+                  <h3 className="font-bold text-lg text-foreground tracking-tight">
                     {title || 'Leaderboard'}
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[11px] text-muted-foreground/60">
+                    <span className="text-xs text-muted-foreground/60">
                       {division === 'MALE' ? '♂ Cowo' : division === 'FEMALE' ? '♀ Cewe' : '🌐 Semua'}
                     </span>
-                    <Badge variant="outline" className={`text-[9px] h-4 px-1.5 ${divBadgeClasses}`}>
+                    <Badge variant="outline" className={`text-[10px] h-4 px-1.5 ${divBadgeClasses}`}>
                       {division}
                     </Badge>
                   </div>
@@ -192,7 +192,7 @@ export function Leaderboard({ rankings, division, title }: LeaderboardProps) {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border/50 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/40 bg-muted/[0.02]">
+              <tr className="border-b border-border/50 text-xs uppercase tracking-[0.15em] text-muted-foreground/40 bg-muted/[0.02]">
                 <th className="text-left p-3 w-14">Rank</th>
                 <th className="text-left p-3">Pemain</th>
                 <th className="text-left p-3 hidden sm:table-cell">Klub</th>
@@ -292,7 +292,7 @@ export function Leaderboard({ rankings, division, title }: LeaderboardProps) {
                               {r.player.name}
                             </span>
                             {r.player.streak > 0 && (
-                              <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] text-emerald-400/80">
+                              <span className="ml-1.5 inline-flex items-center gap-0.5 text-xs text-emerald-400/80">
                                 <Flame className="h-2.5 w-2.5" />{r.player.streak}
                               </span>
                             )}
@@ -307,7 +307,7 @@ export function Leaderboard({ rankings, division, title }: LeaderboardProps) {
 
                       {/* Tier badge */}
                       <td className="p-3 text-center">
-                        <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierColor(r.player.tier)}`}>
+                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border ${tierColor(r.player.tier)}`}>
                           {r.player.tier}
                         </span>
                       </td>

@@ -19,7 +19,7 @@ export function IDTFooter() {
                 <Trophy className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-white">IDOL META</h3>
+                <h3 className="font-bold text-lg text-white">IDOL META</h3>
                 <p className="text-xs text-amber-400">FAN MADE EDITION</p>
               </div>
             </div>
@@ -56,7 +56,7 @@ export function IDTFooter() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-bold text-white mb-4">Quick Links</h4>
+            <h4 className="font-bold text-sm text-white mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {['Home', 'Tournaments', 'Leaderboard', 'Gallery', 'About Us'].map((link) => (
                 <li key={link}>
@@ -73,7 +73,7 @@ export function IDTFooter() {
 
           {/* Divisions */}
           <div>
-            <h4 className="font-bold text-white mb-4">Divisions</h4>
+            <h4 className="font-bold text-sm text-white mb-4">Divisions</h4>
             <ul className="space-y-2">
               <li>
                 <a
@@ -104,7 +104,7 @@ export function IDTFooter() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-bold text-white mb-4">Contact Us</h4>
+            <h4 className="font-bold text-sm text-white mb-4">Contact Us</h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-gray-400 text-sm">
                 <Mail className="w-4 h-4 text-amber-400" />

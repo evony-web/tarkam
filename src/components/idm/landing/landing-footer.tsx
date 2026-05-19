@@ -181,24 +181,24 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
 
         {/* ═══ Copyright Bar ═══ */}
         <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-4">
-          <p className="text-muted-foreground/50 text-[11px]">
+          <p className="text-muted-foreground/50 text-xs">
             {footerText}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
             {/* Powered by — subtle branding */}
-            <span className="text-muted-foreground/30 text-[10px] tracking-wider uppercase flex items-center gap-1.5">
+            <span className="text-muted-foreground/30 text-xs tracking-wider uppercase flex items-center gap-1.5">
               Powered by
               <span
-                className="font-semibold tracking-wide normal-case text-[11px] text-idm-gold-warm/60"
+                className="font-semibold tracking-wide normal-case text-xs text-idm-gold-warm/60"
               >
                 Tarkam IDM
               </span>
             </span>
 
-            <span className="hidden sm:inline text-muted-foreground/10 text-[11px]">|</span>
+            <span className="hidden sm:inline text-muted-foreground/10 text-xs">|</span>
 
-            <span className="text-muted-foreground/40 text-[11px] flex items-center gap-1.5">
+            <span className="text-muted-foreground/40 text-xs flex items-center gap-1.5">
               Made with <span className="text-red-500/70 text-sm">❤️</span> by <span className="text-muted-foreground/60 font-medium">KotabaruPride</span>
             </span>
           </div>

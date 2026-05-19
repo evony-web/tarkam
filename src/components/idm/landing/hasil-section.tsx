@@ -103,7 +103,7 @@ function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: Div
       <div className="flex-1 min-w-0">
         {/* Team 1 */}
         <div className={`flex items-center px-3 py-1.5 border-b ${divStyle.borderSubtle} ${winner1 ? '' : 'opacity-60'}`}>
-          <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner1 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
             {winner1 && <span className="mr-1">▸</span>}
             {m.name1}
           </span>
@@ -113,7 +113,7 @@ function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: Div
         </div>
         {/* Team 2 */}
         <div className={`flex items-center px-3 py-1.5 ${winner2 ? '' : 'opacity-60'}`}>
-          <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+          <span className={`text-sm font-semibold truncate flex-1 ${winner2 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
             {winner2 && <span className="mr-1">▸</span>}
             {m.name2}
           </span>
@@ -124,7 +124,7 @@ function MatchRowLanding({ m, divStyle }: { m: UnifiedMatchResult; divStyle: Div
       </div>
       {/* Status badge */}
       <div className="w-12 shrink-0 flex items-center justify-center border-l border-idm-gold-warm/10">
-        <Badge className="bg-green-500/10 text-green-500 text-[8px] border-0">FT</Badge>
+        <Badge className="bg-green-500/10 text-green-500 text-[10px] border-0">FT</Badge>
       </div>
     </div>
   );
@@ -149,25 +149,25 @@ function GrandFinalMatch({ m, divStyle }: { m: UnifiedMatchResult; divStyle: Div
         {/* Team 1 */}
         <div className={`flex items-center px-3 py-2 border-b border-idm-gold-warm/10 ${winner1 ? 'bg-idm-gold-warm/10' : 'opacity-60'}`}>
           {winner1 && <span className="text-sm mr-1.5">👑</span>}
-          <span className={`text-xs font-bold truncate flex-1 ${winner1 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+          <span className={`text-sm font-bold truncate flex-1 ${winner1 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
             {m.name1}
           </span>
-          {winner1 && <span className="text-[8px] font-black text-idm-gold-warm/70 uppercase tracking-wider mr-2">Champion</span>}
+          {winner1 && <span className="text-[10px] font-black text-idm-gold-warm/70 uppercase tracking-wider mr-2">Champion</span>}
           <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? 'text-idm-gold-warm' : 'text-foreground'}`}>{m.score1}</span>
         </div>
         {/* Team 2 */}
         <div className={`flex items-center px-3 py-2 ${winner2 ? 'bg-idm-gold-warm/10' : 'opacity-60'}`}>
           {winner2 && <span className="text-sm mr-1.5">👑</span>}
-          <span className={`text-xs font-bold truncate flex-1 ${winner2 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
+          <span className={`text-sm font-bold truncate flex-1 ${winner2 ? 'text-idm-gold-warm' : 'text-muted-foreground'}`}>
             {m.name2}
           </span>
-          {winner2 && <span className="text-[8px] font-black text-idm-gold-warm/70 uppercase tracking-wider mr-2">Champion</span>}
+          {winner2 && <span className="text-[10px] font-black text-idm-gold-warm/70 uppercase tracking-wider mr-2">Champion</span>}
           <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? 'text-idm-gold-warm' : 'text-foreground'}`}>{m.score2}</span>
         </div>
       </div>
       {/* Status */}
       <div className="w-14 shrink-0 flex flex-col items-center justify-center border-l border-idm-gold-warm/15">
-        <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[8px] border border-idm-gold-warm/25 font-black">FT</Badge>
+        <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm text-[10px] border border-idm-gold-warm/25 font-black">FT</Badge>
       </div>
     </div>
   );
@@ -205,21 +205,21 @@ function DivisionHasilCard({
           <div className={`w-5 h-5 rounded ${ds.bg} flex items-center justify-center shrink-0`}>
             <Trophy className={`w-3 h-3 ${ds.text}`} />
           </div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider">{ds.emoji} Hasil Match</h3>
-          <Badge className={`${ds.bg} ${ds.text} ml-auto text-[9px] border-0`}>0 Match</Badge>
+          <h3 className="text-sm font-bold uppercase tracking-wider">{ds.emoji} Hasil Match</h3>
+          <Badge className={`${ds.bg} ${ds.text} ml-auto text-[10px] border-0`}>0 Match</Badge>
         </div>
         <div className="p-4 space-y-3">
           {['⬆️ Semi Final', '🏆 Grand Final'].map((label, idx) => (
             <div key={idx} className="opacity-30">
               <div className="flex items-center gap-3 mb-2">
-                <div className={`px-2 py-0.5 rounded-md ${ds.bg} ${ds.text} text-[9px] font-bold uppercase tracking-wider`}>
+                <div className={`px-2 py-0.5 rounded-md ${ds.bg} ${ds.text} text-[10px] font-bold uppercase tracking-wider`}>
                   {label}
                 </div>
                 <div className={`flex-1 h-px ${ds.borderSubtle}`} />
-                <span className="text-[8px] text-muted-foreground">—</span>
+                <span className="text-[10px] text-muted-foreground">—</span>
               </div>
               <div className={`rounded-lg ${ds.bgSubtle} ${ds.borderSubtle} border h-[52px] flex items-center justify-center`}>
-                <span className="text-[10px] text-muted-foreground/40 italic">Belum ada hasil</span>
+                <span className="text-xs text-muted-foreground/40 italic">Belum ada hasil</span>
               </div>
             </div>
           ))}
@@ -237,8 +237,8 @@ function DivisionHasilCard({
         <div className={`w-5 h-5 rounded ${ds.bg} flex items-center justify-center shrink-0`}>
           <Trophy className={`w-3 h-3 ${ds.text}`} />
         </div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider">{ds.emoji} Hasil Match</h3>
-        <Badge className={`${ds.bg} ${ds.text} ml-auto text-[9px] border-0`}>{totalMatches} Match</Badge>
+        <h3 className="text-sm font-bold uppercase tracking-wider">{ds.emoji} Hasil Match</h3>
+        <Badge className={`${ds.bg} ${ds.text} ml-auto text-[10px] border-0`}>{totalMatches} Match</Badge>
       </div>
       {/* Match groups */}
       <div className="p-4 space-y-4">
@@ -252,11 +252,11 @@ function DivisionHasilCard({
             <div key={key}>
               {/* Round header */}
               <div className="flex items-center gap-3 mb-2">
-                <div className={`px-2 py-0.5 rounded-md ${ds.bg} ${ds.text} text-[9px] font-bold uppercase tracking-wider whitespace-nowrap`}>
+                <div className={`px-2 py-0.5 rounded-md ${ds.bg} ${ds.text} text-[10px] font-bold uppercase tracking-wider whitespace-nowrap`}>
                   {roundLabel}
                 </div>
                 <div className={`flex-1 h-px ${ds.borderSubtle}`} />
-                <span className="text-[8px] text-muted-foreground">{matches.length} match</span>
+                <span className="text-[10px] text-muted-foreground">{matches.length} match</span>
               </div>
               {/* Match rows */}
               <div className="space-y-1.5">
@@ -379,7 +379,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
             <div className="w-5 h-5 rounded bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
               <Trophy className="w-3 h-3 text-idm-gold-warm" />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider" style={{
+            <h3 className="text-sm font-bold uppercase tracking-wider" style={{
               background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -396,7 +396,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
               <button
                 key={div.key}
                 onClick={() => setHasilDivision(div.key)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                   hasilDivision === div.key
                     ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
                     : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'

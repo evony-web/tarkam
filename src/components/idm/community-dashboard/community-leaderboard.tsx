@@ -62,7 +62,7 @@ type DivisionFilter = 'all' | 'male' | 'female';
 /* ─── Rank badge component ─── */
 function RankBadge({ rank }: { rank: number }) {
   return (
-    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-sm sm:text-base font-bold shrink-0 ${
       rank === 1
         ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
         : rank === 2
@@ -176,8 +176,8 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Award className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
-            <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TOP {displayedPlayers?.length || 10}</Badge>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
+            <Badge className={`${dt.casinoBadge} ml-auto text-[10px]`}>TOP {displayedPlayers?.length || 10}</Badge>
           </div>
 
           {/* Card list */}
@@ -222,16 +222,16 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <SkinName skin={primarySkin}>
-                          <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                          <p className="text-sm sm:text-base font-medium truncate">{p.gamertag}</p>
                         </SkinName>
                         {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <Badge className={`${playerDt.badgeBg} text-[8px] border`}>
+                        <Badge className={`${playerDt.badgeBg} text-[10px] border`}>
                           {playerDivision === 'male' ? '🕺 Cowo' : '💃 Cewe'}
                         </Badge>
                         {clubToString(p.club as any) && (
-                          <span className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</span>
+                          <span className="text-xs text-muted-foreground truncate">{clubToString(p.club as any)}</span>
                         )}
                       </div>
                     </div>
@@ -241,18 +241,18 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                       {/* Points — Always visible */}
                       <div className="text-center min-w-[36px]">
                         <p className={`text-sm sm:text-base font-bold ${isTop ? playerDt.neonText : ''}`}>{p.points}</p>
-                        <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                       </div>
 
                       {/* W/L — Visible on sm+ */}
                       <div className="hidden sm:flex items-center gap-2">
                         <div className="text-center min-w-[20px]">
                           <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
-                          <p className="text-[7px] text-muted-foreground">W</p>
+                          <p className="text-[10px] text-muted-foreground">W</p>
                         </div>
                         <div className="text-center min-w-[20px]">
                           <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
-                          <p className="text-[7px] text-muted-foreground">L</p>
+                          <p className="text-[10px] text-muted-foreground">L</p>
                         </div>
                       </div>
 
@@ -263,7 +263,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                         ) : (
                           <span className="text-muted-foreground text-xs">—</span>
                         )}
-                        <p className="text-[7px] text-muted-foreground">streak</p>
+                        <p className="text-[10px] text-muted-foreground">streak</p>
                       </div>
 
                       {/* MVP — Visible on sm+ */}
@@ -273,7 +273,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                         ) : (
                           <p className="text-muted-foreground text-xs">0</p>
                         )}
-                        <p className="text-[7px] text-muted-foreground">mvp</p>
+                        <p className="text-[10px] text-muted-foreground">mvp</p>
                       </div>
 
                       {/* Chevron */}
@@ -291,14 +291,14 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
               {onViewAll ? (
                 <button
                   onClick={onViewAll}
-                  className="flex items-center gap-1.5 text-[10px] font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
                 >
                   <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({mergedPlayers.length} Pemain)
                 </button>
               ) : (
                 <button
                   onClick={() => setShowAllPlayers(!showAllPlayers)}
-                  className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                  className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                 >
                   {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({mergedPlayers.length})</>}
                 </button>
@@ -316,8 +316,8 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
             <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
               <Shield className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
-            <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TARKAM</Badge>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
+            <Badge className={`${dt.casinoBadge} ml-auto text-[10px]`}>TARKAM</Badge>
           </div>
 
           {isClubLoading ? (
@@ -367,17 +367,17 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                           {/* Season champion badge */}
                           {seasonChampionClubIds.has(club.id) && (
                             <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-border/20">
-                              <span className="text-[6px] font-black text-mid leading-none">S{seasonChampionClubIds.get(club.id)}</span>
+                              <span className="text-[9px] font-black text-mid leading-none">S{seasonChampionClubIds.get(club.id)}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Club info */}
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs sm:text-sm font-semibold truncate">{club.name}</p>
+                          <p className="text-sm sm:text-base font-semibold truncate">{club.name}</p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[9px] text-muted-foreground">{club.memberCount} anggota</span>
-                            <span className="text-[8px] text-muted-foreground/60">({memberLabel})</span>
+                            <span className="text-xs text-muted-foreground">{club.memberCount} anggota</span>
+                            <span className="text-[10px] text-muted-foreground/60">({memberLabel})</span>
                           </div>
                         </div>
 
@@ -386,19 +386,19 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                           {/* Male points — Visible on sm+ */}
                           <div className="hidden sm:block text-center min-w-[28px]">
                             <p className="text-xs font-bold text-idm-male">{club.malePoints}</p>
-                            <p className="text-[7px] text-muted-foreground">pts M</p>
+                            <p className="text-[10px] text-muted-foreground">pts M</p>
                           </div>
 
                           {/* Female points — Visible on sm+ */}
                           <div className="hidden sm:block text-center min-w-[28px]">
                             <p className="text-xs font-bold text-idm-female">{club.femalePoints}</p>
-                            <p className="text-[7px] text-muted-foreground">pts F</p>
+                            <p className="text-[10px] text-muted-foreground">pts F</p>
                           </div>
 
                           {/* Total points */}
                           <div className="text-center min-w-[36px]">
                             <p className={`text-sm sm:text-base font-bold ${idx === 0 ? dt.neonGradient : isTop ? dt.neonText : ''}`}>{club.points}</p>
-                            <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                            <p className="text-[10px] text-muted-foreground uppercase">pts</p>
                           </div>
 
                           {/* Chevron */}
@@ -415,14 +415,14 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                   {onViewAll ? (
                     <button
                       onClick={onViewAll}
-                      className="flex items-center gap-1.5 text-[10px] font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
                     >
                       <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({clubs.length} Klub)
                     </button>
                   ) : (
                     <button
                       onClick={() => setShowAllClubs(!showAllClubs)}
-                      className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                      className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                     >
                       {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({clubs.length})</>}
                     </button>
@@ -434,7 +434,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
             <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
               <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
               <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
-              <p className="text-[10px] text-muted-foreground/60 mt-1">Poin klub dihitung dari total poin semua anggota</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Poin klub dihitung dari total poin semua anggota</p>
             </div>
           )}
         </>
@@ -476,7 +476,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
         <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center`}>
           <Trophy className={`w-3 h-3 ${ct.neonText}`} />
         </div>
-        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{
+        <h3 className="text-sm font-bold uppercase tracking-wider" style={{
           background: 'linear-gradient(135deg, #FAF0DC 0%, #EFF923 30%, #F9CB25 50%, #F9CB25 70%, #EFF923 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -497,16 +497,16 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
         <div className={`flex items-center gap-1 p-1 rounded-lg ${ct.bgSubtle} ${ct.border}`}>
           <button
             onClick={() => onLeaderboardSortChange('players')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-3 h-3" /> Pemain
-            <span className={`text-[9px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
+            <span className={`text-[10px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
               {playerCount}
             </span>
           </button>
           <button
             onClick={() => onLeaderboardSortChange('clubs')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Shield className="w-3 h-3" /> Klub
             <span className={`text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
@@ -525,7 +525,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
             <button
               key={f.key}
               onClick={() => onDivisionFilterChange(f.key)}
-              className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
                 divisionFilter === f.key
                   ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
                   : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'

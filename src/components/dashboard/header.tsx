@@ -118,10 +118,10 @@ export function Header() {
             <Trophy className={`h-4 w-4 ${colors.logoIcon}`} />
           </div>
           <div className="flex flex-col">
-            <span className="text-[15px] font-extrabold tracking-tight text-foreground">
+            <span className="text-base font-extrabold tracking-tight text-foreground">
               IDOL META
             </span>
-            <span className={`text-[9px] uppercase tracking-[0.18em] -mt-0.5 font-medium ${colors.subtitle}`}>
+            <span className={`text-[10px] uppercase tracking-[0.18em] -mt-0.5 font-medium ${colors.subtitle}`}>
               Fan Made Edition
             </span>
           </div>
@@ -271,8 +271,8 @@ function MobileNav() {
               <Flame className={`h-4 w-4 ${activeTab === 'MALE' ? 'text-cyan-400' : activeTab === 'FEMALE' ? 'text-pink-300' : 'text-emerald-400'}`} />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-[15px] text-foreground">IDOL META</span>
-              <span className={`text-[9px] uppercase tracking-[0.18em] font-medium ${activeTab === 'MALE' ? 'text-cyan-400/50' : activeTab === 'FEMALE' ? 'text-pink-300/50' : 'text-emerald-400/50'}`}>
+              <span className="font-extrabold text-base text-foreground">IDOL META</span>
+              <span className={`text-[10px] uppercase tracking-[0.18em] font-medium ${activeTab === 'MALE' ? 'text-cyan-400/50' : activeTab === 'FEMALE' ? 'text-pink-300/50' : 'text-emerald-400/50'}`}>
                 Fan Made Edition
               </span>
             </div>
@@ -284,7 +284,7 @@ function MobileNav() {
 
         {/* Navigation — iOS pill style */}
         <nav className="flex flex-col gap-1 px-3 pt-4 flex-1">
-          <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40 mb-2 px-2 font-semibold">Divisi</p>
+          <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/40 mb-2 px-2 font-semibold">Divisi</p>
           {tabs.map((tab, index) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.key
@@ -301,7 +301,7 @@ function MobileNav() {
                 }}
                 whileHover={{ x: 3 }}
                 whileTap={{ scale: 0.97 }}
-                className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-[13px] font-medium transition-all duration-300 border ${
+                className={`relative flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 border ${
                   isActive
                     ? `${tab.activeBg} ${tab.activeColor} ${tab.activeBorder} shadow-lg ${tab.activeShadow}`
                     : 'border-transparent text-muted-foreground/50 hover:text-foreground/60 hover:bg-muted/30'
@@ -325,8 +325,8 @@ function MobileNav() {
 
           <div className="border-t border-border/50 my-4" />
 
-          <p className="text-[9px] uppercase tracking-[0.15em] text-muted-foreground/40 mb-2 px-2 font-semibold">Info</p>
-          <div className="space-y-2.5 px-2 text-[11px] text-muted-foreground/50">
+          <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/40 mb-2 px-2 font-semibold">Info</p>
+          <div className="space-y-2.5 px-2 text-xs text-muted-foreground/50">
             {infoItems.map((item) => {
               const Icon = item.icon
               return (
@@ -341,7 +341,7 @@ function MobileNav() {
 
         {/* Bottom badge */}
         <div className="px-5 py-4 border-t border-border/50">
-          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${badgeClasses} text-[10px] font-bold uppercase tracking-wider`}>
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${badgeClasses} text-xs font-bold uppercase tracking-wider`}>
             <Zap className="h-3 w-3" />
             IDM League
           </div>

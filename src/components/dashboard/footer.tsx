@@ -82,8 +82,8 @@ export function Footer() {
                 <Trophy className={`h-3 w-3 ${accentColors.logoIcon}`} />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-foreground/70 tracking-tight">IDOL META</span>
-                <span className="text-[9px] text-muted-foreground/40 uppercase tracking-[0.15em]">Fan Made Edition</span>
+                <span className="text-sm font-bold text-foreground/70 tracking-tight">IDOL META</span>
+                <span className="text-[10px] text-muted-foreground/40 uppercase tracking-[0.15em]">Fan Made Edition</span>
               </div>
             </motion.div>
 
@@ -96,21 +96,21 @@ export function Footer() {
             >
               <a
                 href="#"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-[11px] font-medium transition-all duration-300`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-xs font-medium transition-all duration-300`}
               >
                 <MessageCircle className="h-3 w-3" />
                 <span className="hidden sm:inline">WhatsApp</span>
               </a>
               <a
                 href="#"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-[11px] font-medium transition-all duration-300`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-xs font-medium transition-all duration-300`}
               >
                 <Gamepad2 className="h-3 w-3" />
                 <span className="hidden sm:inline">Discord</span>
               </a>
               <a
                 href="#"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-[11px] font-medium transition-all duration-300`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${accentColors.pillBg} border ${accentColors.pillBorder} ${accentColors.pillText} ${accentColors.pillHover} text-xs font-medium transition-all duration-300`}
               >
                 <ExternalLink className="h-3 w-3" />
                 <span className="hidden sm:inline">Community</span>
@@ -123,7 +123,7 @@ export function Footer() {
 
           {/* Bottom row */}
           <motion.div
-            className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-muted-foreground/40"
+            className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground/40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
@@ -136,7 +136,7 @@ export function Footer() {
             <div className="flex items-center gap-3">
               <span>&copy; {new Date().getFullYear()} IDM League</span>
               <span className="text-muted-foreground/15">|</span>
-              <span className="text-muted-foreground/20 font-mono text-[10px]">v1.0</span>
+              <span className="text-muted-foreground/20 font-mono text-xs">v1.0</span>
             </div>
           </motion.div>
         </div>
