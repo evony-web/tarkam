@@ -114,8 +114,8 @@ function lastResultIdx(weeks: WeekResult[]): number {
   return -1;
 }
 
-/* ─── Max recent weeks shown before "show more" ─── */
-const RECENT_WEEKS_LIMIT = 4;
+/* ─── Max weeks shown on beranda ─── */
+const BERANDA_WEEKS_LIMIT = 3;
 
 /* ─── Match Row — Tournament (2-line) ─── */
 function TournamentMatchRow({ m, divStyle }: { m: WeekResult['tournamentMatches'][0]; divStyle: DivisionStyle }) {
@@ -382,10 +382,8 @@ function filterHighlightMatches(matches: WeekResult['tournamentMatches']) {
   );
 }
 
-/* ─── Week List with "Show older weeks" (beranda: highlight rounds only) ─── */
+/* ─── Week List (beranda: last 3 weeks, highlight rounds only) ─── */
 function WeekList({ weeks, divStyle }: { weeks: WeekResult[]; divStyle: DivisionStyle }) {
-  const [showAll, setShowAll] = useState(false);
-
   // Reverse so newest week is at the top + filter to highlight matches only
   const reversedWeeks = useMemo(() =>
     [...weeks].reverse().map(w => ({
@@ -398,24 +396,14 @@ function WeekList({ weeks, divStyle }: { weeks: WeekResult[]; divStyle: Division
   );
   const expandIdx = lastResultIdx(reversedWeeks);
 
-  const visibleWeeks = showAll ? reversedWeeks : reversedWeeks.slice(0, RECENT_WEEKS_LIMIT);
-  const hiddenCount = reversedWeeks.length - visibleWeeks.length;
+  // Only show last 3 weeks on beranda — full history in Bracket > Hasil
+  const visibleWeeks = reversedWeeks.slice(0, BERANDA_WEEKS_LIMIT);
 
   return (
     <div className="space-y-3">
       {visibleWeeks.map((w, idx) => (
         <WeekCard key={w.weekNumber} week={w} divStyle={divStyle} defaultExpanded={idx === expandIdx} />
       ))}
-      {!showAll && hiddenCount > 0 && (
-        <button
-          onClick={() => setShowAll(true)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-border/40 bg-card/30 text-muted-foreground text-xs font-semibold transition-all hover:border-idm-gold-warm/25 hover:bg-idm-gold-warm/5 hover:text-idm-gold-warm cursor-pointer active:scale-[0.98]"
-        >
-          <Gamepad2 className="w-3.5 h-3.5" />
-          <span>Tampilkan {hiddenCount} minggu sebelumnya</span>
-          <ChevronDown className="w-3.5 h-3.5" />
-        </button>
-      )}
     </div>
   );
 }
