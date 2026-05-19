@@ -16,7 +16,7 @@ import {
   MatchRowSkeleton,
   StatsRowSkeleton,
 } from './ui/skeleton';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { getDivisionTheme, type DivisionTheme } from '@/hooks/use-division-theme';
 import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { formatCurrency, parseWitaDate, formatWIBWeekdayShort } from '@/lib/utils';
@@ -80,8 +80,20 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
   const ct = getDivisionTheme(divisionProp);
   const dt = ct; // alias for readability in division-specific contexts
   const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
-  const { playerAuth } = useAppStore();
+  const { playerAuth, initialBracketTab, setInitialBracketTab } = useAppStore();
   const loggedInGamertag = playerAuth.isAuthenticated ? playerAuth.account?.player.gamertag : null;
+
+  // Bracket sub-tab state — reads initialBracketTab from store (set by landing "Lihat Semua Hasil" button)
+  const [activeBracketTab, setActiveBracketTab] = useState(() => initialBracketTab || 'bracket');
+
+  // Consume initialBracketTab once
+  useEffect(() => {
+    if (initialBracketTab) {
+      setActiveBracketTab(initialBracketTab);
+      const timer = setTimeout(() => setInitialBracketTab(null), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [initialBracketTab, setInitialBracketTab]);
 
   const { data, isLoading } = useQuery<StatsData>({
     queryKey: ['stats', divisionProp],
@@ -337,7 +349,7 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
       )}
 
       {/* ═══════ TABS: Bracket / Results ═══════ */}
-      <Tabs defaultValue="bracket" className="w-full">
+      <Tabs value={activeBracketTab} onValueChange={setActiveBracketTab} className="w-full">
         <div className={`border-b ${ct.border}`}>
           <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
             {[

@@ -73,6 +73,10 @@ interface AppState {
   initialDashboardTab: string | null;
   setInitialDashboardTab: (tab: string | null) => void;
 
+  // Initial bracket tab — set before navigating to bracket to auto-switch sub-tab ("bracket" or "results")
+  initialBracketTab: string | null;
+  setInitialBracketTab: (tab: string | null) => void;
+
   // Mobile sidebar
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -118,6 +122,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   initialDashboardTab: null,
   setInitialDashboardTab: (tab) => set({ initialDashboardTab: tab }),
+
+  initialBracketTab: null,
+  setInitialBracketTab: (tab) => set({ initialBracketTab: tab }),
 
   sidebarOpen: false,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),

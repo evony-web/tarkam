@@ -336,6 +336,7 @@ interface HasilSectionProps {
 
 export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSectionProps) {
   const setCurrentView = useAppStore(s => s.setCurrentView);
+  const setInitialBracketTab = useAppStore(s => s.setInitialBracketTab);
   const [hasilDivision, setHasilDivision] = useState<DivisionFilter>('all');
 
   // Build unified match results per division
@@ -464,10 +465,13 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: HasilSecti
               />
             )}
 
-            {/* CTA — Lihat Semua Hasil → Bracket view */}
+            {/* CTA — Lihat Semua Hasil → Bracket > Hasil tab */}
             <div className="flex justify-center mt-6">
               <button
-                onClick={() => setCurrentView('bracket')}
+                onClick={() => {
+                  setInitialBracketTab('results');
+                  setCurrentView('bracket');
+                }}
                 className="group flex items-center gap-2 px-6 py-3 rounded-2xl border border-idm-gold-warm/20 bg-idm-gold-warm/5 text-idm-gold-warm text-sm font-bold transition-all duration-300 hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/35 hover:shadow-[0_0_20px_rgba(239,249,35,0.1)] cursor-pointer active:scale-[0.98]"
               >
                 <Swords className="w-4 h-4" />
