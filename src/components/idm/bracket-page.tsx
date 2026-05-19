@@ -57,8 +57,13 @@ export function BracketPage() {
       {/* ═══ Header: Title + Primary Tabs in one row ═══ */}
       <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          {/* Row 1: Title + Hasil/Bracket tabs */}
-          <div className="flex items-center justify-between gap-3 py-3 sm:py-4">
+          {/* Row 1: Division filter chips — full width, left-aligned */}
+          <div className="pt-3 sm:pt-4">
+            <DivisionChips division={division} setDivision={setDivision} />
+          </div>
+
+          {/* Row 2: Title + Hasil/Bracket tabs */}
+          <div className="flex items-center justify-between gap-3 py-2.5">
             {/* Title */}
             <div className="flex items-center gap-2.5 shrink-0">
               <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
@@ -88,11 +93,6 @@ export function BracketPage() {
                 ))}
               </TabsList>
             </Tabs>
-          </div>
-
-          {/* Row 2: Division filter chips — full width, left-aligned */}
-          <div className="pb-2.5">
-            <DivisionChips division={division} setDivision={setDivision} />
           </div>
         </div>
       </div>
