@@ -524,19 +524,19 @@ export function AdminPanel() {
   const donationCount = donations?.donations?.filter((d: { status: string }) => d.status === 'pending').length || 0;
 
   return (
-    <div className="space-y-3 w-full admin-panel-glass rounded-2xl p-4 sm:p-6 border border-border/50">
+    <div className="space-y-3 w-full admin-panel-glass rounded-lg p-4 sm:p-6 border border-border">
       {/* Header + Season Info */}
       <div className="flex flex-col gap-2 mb-1">
         <div className="flex items-center gap-2">
           <Shield className={`w-5 h-5 ${dt.neonText}`} />
           <h2 className="text-lg font-bold text-gradient-fury">Panel Admin</h2>
-          <Badge className="bg-red-500/10 text-red-500 text-[10px] border-0">ADMIN</Badge>
+          <Badge className="bg-red-500/10 text-red-500 text-sm border-0">ADMIN</Badge>
           {/* Division Switcher — always visible */}
           <div className="flex items-center bg-muted/60 rounded-lg p-0.5 gap-0.5 ml-auto">
             <button
               type="button"
               onClick={() => setDivision('male')}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-sm font-bold transition-colors cursor-pointer ${
                 storeDivision === 'male'
                   ? 'bg-cyan-500/20 text-cyan-400 shadow-sm'
                   : 'text-muted-foreground hover:text-foreground/70'
@@ -547,7 +547,7 @@ export function AdminPanel() {
             <button
               type="button"
               onClick={() => setDivision('female')}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-sm font-bold transition-colors cursor-pointer ${
                 storeDivision === 'female'
                   ? 'bg-purple-500/20 text-purple-400 shadow-sm'
                   : 'text-muted-foreground hover:text-foreground/70'
@@ -561,14 +561,14 @@ export function AdminPanel() {
         {stats?.season && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
             <Calendar className="w-3.5 h-3.5 text-idm-gold-warm shrink-0" />
-            <span className="text-[11px] font-medium text-idm-gold-warm truncate">{formatTarkamSeasonName(stats.season.name, stats.season.number)}</span>
+            <span className="text-xs font-medium text-idm-gold-warm truncate">{formatTarkamSeasonName(stats.season.name, stats.season.number)}</span>
             <Badge
               className={
                 stats.season.status === 'active'
-                  ? 'text-[8px] border-0 px-1.5 py-0 bg-green-500/15 text-green-400'
+                  ? 'text-xs border-0 px-1.5 py-0 bg-green-500/15 text-green-400'
                   : stats.season.status === 'completed'
-                    ? 'text-[8px] border-0 px-1.5 py-0 bg-muted text-muted-foreground'
-                    : 'text-[8px] border-0 px-1.5 py-0 bg-idm-gold-warm/15 text-idm-gold-warm'
+                    ? 'text-xs border-0 px-1.5 py-0 bg-muted text-muted-foreground'
+                    : 'text-xs border-0 px-1.5 py-0 bg-idm-gold-warm/15 text-idm-gold-warm'
               }
             >
               {stats.season.status === 'active' ? '● Aktif' : stats.season.status === 'completed' ? 'Selesai' : stats.season.status}
@@ -596,16 +596,16 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`relative flex flex-col items-center gap-1 py-2 px-1 rounded-2xl text-[10px] font-medium transition-all duration-200 min-h-[44px] justify-center admin-nav-btn ${
+                className={`relative flex flex-col items-center gap-1 py-2 px-1 rounded-lg text-sm font-medium transition-colors min-h-[44px] justify-center admin-nav-btn ${
                   mobileCategory === cat.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm shadow-idm-gold-warm/10'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm'
                     : 'bg-muted/20 text-muted-foreground border border-transparent hover:bg-muted/40 hover:text-foreground/80'
                 }`}
               >
-                <cat.icon className={`w-4 h-4 transition-transform duration-200 ${mobileCategory === cat.key ? 'scale-110' : ''}`} />
+                <cat.icon className="w-4 h-4" />
                 <span>{cat.label}</span>
                 {mobileCategory === cat.key && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-idm-gold-warm admin-nav-indicator" />
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-idm-gold-warm" />
                 )}
               </button>
             ))}
@@ -633,19 +633,19 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-all duration-200 min-h-[36px] ${
+                  className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors min-h-[36px] ${
                     activeTab === tabValue
-                      ? 'bg-background/95 shadow-sm text-foreground border border-border/50'
+                      ? 'bg-background/95 shadow-sm text-foreground border border-border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
                   <CfgIcon className="w-3 h-3" />
                   {cfg.label}
                   {cfg.count !== undefined && cfg.count > 0 && (
-                    <Badge className="text-[8px] border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
+                    <Badge className="text-xs border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
                   )}
                   {tabValue === 'pemain' && pendingCount > 0 && (
-                    <Badge className="text-[8px] border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{pendingCount}</Badge>
+                    <Badge className="text-xs border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{pendingCount}</Badge>
                   )}
                 </button>
               );
@@ -671,16 +671,16 @@ export function AdminPanel() {
                   const firstTab = categoryTabMap[cat.key]?.[0];
                   if (firstTab) setActiveTab(firstTab);
                 }}
-                className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl text-xs font-medium transition-all duration-200 admin-nav-btn ${
+                className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-medium transition-colors admin-nav-btn ${
                   mobileCategory === cat.key
-                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm shadow-idm-gold-warm/10'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm'
                     : 'bg-muted/20 text-muted-foreground border border-transparent hover:bg-muted/40 hover:text-foreground/80'
                 }`}
               >
-                <cat.icon className={`w-4 h-4 transition-transform duration-200 ${mobileCategory === cat.key ? 'scale-110' : ''}`} />
+                <cat.icon className="w-4 h-4" />
                 <span>{cat.label}</span>
                 {mobileCategory === cat.key && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-idm-gold-warm admin-nav-indicator" />
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-idm-gold-warm" />
                 )}
               </button>
             ))}
@@ -708,19 +708,19 @@ export function AdminPanel() {
                 <button
                   key={tabValue}
                   onClick={() => setActiveTab(tabValue)}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                     activeTab === tabValue
-                      ? 'bg-background/95 shadow-sm text-foreground border border-border/50'
+                      ? 'bg-background/95 shadow-sm text-foreground border border-border'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
                   }`}
                 >
                   <CfgIcon className="w-3 h-3" />
                   {cfg.label}
                   {cfg.count !== undefined && cfg.count > 0 && (
-                    <Badge className="text-[8px] border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
+                    <Badge className="text-xs border-0 bg-idm-gold-warm/15 text-idm-gold-warm px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center">{cfg.count}</Badge>
                   )}
                   {tabValue === 'pemain' && pendingCount > 0 && (
-                    <Badge className="text-[8px] border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center ml-0.5">{pendingCount}</Badge>
+                    <Badge className="text-xs border-0 bg-yellow-500/15 text-yellow-500 px-1 py-0 min-w-[16px] h-3.5 flex items-center justify-center ml-0.5">{pendingCount}</Badge>
                   )}
                 </button>
               );

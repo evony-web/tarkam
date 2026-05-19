@@ -133,7 +133,7 @@ export function AdminLogin() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center">
       <div className="w-full max-w-sm">
-        <Card className="border border-border/50 bg-card/80 shadow-sm overflow-hidden">
+        <Card className="border border-border bg-card/80 shadow-sm overflow-hidden">
           {/* Top accent bar */}
           <div className="h-1 w-full bg-gradient-to-r from-idm-gold via-idm-gold-light to-idm-gold" />
 
@@ -142,7 +142,7 @@ export function AdminLogin() {
               <div key="login">
                 {/* Header */}
                 <div className="text-center mb-6">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-idm-gold/20 to-idm-gold/5 border border-idm-gold/30 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-lg bg-gradient-to-br from-idm-gold/20 to-idm-gold/5 border border-idm-gold/30 flex items-center justify-center">
                     <Shield className="w-7 h-7 text-idm-gold" />
                   </div>
                   <h2 className="text-lg font-bold text-gradient-fury">Admin Login</h2>
@@ -161,7 +161,7 @@ export function AdminLogin() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="Username"
-                        className="pl-10 h-11 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 h-11 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={loading}
                         autoComplete="username"
                         required
@@ -178,7 +178,7 @@ export function AdminLogin() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Password"
-                        className="pl-10 pr-10 h-11 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 pr-10 h-11 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={loading}
                         autoComplete="current-password"
                         required
@@ -196,7 +196,7 @@ export function AdminLogin() {
 
                   {/* Error message */}
                   {error && (
-                    <div className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg p-4 sm:p-5">
+                    <div className="text-xs text-red-500 bg-red-500/10 border border-border rounded-lg p-3">
                       {error}
                     </div>
                   )}
@@ -205,7 +205,7 @@ export function AdminLogin() {
                   <Button
                     type="submit"
                     disabled={loading || !username || !password}
-                    className="w-full h-11 bg-gradient-to-r from-idm-gold to-idm-gold-light hover:from-idm-gold-light hover:to-idm-gold text-black font-semibold shadow-sm transition-colors duration-150"
+                    className="w-full h-11 bg-gradient-to-r from-idm-gold to-idm-gold-light hover:from-idm-gold-light hover:to-idm-gold text-black font-semibold shadow-sm transition-colors"
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -232,7 +232,7 @@ export function AdminLogin() {
               <div key="change-password">
                 {/* Header */}
                 <div className="text-center mb-6">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-idm-gold/20 to-idm-gold/5 border border-idm-gold/30 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-lg bg-gradient-to-br from-idm-gold/20 to-idm-gold/5 border border-idm-gold/30 flex items-center justify-center">
                     <KeyRound className="w-7 h-7 text-idm-gold" />
                   </div>
                   <h2 className="text-lg font-bold text-gradient-fury">Ganti Password</h2>
@@ -251,7 +251,7 @@ export function AdminLogin() {
                         value={cpUsername}
                         onChange={(e) => setCpUsername(e.target.value)}
                         placeholder="Username"
-                        className="pl-10 h-10 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 h-10 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={cpLoading}
                         autoComplete="username"
                         required
@@ -268,7 +268,7 @@ export function AdminLogin() {
                         value={cpCurrentPassword}
                         onChange={(e) => setCpCurrentPassword(e.target.value)}
                         placeholder="Password lama"
-                        className="pl-10 pr-10 h-10 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 pr-10 h-10 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={cpLoading}
                         autoComplete="current-password"
                         required
@@ -293,7 +293,7 @@ export function AdminLogin() {
                         value={cpNewPassword}
                         onChange={(e) => setCpNewPassword(e.target.value)}
                         placeholder="Password baru (min. 6 karakter)"
-                        className="pl-10 pr-10 h-10 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 pr-10 h-10 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={cpLoading}
                         autoComplete="new-password"
                         required
@@ -318,7 +318,7 @@ export function AdminLogin() {
                         value={cpConfirmPassword}
                         onChange={(e) => setCpConfirmPassword(e.target.value)}
                         placeholder="Konfirmasi password baru"
-                        className="pl-10 h-10 bg-muted/30 border-border/50 focus:border-idm-gold/50 focus:ring-idm-gold/20"
+                        className="pl-10 h-10 bg-muted/30 border-border focus:border-idm-gold/50 focus:ring-idm-gold/20"
                         disabled={cpLoading}
                         autoComplete="new-password"
                         required
@@ -328,13 +328,13 @@ export function AdminLogin() {
 
                   {/* Error/Success messages */}
                   {cpError && (
-                    <div className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg p-4 sm:p-5">
+                    <div className="text-xs text-red-500 bg-red-500/10 border border-border rounded-lg p-3">
                       {cpError}
                     </div>
                   )}
 
                   {cpSuccess && (
-                    <div className="text-xs text-green-500 bg-green-500/10 border border-green-500/20 rounded-lg p-4 sm:p-5">
+                    <div className="text-xs text-green-500 bg-green-500/10 border border-border rounded-lg p-3">
                       {cpSuccess}
                     </div>
                   )}
@@ -343,7 +343,7 @@ export function AdminLogin() {
                   <Button
                     type="submit"
                     disabled={cpLoading || !cpUsername || !cpCurrentPassword || !cpNewPassword || !cpConfirmPassword}
-                    className="w-full h-11 bg-gradient-to-r from-idm-gold to-idm-gold-light hover:from-idm-gold-light hover:to-idm-gold text-black font-semibold shadow-sm transition-colors duration-150"
+                    className="w-full h-11 bg-gradient-to-r from-idm-gold to-idm-gold-light hover:from-idm-gold-light hover:to-idm-gold text-black font-semibold shadow-sm transition-colors"
                   >
                     {cpLoading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -369,9 +369,9 @@ export function AdminLogin() {
             )}
 
             {/* Footer */}
-            <div className="mt-5 pt-4 border-t border-border/50 text-center">
-              <p className="text-[10px] text-muted-foreground">
-                🔒 Area khusus admin • Akses terbatas
+            <div className="mt-5 pt-4 border-t border-border text-center">
+              <p className="text-sm text-muted-foreground">
+                Area khusus admin • Akses terbatas
               </p>
             </div>
           </CardContent>

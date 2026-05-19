@@ -204,12 +204,12 @@ function SectionHeader({
   return (
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-card border border-border/50 hover:bg-muted/30 transition-colors"
+      className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-card border border-border hover:bg-muted/30 transition-colors"
     >
       <div className="flex items-center gap-2">
         <Icon className={`w-4 h-4 ${accentColor}`} />
         <span className="text-sm font-medium">{title}</span>
-        <Badge className="text-[9px] border-0 bg-muted">{count}</Badge>
+        <Badge className="text-xs border-0 bg-muted">{count}</Badge>
       </div>
       {isOpen ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
     </button>
@@ -665,13 +665,13 @@ export function AdminSponsorPanel() {
       ) : (
         <div className="space-y-4">
           {Object.entries(groupedSponsors).map(([tier, tierSponsors], tierIndex) => (
-            <div key={tier} className="stagger-item-fast" style={{ animationDelay: `${tierIndex * 50}ms` }}>
+            <div key={tier}>
               <Card className={dt.casinoCard}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Star className={`w-4 h-4 ${tier === 'platinum' ? 'text-muted-foreground' : tier === 'gold' ? 'text-amber-400' : tier === 'silver' ? 'text-muted-foreground' : 'text-amber-700'}`} />
                     {tier.charAt(0).toUpperCase() + tier.slice(1)} Sponsors
-                    <Badge className="text-[9px] border-0 bg-muted">{(tierSponsors as Sponsor[]).length}</Badge>
+                    <Badge className="text-xs border-0 bg-muted">{(tierSponsors as Sponsor[]).length}</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -679,7 +679,7 @@ export function AdminSponsorPanel() {
                     {(tierSponsors as Sponsor[]).map((sponsor: Sponsor) => (
                       <div
                         key={sponsor.id}
-                        className={`p-4 sm:p-5 rounded-2xl border ${sponsor.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/30 opacity-60'}`}
+                        className={`p-3 rounded-lg border ${sponsor.isActive ? 'bg-card border-border' : 'bg-muted/30 border-border opacity-60'}`}
                       >
                         <div className="flex items-start gap-3">
                           <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 flex items-center justify-center">
@@ -693,7 +693,7 @@ export function AdminSponsorPanel() {
                             <div className="flex items-center gap-2 mb-0.5">
                               <p className="text-sm font-medium truncate">{sponsor.name}</p>
                               {!sponsor.isActive && (
-                                <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">Inactive</Badge>
+                                <Badge className="text-xs border-0 bg-red-500/10 text-red-500">Inactive</Badge>
                               )}
                             </div>
                             {sponsor.website && (
@@ -701,24 +701,24 @@ export function AdminSponsorPanel() {
                                 href={sponsor.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5"
+                                className="text-sm text-muted-foreground hover:text-primary flex items-center gap-0.5"
                               >
                                 <Link className="w-2.5 h-2.5" />
                                 {sponsor.website.replace(/^https?:\/\//, '').split('/')[0]}
                               </a>
                             )}
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                               <span>{sponsor._count?.tournamentSponsors || 0} tournaments</span>
                               <span>•</span>
                               <span>{sponsor._count?.sponsoredPrizes || 0} prizes</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border/30">
+                        <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border">
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 text-[10px]"
+                            className="h-8 text-sm"
                             onClick={() => toggleActive.mutate({ id: sponsor.id, isActive: !sponsor.isActive })}
                           >
                             {sponsor.isActive ? 'Deactivate' : 'Activate'}
@@ -726,7 +726,7 @@ export function AdminSponsorPanel() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 w-7 p-0"
+                            className="h-8 w-8 p-0"
                             onClick={() => openEditForm(sponsor)}
                           >
                             <Pencil className="w-3 h-3" />
@@ -734,7 +734,7 @@ export function AdminSponsorPanel() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                             onClick={() => setConfirmDialog({
                               open: true,
                               title: 'Hapus Sponsor?',
@@ -782,7 +782,7 @@ export function AdminSponsorPanel() {
         />
 
         {bannerOpen && (
-          <div className="mt-3 space-y-3 stagger-item-fast">
+          <div className="mt-3 space-y-3">
             {/* Banner controls */}
             <div className="flex items-center justify-between gap-2">
               <Select value={bannerPlacementFilter} onValueChange={setBannerPlacementFilter}>
@@ -818,7 +818,7 @@ export function AdminSponsorPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto custom-scrollbar">
                 {bannerList.map((banner: SponsorBanner) => (
-                  <div key={banner.id} className={`p-4 sm:p-5 rounded-2xl border ${banner.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/30 opacity-60'}`}>
+                  <div key={banner.id} className={`p-3 rounded-lg border ${banner.isActive ? 'bg-card border-border' : 'bg-muted/30 border-border opacity-60'}`}>
                     <div className="flex items-start gap-3">
                       {/* Banner image */}
                       <div className="w-20 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
@@ -826,25 +826,25 @@ export function AdminSponsorPanel() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{banner.sponsor.name}</p>
-                        <Badge className="text-[8px] border-0 bg-amber-500/10 text-amber-500 mt-0.5">
+                        <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500 mt-0.5">
                           {placementLabels[banner.placement] || banner.placement}
                         </Badge>
-                        <div className="flex items-center gap-2 mt-1 text-[9px] text-muted-foreground">
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                           <span>Order: {banner.displayOrder}</span>
                           {banner.startDate && (
                             <span>• {new Date(banner.startDate).toLocaleDateString()}</span>
                           )}
                         </div>
                         {banner.linkUrl && (
-                          <p className="text-[9px] text-muted-foreground truncate mt-0.5">{banner.linkUrl}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{banner.linkUrl}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border/30">
+                    <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 text-[9px]"
+                        className="h-8 text-xs"
                         onClick={() => toggleBannerActive.mutate({ id: banner.id, isActive: !banner.isActive })}
                       >
                         {banner.isActive ? <EyeOff className="w-3 h-3 mr-1" /> : <Eye className="w-3 h-3 mr-1" />}
@@ -853,7 +853,7 @@ export function AdminSponsorPanel() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true,
                           title: 'Hapus Banner?',
@@ -887,7 +887,7 @@ export function AdminSponsorPanel() {
         />
 
         {linkOpen && (
-          <div className="mt-3 space-y-3 stagger-item-fast">
+          <div className="mt-3 space-y-3">
             <Card className={dt.casinoCard}>
               <CardContent className="pt-4 space-y-3">
                 <p className="text-xs text-muted-foreground">Tautkan sponsor ke turnamen dengan role tertentu</p>
@@ -948,7 +948,7 @@ export function AdminSponsorPanel() {
 
                 {/* Existing links */}
                 {selectedLinkTournament && (
-                  <div className="mt-4 pt-3 border-t border-border/30">
+                  <div className="mt-4 pt-3 border-t border-border">
                     <p className="text-xs font-medium mb-2">Sponsor di turnamen ini:</p>
                     {tournamentSponsorsLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -957,7 +957,7 @@ export function AdminSponsorPanel() {
                     ) : (
                       <div className="space-y-2">
                         {tournamentSponsorList.map((ts: TournamentSponsorLink) => (
-                          <div key={ts.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/30">
+                          <div key={ts.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
                             <div className="flex items-center gap-2">
                               {ts.sponsor.logo ? (
                                 <NextImage src={ts.sponsor.logo} alt={ts.sponsor.name} width={24} height={24} className="w-6 h-6 rounded object-cover" unoptimized />
@@ -965,14 +965,14 @@ export function AdminSponsorPanel() {
                                 <Building2 className="w-4 h-4 text-muted-foreground" />
                               )}
                               <span className="text-xs font-medium">{ts.sponsor.name}</span>
-                              <Badge className={`text-[8px] border-0 ${ts.role === 'main_sponsor' ? 'bg-amber-500/10 text-amber-500' : ts.role === 'presented_by' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'}`}>
+                              <Badge className={`text-xs border-0 ${ts.role === 'main_sponsor' ? 'bg-amber-500/10 text-amber-500' : ts.role === 'presented_by' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'}`}>
                                 {roleLabels[ts.role] || ts.role}
                               </Badge>
                             </div>
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-6 w-6 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                               onClick={() => unlinkSponsorFromTournament.mutate({
                                 tournamentId: selectedLinkTournament,
                                 sponsorId: ts.sponsorId,
@@ -1007,7 +1007,7 @@ export function AdminSponsorPanel() {
         />
 
         {prizeOpen && (
-          <div className="mt-3 space-y-3 stagger-item-fast">
+          <div className="mt-3 space-y-3">
             <div className="flex items-center justify-end">
               <Button size="sm" onClick={() => { setPrizeFormData(emptyPrizeForm); setPrizeFormOpen(true); }}>
                 <Plus className="w-3 h-3 mr-1" /> Tambah Prize
@@ -1028,7 +1028,7 @@ export function AdminSponsorPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto custom-scrollbar">
                 {prizeList.map((prize: SponsoredPrize) => (
-                  <div key={prize.id} className={`p-4 sm:p-5 rounded-2xl border ${prize.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/30 opacity-60'}`}>
+                  <div key={prize.id} className={`p-3 rounded-lg border ${prize.isActive ? 'bg-card border-border' : 'bg-muted/30 border-border opacity-60'}`}>
                     <div className="flex items-start gap-3">
                       {prize.imageUrl ? (
                         <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
@@ -1042,16 +1042,16 @@ export function AdminSponsorPanel() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{prize.name}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <Badge className="text-[8px] border-0 bg-rose-500/10 text-rose-500">
+                          <Badge className="text-xs border-0 bg-rose-500/10 text-rose-500">
                             {prizeTypeLabels[prize.prizeType] || prize.prizeType}
                           </Badge>
                           {prize.value > 0 && (
-                            <Badge className="text-[8px] border-0 bg-emerald-500/10 text-emerald-500">
+                            <Badge className="text-xs border-0 bg-emerald-500/10 text-emerald-500">
                               Rp {prize.value.toLocaleString('id-ID')}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-[9px] text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           <span>{prize.sponsor.name}</span>
                           <span> • </span>
                           <span>W{prize.tournament.weekNumber} {prize.tournament.division}</span>
@@ -1059,15 +1059,15 @@ export function AdminSponsorPanel() {
                           {prize.position && <span> • Pos: {prize.position}</span>}
                         </div>
                         {prize.description && (
-                          <p className="text-[9px] text-muted-foreground mt-0.5 line-clamp-1">{prize.description}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{prize.description}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border/30">
+                    <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border">
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 w-6 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true,
                           title: 'Hapus Prize?',

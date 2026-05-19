@@ -197,16 +197,16 @@ export function AdminManagement() {
   return (
     <div className="space-y-4">
       {/* ====== CHANGE OWN PASSWORD CARD (visible to ALL admins) ====== */}
-      <Card className="border border-border/50">
+      <Card className="border border-border">
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-idm-gold-warm" />
             <h3 className="text-sm font-semibold">Ganti Password</h3>
-            <Badge className="text-[8px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{currentAdmin?.username}</Badge>
+            <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{currentAdmin?.username}</Badge>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Password Lama</Label>
+              <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Password Lama</Label>
               <div className="relative">
                 <Input
                   type={showChangePwCurrent ? 'text' : 'password'}
@@ -226,7 +226,7 @@ export function AdminManagement() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Password Baru</Label>
+              <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Password Baru</Label>
               <div className="relative">
                 <Input
                   type={showChangePwNew ? 'text' : 'password'}
@@ -246,7 +246,7 @@ export function AdminManagement() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Konfirmasi</Label>
+              <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Konfirmasi</Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="password"
@@ -274,7 +274,7 @@ export function AdminManagement() {
             </div>
           </div>
           {changePwForm.newPassword && changePwForm.confirmPassword && changePwForm.newPassword !== changePwForm.confirmPassword && (
-            <p className="text-[10px] text-red-500">Konfirmasi password tidak cocok</p>
+            <p className="text-sm text-red-500">Konfirmasi password tidak cocok</p>
           )}
         </CardContent>
       </Card>
@@ -289,7 +289,7 @@ export function AdminManagement() {
             <div className="flex items-center gap-2">
               <UserCog className="w-5 h-5 text-idm-gold-warm" />
               <h3 className="text-sm font-semibold">Daftar Admin</h3>
-              <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-[10px] border-0">
+              <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm text-sm border-0">
                 {admins.length} admin
               </Badge>
             </div>
@@ -311,7 +311,7 @@ export function AdminManagement() {
               {admins.map((admin, index) => (
                 <div
                   key={admin.id}
-                  className="stagger-item-fast flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-card border border-border/50"
+                  className="flex items-center justify-between p-3 rounded-lg bg-card border border-border"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -329,7 +329,7 @@ export function AdminManagement() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate">{admin.username}</p>
-                        <Badge className={`text-[8px] border-0 ${
+                        <Badge className={`text-xs border-0 ${
                           admin.role === 'super_admin'
                             ? 'bg-yellow-500/10 text-yellow-500'
                             : 'bg-idm-gold-warm/10 text-idm-gold-warm'
@@ -337,10 +337,10 @@ export function AdminManagement() {
                           {admin.role === 'super_admin' ? 'SUPER ADMIN' : 'ADMIN'}
                         </Badge>
                         {admin.id === currentAdmin?.id && (
-                          <Badge className="text-[8px] border-0 bg-green-500/10 text-green-500">ANDA</Badge>
+                          <Badge className="text-xs border-0 bg-green-500/10 text-green-500">ANDA</Badge>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         Bergabung {new Date(admin.createdAt).toLocaleDateString('id-ID', {
                           day: 'numeric', month: 'short', year: 'numeric'
                         })}
@@ -351,7 +351,7 @@ export function AdminManagement() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
+                      className="h-8 w-8 p-0 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
                       onClick={() => {
                         setEditForm(admin);
                         setEditDialogOpen(true);
@@ -363,7 +363,7 @@ export function AdminManagement() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
+                      className="h-8 w-8 p-0 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
                       onClick={() => {
                         setResetPasswordDialog({ open: true, admin });
                         setResetForm({ newPassword: '', confirmPassword: '' });
@@ -376,7 +376,7 @@ export function AdminManagement() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setDeleteDialog({ open: true, admin })}
                         title="Hapus admin"
                       >
@@ -388,7 +388,7 @@ export function AdminManagement() {
               ))}
 
               {admins.length === 0 && (
-                <div className="py-8 text-center border border-dashed border-border/30 rounded-2xl">
+                <div className="py-8 text-center border border-dashed border-border rounded-lg">
                   <Users className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
                   <p className="text-xs text-muted-foreground">Belum ada admin terdaftar</p>
                 </div>
@@ -397,7 +397,7 @@ export function AdminManagement() {
           )}
         </>
       ) : (
-        <Card className="border border-border/50 bg-muted/30">
+        <Card className="border border-border bg-muted/30">
           <CardContent className="p-4 text-center">
             <Lock className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">
@@ -542,7 +542,7 @@ export function AdminManagement() {
                   </SelectContent>
                 </Select>
                 {editForm.id === currentAdmin?.id && (
-                  <p className="text-[10px] text-muted-foreground">Anda tidak dapat mengubah role akun sendiri</p>
+                  <p className="text-sm text-muted-foreground">Anda tidak dapat mengubah role akun sendiri</p>
                 )}
               </div>
             </div>
@@ -627,7 +627,7 @@ export function AdminManagement() {
               />
             </div>
             {resetForm.newPassword && resetForm.confirmPassword && resetForm.newPassword !== resetForm.confirmPassword && (
-              <p className="text-[10px] text-red-500">Password tidak cocok</p>
+              <p className="text-sm text-red-500">Password tidak cocok</p>
             )}
           </div>
           <DialogFooter className="gap-2">

@@ -217,13 +217,13 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
               <button
                 type="button"
                 onClick={() => onNavigateToTab?.(action.tabKey)}
-                className={`w-full h-full rounded-2xl border border-border/50 p-3 flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer group ${action.accent}`}
+                className={`w-full h-full rounded-lg border border-border p-3 flex flex-col items-center justify-center text-center transition-colors cursor-pointer group ${action.accent}`}
               >
                 <div className="p-2 rounded-lg bg-muted/30 group-hover:bg-muted/50 transition-colors mb-1.5">
                   <ActionIcon className="w-4 h-4" />
                 </div>
-                <p className="text-[11px] font-semibold leading-tight">{action.label}</p>
-                <p className="text-[10px] opacity-75 mt-0.5 leading-tight font-medium">{action.desc}</p>
+                <p className="text-xs font-semibold leading-tight">{action.label}</p>
+                <p className="text-sm opacity-75 mt-0.5 leading-tight font-medium">{action.desc}</p>
               </button>
             </div>
           );
@@ -287,7 +287,7 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
                       key={item.label}
                       type="button"
                       onClick={() => onNavigateToTab?.(item.tabKey)}
-                      className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 w-full text-left transition-colors hover:bg-muted/50 cursor-pointer group"
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 w-full text-left transition-colors hover:bg-muted/50 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={`p-1.5 rounded-md ${needsAction ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
@@ -295,13 +295,13 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
                         </div>
                         <div>
                           <p className="text-xs font-medium">{item.label}</p>
-                          <p className="text-[9px] text-muted-foreground group-hover:text-idm-gold-warm transition-colors">
+                          <p className="text-xs text-muted-foreground group-hover:text-idm-gold-warm transition-colors">
                             {needsAction ? `Lihat di tab ${item.tab} →` : 'Semua baik ✓'}
                           </p>
                         </div>
                       </div>
                       {needsAction ? (
-                        <Badge className="text-[10px] border-0 bg-red-500/10 text-red-500 font-bold">
+                        <Badge className="text-xs border-0 bg-red-500/10 text-red-500 font-bold">
                           {item.count}
                         </Badge>
                       ) : (
@@ -323,7 +323,7 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
                 <Clock className={`w-4 h-4 ${dt.text}`} />
                 Log Aktivitas
                 {auditData?.total ? (
-                  <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{auditData.total}</Badge>
+                  <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{auditData.total}</Badge>
                 ) : null}
               </CardTitle>
             </CardHeader>
@@ -340,19 +340,19 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
                     const style = ACTION_STYLES[log.action] || { bg: 'bg-muted', text: 'text-muted-foreground', icon: '•' };
                     const entityLabel = ENTITY_LABELS[log.entity] || log.entity;
                     return (
-                      <div key={log.id} className="flex items-start gap-2.5 p-3 sm:p-4 rounded-lg bg-muted/30">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] shrink-0 ${style.bg} ${style.text}`}>
+                      <div key={log.id} className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/30">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${style.bg} ${style.text}`}>
                           {style.icon}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1 flex-wrap">
-                            <p className="text-[11px] font-medium capitalize">{log.action} {entityLabel}</p>
+                            <p className="text-xs font-medium capitalize">{log.action} {entityLabel}</p>
                             {log.adminName && (
-                              <span className="text-[8px] px-1 py-0.5 rounded-full bg-idm-gold-warm/10 text-idm-gold-warm">oleh {log.adminName}</span>
+                              <span className="text-xs px-1 py-0.5 rounded-full bg-idm-gold-warm/10 text-idm-gold-warm">oleh {log.adminName}</span>
                             )}
                           </div>
-                          <p className="text-[9px] text-muted-foreground truncate">{log.details || '—'}</p>
-                          <p className="text-[8px] text-muted-foreground/60">
+                          <p className="text-xs text-muted-foreground truncate">{log.details || '—'}</p>
+                          <p className="text-xs text-muted-foreground/60">
                             {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · {new Date(log.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
@@ -360,10 +360,10 @@ export function AdminOverview({ division, onNavigateToTab }: AdminOverviewProps)
                     );
                   })}
                   {/* Link to full logs in Pengaturan tab */}
-                  <div className="pt-1 border-t border-border/20">
+                  <div className="pt-1 border-t border-border">
                     <button
                       type="button"
-                      className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                      className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Lihat semua <ChevronRight className="w-3 h-3" />
                     </button>

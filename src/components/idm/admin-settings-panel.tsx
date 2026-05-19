@@ -302,13 +302,13 @@ export function AdminSettingsPanel() {
               <div>
                 <p className="text-sm font-medium">{adminAuth.admin?.username}</p>
                 <p className="text-xs text-muted-foreground">
-                  Role: <Badge className="text-[9px] border-0 bg-idm-gold/10 text-idm-gold">{adminAuth.admin?.role}</Badge>
+                  Role: <Badge className="text-xs border-0 bg-idm-gold/10 text-idm-gold">{adminAuth.admin?.role}</Badge>
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Session Active</p>
                 <div className="flex items-center justify-end gap-1 text-green-500 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
                   Online
                 </div>
               </div>
@@ -373,12 +373,12 @@ export function AdminSettingsPanel() {
                 <Clock className={`w-4 h-4 ${dt.text}`} />
                 Log Aktivitas Admin
                 {auditData?.total ? (
-                  <Badge className="text-[9px] border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{auditData.total}</Badge>
+                  <Badge className="text-xs border-0 bg-idm-gold-warm/10 text-idm-gold-warm">{auditData.total}</Badge>
                 ) : null}
               </CardTitle>
               {/* Filter by entity */}
               <Select value={logFilter} onValueChange={setLogFilter}>
-                <SelectTrigger className="w-28 h-7 text-[10px]">
+                <SelectTrigger className="w-28 h-8 text-sm">
                   <Filter className="w-3 h-3 mr-1" />
                   <SelectValue />
                 </SelectTrigger>
@@ -410,8 +410,8 @@ export function AdminSettingsPanel() {
                   const style = ACTION_STYLES[log.action] || { bg: 'bg-muted', text: 'text-muted-foreground', icon: '•' };
                   const entityLabel = ENTITY_LABELS[log.entity] || log.entity;
                   return (
-                    <div key={log.id} className="flex items-start gap-3 p-3 sm:p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 ${style.bg} ${style.text}`}>
+                    <div key={log.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${style.bg} ${style.text}`}>
                         {style.icon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -420,11 +420,11 @@ export function AdminSettingsPanel() {
                             {log.action} {entityLabel}
                           </p>
                           {log.adminName && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-idm-gold-warm/10 text-idm-gold-warm">oleh {log.adminName}</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded-full bg-idm-gold-warm/10 text-idm-gold-warm">oleh {log.adminName}</span>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground truncate mt-0.5">{log.details || '—'}</p>
-                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                        <p className="text-sm text-muted-foreground truncate mt-0.5">{log.details || '—'}</p>
+                        <p className="text-xs text-muted-foreground/60 mt-0.5">
                           {new Date(log.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} · {new Date(log.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -435,7 +435,7 @@ export function AdminSettingsPanel() {
                 {auditLogs.length > 10 && (
                   <button
                     onClick={() => setShowAllLogs(!showAllLogs)}
-                    className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showAllLogs ? (
                       <><ChevronUp className="w-3 h-3" />Tampilkan Lebih Sedikit</>
@@ -481,11 +481,11 @@ export function AdminSettingsPanel() {
 
             {/* Export Full Backup — Super Admin only */}
             {isSuperAdmin && (
-              <div className="pt-3 border-t border-border/30">
+              <div className="pt-3 border-t border-border">
                 <Label className="text-xs text-idm-gold-warm mb-2 block flex items-center gap-1">
                   <HardDrive className="w-3 h-3" /> Full Backup
                 </Label>
-                <p className="text-[10px] text-muted-foreground mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Export seluruh data (players, clubs, matches, donations, seasons, tournaments, dll.) sebagai file JSON. Hanya Super Admin.
                 </p>
                 <Button
@@ -507,11 +507,11 @@ export function AdminSettingsPanel() {
 
             {/* Danger Zone — Super Admin only */}
             {isSuperAdmin && (
-            <div className="pt-3 border-t border-border/30">
+            <div className="pt-3 border-t border-border">
               <Label className="text-xs text-red-500 mb-2 block flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Danger Zone
               </Label>
-              <p className="text-[10px] text-muted-foreground mb-2">
+              <p className="text-sm text-muted-foreground mb-2">
                 Reset semua poin pemain ke 0, hapus data turnamen, match, skin & badge. Data pemain, club, admin, dan CMS tetap aman. Poin dari season completed juga di-nol-kan.
               </p>
               <AlertDialog>

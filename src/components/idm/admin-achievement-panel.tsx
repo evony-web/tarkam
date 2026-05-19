@@ -282,13 +282,13 @@ export function AdminAchievementPanel() {
           {Object.entries(groupedAchievements).map(([category, catAchievements], i) => {
             const CatIcon = categoryIcons[category] || Award;
             return (
-              <div key={category} className="stagger-item-subtle" style={{ animationDelay: `${i * 30}ms` }}>
+              <div key={category} style={{ animationDelay: `${i * 30}ms` }}>
                 <Card className={dt.casinoCard}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2 capitalize">
                       <CatIcon className={`w-4 h-4 ${dt.text}`} />
                       {category} Achievements
-                      <Badge className="text-[9px] border-0 bg-muted">{(catAchievements as Achievement[]).length}</Badge>
+                      <Badge className="text-xs border-0 bg-muted">{(catAchievements as Achievement[]).length}</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -296,7 +296,7 @@ export function AdminAchievementPanel() {
                       {(catAchievements as Achievement[]).map((achievement: Achievement) => (
                         <div
                           key={achievement.id}
-                          className={`p-4 sm:p-5 rounded-2xl border ${achievement.isActive ? 'bg-card border-border/50' : 'bg-muted/30 border-border/30 opacity-60'}`}
+                          className={`p-3 rounded-lg border ${achievement.isActive ? 'bg-card border-border' : 'bg-muted/30 border-border opacity-60'}`}
                         >
                           <div className="flex items-start gap-3">
                             {/* Icon */}
@@ -309,12 +309,12 @@ export function AdminAchievementPanel() {
                               <div className="flex items-center gap-2 mb-0.5">
                                 <p className="text-sm font-medium truncate">{achievement.displayName}</p>
                                 {!achievement.isActive && (
-                                  <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">Inactive</Badge>
+                                  <Badge className="text-xs border-0 bg-red-500/10 text-red-500">Inactive</Badge>
                                 )}
                               </div>
-                              <p className="text-[10px] text-muted-foreground line-clamp-1">{achievement.description}</p>
-                              <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                                <Badge className={`text-[9px] border-0 ${tierColors[achievement.tier] || ''}`}>
+                              <p className="text-sm text-muted-foreground line-clamp-1">{achievement.description}</p>
+                              <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                <Badge className={`text-xs border-0 ${tierColors[achievement.tier] || ''}`}>
                                   {achievement.tier}
                                 </Badge>
                                 {achievement.rewardPoints > 0 && (
@@ -327,11 +327,11 @@ export function AdminAchievementPanel() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border/30">
+                          <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border">
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 text-[10px]"
+                              className="h-8 text-sm"
                               onClick={() => toggleActive.mutate({ id: achievement.id, isActive: !achievement.isActive })}
                             >
                               {achievement.isActive ? 'Deactivate' : 'Activate'}
@@ -339,7 +339,7 @@ export function AdminAchievementPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 w-7 p-0 touch-icon"
+                              className="h-8 w-8 p-0 touch-icon"
                               onClick={() => {
                                 setSelectedAchievement(achievement);
                                 setFormData({
@@ -360,7 +360,7 @@ export function AdminAchievementPanel() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 w-7 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              className="h-8 w-8 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10"
                               onClick={() => setConfirmDialog({
                                 open: true,
                                 title: 'Hapus Achievement?',
@@ -490,18 +490,18 @@ export function AdminAchievementPanel() {
               </div>
             </div>
             {/* Preview */}
-            <div className="p-4 sm:p-5 rounded-2xl border border-border/50 bg-muted/20">
+            <div className="p-3 rounded-lg border border-border bg-muted/20">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${tierColors[formData.tier] || 'bg-muted'}`}>
                   {formData.icon || '🏆'}
                 </div>
                 <div>
                   <p className="text-sm font-medium">{formData.displayName || 'Nama Achievement'}</p>
-                  <p className="text-[10px] text-muted-foreground">{formData.description || 'Deskripsi...'}</p>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10px]">
-                    <Badge className={`text-[9px] border-0 ${tierColors[formData.tier] || ''}`}>{formData.tier}</Badge>
+                  <p className="text-sm text-muted-foreground">{formData.description || 'Deskripsi...'}</p>
+                  <div className="flex items-center gap-2 mt-0.5 text-sm">
+                    <Badge className={`text-xs border-0 ${tierColors[formData.tier] || ''}`}>{formData.tier}</Badge>
                     {formData.rewardPoints > 0 && <span className="text-green-500">+{formData.rewardPoints} pts</span>}
-                    <Badge className="text-[9px] border-0 bg-muted capitalize">{formData.category}</Badge>
+                    <Badge className="text-xs border-0 bg-muted capitalize">{formData.category}</Badge>
                   </div>
                 </div>
               </div>
@@ -555,7 +555,7 @@ export function AdminAchievementPanel() {
 
             {/* Players who already have this achievement (revoke section) */}
             {selectedAchievement && (existingHolders?.playerAchievements || []).length > 0 && (
-              <div className="p-4 sm:p-5 rounded-lg border border-red-500/20 bg-red-500/5">
+              <div className="p-3 rounded-lg border border-border bg-red-500/5">
                 <Label className="text-xs text-red-500 font-medium">
                   Sudah Punya ({(existingHolders?.playerAchievements || []).length} player)
                 </Label>
@@ -569,7 +569,7 @@ export function AdminAchievementPanel() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 text-[10px] text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        className="h-8 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={(e) => {
                           e.stopPropagation();
                           revokeAchievement.mutate({
@@ -620,7 +620,7 @@ export function AdminAchievementPanel() {
                   .map((p: PlayerWithAchievements) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer"
                     onClick={() => {
                       if (selectedAchievement) {
                         assignAchievement.mutate({
@@ -642,14 +642,14 @@ export function AdminAchievementPanel() {
                       </div>
                       <div>
                         <p className="text-xs font-medium">{p.gamertag}</p>
-                        <p className="text-[10px] text-muted-foreground">{p.name}</p>
+                        <p className="text-sm text-muted-foreground">{p.name}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="text-[9px] border-0 bg-muted">
+                      <Badge className="text-xs border-0 bg-muted">
                         {p._count?.achievements || 0} 🏆
                       </Badge>
-                      <Button size="sm" variant="ghost" className="h-6 text-[10px]">
+                      <Button size="sm" variant="ghost" className="h-8 text-sm">
                         Assign
                       </Button>
                     </div>

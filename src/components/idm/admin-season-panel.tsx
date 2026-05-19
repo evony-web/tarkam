@@ -364,7 +364,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             <div>
-              <Label className="text-[10px] text-muted-foreground">Nama Season</Label>
+              <Label className="text-sm text-muted-foreground">Nama Season</Label>
               <Input
                 placeholder={isTarkam ? 'contoh: Season 2 Tarkam Cowo' : 'contoh: Liga IDM Season 3'}
                 value={newSeasonForm.name}
@@ -372,7 +372,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
               />
             </div>
             <div>
-              <Label className="text-[10px] text-muted-foreground">Nomor Season</Label>
+              <Label className="text-sm text-muted-foreground">Nomor Season</Label>
               <Input
                 placeholder="contoh: 3"
                 type="number"
@@ -381,7 +381,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
               />
             </div>
             <div>
-              <Label className="text-[10px] text-muted-foreground">Divisi</Label>
+              <Label className="text-sm text-muted-foreground">Divisi</Label>
               {isTarkam ? (
                 <div className="flex items-center h-9">
                   <select
@@ -389,8 +389,8 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                     onChange={(e) => setNewSeasonForm(p => ({ ...p, division: e.target.value }))}
                     className="w-full h-full px-3 rounded-md border border-border/30 bg-muted/10 text-xs"
                   >
-                    <option value="male">🕺 Cowo</option>
-                    <option value="female">💃 Cewe</option>
+                    <option value="male">Cowo</option>
+                    <option value="female">Cewe</option>
                   </select>
                 </div>
               ) : (
@@ -400,7 +400,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
               )}
             </div>
             <div>
-              <Label className="text-[10px] text-muted-foreground">Tanggal Mulai</Label>
+              <Label className="text-sm text-muted-foreground">Tanggal Mulai</Label>
               <Input
                 type="date"
                 value={newSeasonForm.startDate}
@@ -408,7 +408,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
               />
             </div>
             <div>
-              <Label className="text-[10px] text-muted-foreground">Tanggal Selesai (opsional)</Label>
+              <Label className="text-sm text-muted-foreground">Tanggal Selesai (opsional)</Label>
               <Input
                 type="date"
                 value={newSeasonForm.endDate}
@@ -459,7 +459,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                           season.status === 'completed' ? 'bg-blue-500/15 text-blue-500' :
                           season.status === 'active' ? 'bg-green-500/15 text-green-500' :
                           'bg-yellow-500/15 text-yellow-500'
@@ -471,16 +471,16 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-semibold">{season.name}</p>
-                            <Badge className={`text-[9px] border-0 ${statusColors[season.status] || 'bg-muted text-muted-foreground'}`}>
+                            <Badge className={`text-xs border-0 ${statusColors[season.status] || 'bg-muted text-muted-foreground'}`}>
                               {statusLabels[season.status] || season.status}
                             </Badge>
                             {season.number && (
-                              <Badge className={`${dt.casinoBadge} text-[9px]`}>
+                              <Badge className={`${dt.casinoBadge} text-xs`}>
                                 S{season.number}
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
                             <span>{new Date(season.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                             {season.endDate && (
                               <>
@@ -506,7 +506,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                         {/* Delete button — only for seasons without matches */}
                         <Button size="sm" variant="ghost"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                           onClick={(e) => {
                             e.stopPropagation();
                             setConfirmDialog({
@@ -534,13 +534,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                         ) : (
                           <>
                             {/* ── Champion Management ── */}
-                            <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-border/20">
+                            <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                               <div className="flex items-center justify-between mb-2">
                                 <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                                   <Crown className="w-3.5 h-3.5 text-yellow-500" /> {isTarkam ? 'Champion Season (Individu)' : 'Champion Season'}
                                 </p>
                                 {!isChampionEditing && (
-                                  <Button size="sm" variant="outline" className="text-[10px] h-7"
+                                  <Button size="sm" variant="outline" className="text-sm h-8"
                                     onClick={() => {
                                       setEditingChampion(season.id);
                                       if (isTarkam) {
@@ -561,7 +561,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                   {/* Current champion display */}
                                   {championClub && !isChampionEditing && (
                                     <div className="flex items-center gap-3 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                                      <div className="w-10 h-10 rounded-2xl overflow-hidden shrink-0 border-2 border-yellow-500/30">
+                                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border-2 border-yellow-500/30">
                                         {championClub.logo ? (
                                           <ClubLogoImage
                                             clubName={championClub.name}
@@ -580,15 +580,15 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                           <p className="text-sm font-bold text-yellow-500">{championClub.name}</p>
-                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">
+                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-xs border-0">
                                             <Crown className="w-3 h-3 mr-0.5" /> CHAMPION
                                           </Badge>
                                         </div>
-                                        <p className="text-[10px] text-muted-foreground">Juara Season {seasonDetail?.number}</p>
+                                        <p className="text-sm text-muted-foreground">Juara Season {seasonDetail?.number}</p>
                                       </div>
                                       <Button
                                         size="sm" variant="ghost"
-                                        className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        className="h-8 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                         onClick={() => handleRemoveChampion(season.id)}
                                       >
                                         <X className="w-3 h-3 mr-1" /> Hapus
@@ -598,9 +598,9 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                                   {/* No champion yet */}
                                   {!championClub && !isChampionEditing && (
-                                    <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                    <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
                                       <Crown className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                      <p className="text-[10px] text-muted-foreground">Belum ada champion untuk season ini</p>
+                                      <p className="text-sm text-muted-foreground">Belum ada champion untuk season ini</p>
                                     </div>
                                   )}
 
@@ -610,7 +610,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       {/* Show clubs in season if available */}
                                       {seasonDetail?.clubs && seasonDetail.clubs.length > 0 && (
                                         <>
-                                          <p className="text-[10px] text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
+                                          <p className="text-sm text-muted-foreground">Pilih club champion untuk Season {seasonDetail?.number}:</p>
                                           <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
                                             {seasonDetail.clubs.map((club) => {
                                               const clubName = getClubName(club);
@@ -619,7 +619,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                               return (
                                                 <div
                                                   key={club.id}
-                                                  className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
+                                                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                                                     selectedChampion === championRef
                                                       ? 'border-yellow-500/30 bg-yellow-500/5'
                                                       : 'border-border/20 bg-card/30 hover:bg-muted/20'
@@ -644,7 +644,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                                   </div>
                                                   <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-medium truncate">{clubName}</p>
-                                                    <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                                       <span className="text-green-500">{club.wins}W</span>
                                                       <span>-</span>
                                                       <span className="text-red-500">{club.losses}L</span>
@@ -670,13 +670,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       {(!seasonDetail?.clubs || seasonDetail.clubs.length === 0) && (
                                         <>
                                           <div className="flex items-center gap-1.5 mb-1">
-                                            <p className="text-[10px] text-amber-400/80">Season ini belum ada club — pilih dari semua club yang tersedia:</p>
+                                            <p className="text-sm text-amber-400/80">Season ini belum ada club — pilih dari semua club yang tersedia:</p>
                                           </div>
                                           <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-1">
                                             {seasonDetail?.availableProfiles?.map((profile) => (
                                               <div
                                                 key={profile.id}
-                                                className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                                                   selectedChampion === profile.id
                                                     ? 'border-yellow-500/30 bg-yellow-500/5'
                                                     : 'border-border/20 bg-card/30 hover:bg-muted/20'
@@ -701,7 +701,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                   <p className="text-xs font-medium truncate">{profile.name}</p>
-                                                  <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                                     <span>{profile.memberCount} anggota</span>
                                                   </div>
                                                 </div>
@@ -715,10 +715,10 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                             {(!seasonDetail?.availableProfiles || seasonDetail.availableProfiles.length === 0) && (
                                               <div className="text-center py-4">
                                                 <Shield className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                                <p className="text-[10px] text-muted-foreground">
+                                                <p className="text-sm text-muted-foreground">
                                                   Belum ada club yang terdaftar di platform
                                                 </p>
-                                                <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                                                <p className="text-xs text-muted-foreground/60 mt-0.5">
                                                   Tambahkan club di menu Peserta → Club
                                                 </p>
                                               </div>
@@ -730,7 +730,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       <div className="flex items-center gap-2">
                                         <Button
                                           size="sm"
-                                          className="text-[10px]"
+                                          className="text-sm"
                                           disabled={!selectedChampion || updateSeason.isPending}
                                           onClick={() => handleSetChampion(season.id, selectedChampion)}
                                         >
@@ -739,7 +739,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                         </Button>
                                         <Button
                                           size="sm" variant="ghost"
-                                          className="text-[10px]"
+                                          className="text-sm"
                                           onClick={() => setEditingChampion(null)}
                                         >
                                           Batal
@@ -756,7 +756,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                   {/* Current champion player display */}
                                   {seasonDetail?.championPlayer && !isChampionEditing && (
                                     <div className="flex items-center gap-3 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
-                                      <div className="w-10 h-10 rounded-2xl overflow-hidden shrink-0 border-2 border-yellow-500/30">
+                                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border-2 border-yellow-500/30">
                                         <Image
                                           src={getAvatarUrl(seasonDetail.championPlayer.gamertag, seasonDetail.championPlayer.division as 'male' | 'female', seasonDetail.championPlayer.avatar)}
                                           alt={seasonDetail.championPlayer.gamertag}
@@ -769,18 +769,18 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                           <p className="text-sm font-bold text-yellow-500">{seasonDetail.championPlayer.gamertag}</p>
-                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-[9px] border-0">
+                                          <Badge className="bg-yellow-500/10 text-yellow-500 text-xs border-0">
                                             <Crown className="w-3 h-3 mr-0.5" /> CHAMPION
                                           </Badge>
-                                          <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground capitalize">
+                                          <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize">
                                             {seasonDetail.championPlayer.division}
                                           </Badge>
                                         </div>
-                                        <p className="text-[10px] text-muted-foreground">Juara Season {seasonDetail?.number} • {seasonDetail.championPlayer.points}pts</p>
+                                        <p className="text-sm text-muted-foreground">Juara Season {seasonDetail?.number} • {seasonDetail.championPlayer.points}pts</p>
                                       </div>
                                       <Button
                                         size="sm" variant="ghost"
-                                        className="h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        className="h-8 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                         onClick={() => handleRemoveTarkamChampion(season.id)}
                                       >
                                         <X className="w-3 h-3 mr-1" /> Hapus
@@ -790,16 +790,16 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                                   {/* No champion yet - Tarkam */}
                                   {!seasonDetail?.championPlayer && !isChampionEditing && (
-                                    <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                    <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
                                       <Crown className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                      <p className="text-[10px] text-muted-foreground">Belum ada champion untuk season ini</p>
+                                      <p className="text-sm text-muted-foreground">Belum ada champion untuk season ini</p>
                                     </div>
                                   )}
 
                                   {/* Champion editing mode - Tarkam */}
                                   {isChampionEditing && (
                                     <div className="space-y-2">
-                                      <p className="text-[10px] text-muted-foreground">Pilih pemain champion untuk Season {seasonDetail?.number}:</p>
+                                      <p className="text-sm text-muted-foreground">Pilih pemain champion untuk Season {seasonDetail?.number}:</p>
                                       <Input
                                         placeholder="Cari gamertag..."
                                         value={championPlayerSearch}
@@ -812,7 +812,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                           .map((player) => (
                                           <div
                                             key={player.id}
-                                            className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
+                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                                               selectedChampionPlayer === player.id
                                                 ? 'border-yellow-500/30 bg-yellow-500/5'
                                                 : 'border-border/20 bg-card/30 hover:bg-muted/20'
@@ -831,8 +831,8 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                             </div>
                                             <div className="flex-1 min-w-0">
                                               <p className="text-xs font-medium truncate">{player.gamertag}</p>
-                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
-                                                <Badge className="text-[8px] border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
+                                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground capitalize px-1 py-0">
                                                   {player.division}
                                                 </Badge>
                                                 <span>•</span>
@@ -849,12 +849,12 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                           </div>
                                         ))}
                                         {(!seasonDetail?.players || seasonDetail.players.length === 0) && (
-                                          <p className="text-[10px] text-muted-foreground text-center py-4">
+                                          <p className="text-sm text-muted-foreground text-center py-4">
                                             Belum ada pemain yang berpartisipasi di season ini
                                           </p>
                                         )}
                                         {seasonDetail?.players && seasonDetail.players.length > 0 && championPlayerSearch.trim() && seasonDetail.players.filter(p => p.gamertag.toLowerCase().includes(championPlayerSearch.toLowerCase())).length === 0 && (
-                                          <p className="text-[10px] text-muted-foreground text-center py-2">
+                                          <p className="text-sm text-muted-foreground text-center py-2">
                                             Pemain tidak ditemukan
                                           </p>
                                         )}
@@ -862,7 +862,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       <div className="flex items-center gap-2">
                                         <Button
                                           size="sm"
-                                          className="text-[10px]"
+                                          className="text-sm"
                                           disabled={!selectedChampionPlayer || updateSeason.isPending}
                                           onClick={() => handleSetTarkamChampion(season.id, selectedChampionPlayer)}
                                         >
@@ -871,7 +871,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                         </Button>
                                         <Button
                                           size="sm" variant="ghost"
-                                          className="text-[10px]"
+                                          className="text-sm"
                                           onClick={() => setEditingChampion(null)}
                                         >
                                           Batal
@@ -887,12 +887,12 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                             {/* ── Champion Squad Management ── */}
                             {!isTarkam && seasonDetail?.championClubId && (
-                              <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-border/20">
+                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                                 <div className="flex items-center justify-between mb-2">
                                   <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                                     <Star className="w-3.5 h-3.5 text-yellow-500" /> Skuad Champion (5 Perwakilan)
                                   </p>
-                                  <Button size="sm" variant="outline" className="text-[10px] h-7"
+                                  <Button size="sm" variant="outline" className="text-sm h-8"
                                     onClick={() => {
                                       if (editingSquad) {
                                         setEditingSquad(false);
@@ -932,7 +932,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                             </div>
                                             <div>
                                               <p className="text-xs font-medium">{member.gamertag}</p>
-                                              <p className="text-[8px] text-muted-foreground capitalize">{member.division} {member.role === 'captain' ? '• Captain' : ''}</p>
+                                              <p className="text-xs text-muted-foreground capitalize">{member.division} {member.role === 'captain' ? '• Captain' : ''}</p>
                                             </div>
                                           </div>
                                         ))}
@@ -940,10 +940,10 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                     );
                                   }
                                   return (
-                                    <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
+                                    <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border/40 text-center">
                                       <Star className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                      <p className="text-[10px] text-muted-foreground">Belum ada skuad champion dipilih</p>
-                                      <p className="text-[9px] text-muted-foreground/60">Klik "Set Skuad" untuk memilih 5 perwakilan</p>
+                                      <p className="text-sm text-muted-foreground">Belum ada skuad champion dipilih</p>
+                                      <p className="text-xs text-muted-foreground/60">Klik "Set Skuad" untuk memilih 5 perwakilan</p>
                                     </div>
                                   );
                                 })()}
@@ -951,14 +951,14 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                 {/* Squad editing mode */}
                                 {editingSquad && (
                                   <div className="space-y-3">
-                                    <p className="text-[10px] text-muted-foreground">Pilih tepat 5 anggota dari club champion sebagai perwakilan squad (termasuk anggota divisi lain dengan nama club yang sama):</p>
+                                    <p className="text-sm text-muted-foreground">Pilih tepat 5 anggota dari club champion sebagai perwakilan squad (termasuk anggota divisi lain dengan nama club yang sama):</p>
 
                                     {/* Selected squad preview */}
                                     {squadSelection.length > 0 && (
                                       <div className="flex flex-wrap gap-1.5">
                                         {squadSelection.map((member, idx) => (
-                                          <div key={member.id} className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                                            <span className="text-[9px] font-bold text-yellow-500">#{idx + 1}</span>
+                                          <div key={member.id} className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-yellow-500/10 border border-border">
+                                            <span className="text-xs font-bold text-yellow-500">#{idx + 1}</span>
                                             <span className="text-xs font-medium">{member.gamertag}</span>
                                             <button
                                               className="w-4 h-4 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/40"
@@ -992,7 +992,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                     <div className="flex items-center gap-2">
                                       <Button
                                         size="sm"
-                                        className="text-[10px]"
+                                        className="text-sm"
                                         disabled={squadSelection.length !== 5 || updateSeason.isPending}
                                         onClick={() => {
                                           // Ensure first member is captain
@@ -1010,14 +1010,14 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                         Simpan Skuad ({squadSelection.length}/5)
                                       </Button>
                                       {squadSelection.length === 5 && squadSelection.some(m => m.division !== squadSelection[0]?.division) && (
-                                        <span className="text-[9px] text-idm-gold-warm">✨ Cross-division</span>
+                                        <span className="text-xs text-idm-gold-warm">Cross-division</span>
                                       )}
                                       {squadSelection.length < 5 && squadSelection.length > 0 && (
-                                        <span className="text-[9px] text-yellow-500">Pilih {5 - squadSelection.length} lagi</span>
+                                        <span className="text-xs text-yellow-500">Pilih {5 - squadSelection.length} lagi</span>
                                       )}
                                       <Button
                                         size="sm" variant="ghost"
-                                        className="text-[10px]"
+                                        className="text-sm"
                                         onClick={() => setEditingSquad(false)}
                                       >
                                         Batal
@@ -1029,13 +1029,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                             )}
 
                             {/* ── Status Management ── */}
-                            <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-border/20">
+                            <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                               <div className="flex items-center justify-between mb-2">
                                 <p className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                                   <Flag className="w-3.5 h-3.5" /> Status Season
                                 </p>
                                 {!isStatusEditing && (
-                                  <Button size="sm" variant="outline" className="text-[10px] h-7"
+                                  <Button size="sm" variant="outline" className="text-sm h-8"
                                     onClick={() => setEditingStatus(season.id)}>
                                     <Edit3 className="w-3 h-3 mr-1" /> Ubah
                                   </Button>
@@ -1051,7 +1051,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                     {statusLabels[seasonDetail?.status || season.status] || season.status}
                                   </Badge>
                                   {(isTarkam ? seasonDetail?.championPlayerId : seasonDetail?.championClubId) && (
-                                    <span className="text-[10px] text-muted-foreground">
+                                    <span className="text-sm text-muted-foreground">
                                       (Champion sudah ditentukan)
                                     </span>
                                   )}
@@ -1063,7 +1063,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       key={s}
                                       size="sm"
                                       variant={seasonDetail?.status === s ? 'default' : 'outline'}
-                                      className={`text-[10px] h-7 ${
+                                      className={`text-sm h-8 ${
                                         seasonDetail?.status === s ? statusColors[s] : ''
                                       }`}
                                       onClick={() => handleStatusChange(season.id, s)}
@@ -1076,7 +1076,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                   ))}
                                   <Button
                                     size="sm" variant="ghost"
-                                    className="text-[10px] h-7"
+                                    className="text-sm h-8"
                                     onClick={() => setEditingStatus(null)}
                                   >
                                     Batal
@@ -1087,19 +1087,19 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
 
                             {/* ── Tutup Season Button ── */}
                             {(seasonDetail?.status || season.status) === 'active' && (
-                              <div className="p-4 sm:p-5 rounded-lg bg-orange-500/5 border border-orange-500/15">
+                              <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/15">
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <p className="text-xs font-semibold text-orange-400 flex items-center gap-1.5">
                                       <Lock className="w-3.5 h-3.5" /> Tutup Season
                                     </p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                                    <p className="text-sm text-muted-foreground mt-0.5">
                                       Tutup season ini, tentukan champion otomatis berdasarkan per-season points. Season baru harus dibuat manual.
                                     </p>
                                   </div>
                                   <Button
                                     size="sm"
-                                    className="text-[10px] bg-orange-500 hover:bg-orange-600 text-white shrink-0"
+                                    className="text-sm bg-orange-500 hover:bg-orange-600 text-white shrink-0"
                                     disabled={closeSeason.isPending}
                                     onClick={() => {
                                       setConfirmLocal({
@@ -1125,32 +1125,32 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                 <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                   <Star className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
                                   <p className="text-sm font-bold">{seasonDetail?.players?.length || 0}</p>
-                                  <p className="text-[9px] text-muted-foreground">Pemain</p>
+                                  <p className="text-xs text-muted-foreground">Pemain</p>
                                 </div>
                               ) : (
                                 <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                   <Shield className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
                                   <p className="text-sm font-bold">{seasonDetail?._count?.clubs || season._count?.clubs || 0}</p>
-                                  <p className="text-[9px] text-muted-foreground">Club</p>
+                                  <p className="text-xs text-muted-foreground">Club</p>
                                 </div>
                               )}
                               <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                 <Trophy className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
                                 <p className="text-sm font-bold">{seasonDetail?._count?.tournaments || season._count?.tournaments || 0}</p>
-                                <p className="text-[9px] text-muted-foreground">Tournament</p>
+                                <p className="text-xs text-muted-foreground">Tournament</p>
                               </div>
                               <div className="p-2.5 rounded-lg bg-muted/30 border border-border/20 text-center">
                                 <Star className={`w-4 h-4 ${dt.neonText} mx-auto mb-1`} />
                                 <p className="text-sm font-bold">{isTarkam ? (seasonDetail?.players?.reduce((sum, p) => sum + p.points, 0) || 0) : (seasonDetail?.clubs?.reduce((sum, c) => sum + c.points, 0) || 0)}</p>
-                                <p className="text-[9px] text-muted-foreground">Total Poin</p>
+                                <p className="text-xs text-muted-foreground">Total Poin</p>
                               </div>
                             </div>
 
                             {/* ── Clubs in Season (Liga only) ── */}
                             {!isTarkam && (
-                              <div className="p-4 sm:p-5 rounded-lg bg-muted/30 border border-border/20">
+                              <div className="p-3 rounded-lg bg-muted/30 border border-border/20">
                                 <div className="flex items-center justify-between mb-2">
-                                  <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                  <p className="text-sm font-semibold uppercase tracking-wider flex items-center gap-1.5">
                                     <Shield className="w-3.5 h-3.5 text-blue-400" /> Club di Season Ini ({seasonDetail?.clubs?.length || 0})
                                   </p>
                                   <AddClubToSeasonButton seasonId={season.id} seasonDivision={season.division} dt={dt} qc={qc} />
@@ -1166,13 +1166,13 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                         return (
                                           <div
                                             key={club.id}
-                                            className={`flex items-center gap-2 p-3 sm:p-4 rounded-lg border text-xs transition-colors ${
+                                            className={`flex items-center gap-2 p-3 rounded-lg border text-xs transition-colors ${
                                               isChampion
                                                 ? 'border-yellow-500/20 bg-yellow-500/5'
                                                 : 'border-border/20 bg-card/30 hover:bg-muted/20'
                                             }`}
                                           >
-                                            <span className={`w-5 text-center font-bold text-[10px] ${
+                                            <span className={`w-5 text-center font-bold text-xs ${
                                               idx === 0 ? 'text-yellow-500' :
                                               idx === 1 ? 'text-muted-foreground' :
                                               idx === 2 ? 'text-amber-600' :
@@ -1193,7 +1193,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                             {isChampion && (
                                               <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
                                             )}
-                                            <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                                            <span className="ml-auto text-xs text-muted-foreground shrink-0">
                                               {club.points}pts • {club.wins}W/{club.losses}L
                                             </span>
                                           </div>
@@ -1203,10 +1203,10 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                 ) : (
                                   <div className="text-center py-3">
                                     <Shield className="w-5 h-5 text-muted-foreground/40 mx-auto mb-1" />
-                                    <p className="text-[10px] text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground">
                                       Belum ada club di season ini
                                     </p>
-                                    <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+                                    <p className="text-xs text-muted-foreground/60 mt-0.5">
                                       Gunakan tombol + untuk menambahkan club
                                     </p>
                                   </div>
@@ -1217,20 +1217,20 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                             {/* ── Players Quick List (Tarkam only) ── */}
                             {isTarkam && seasonDetail?.players && seasonDetail.players.length > 0 && (
                               <div>
-                                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                                   <Star className="w-3 h-3" /> Pemain di Season Ini
                                 </p>
                                 <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
                                   {seasonDetail.players.map((player, idx) => (
                                     <div
                                       key={player.id}
-                                      className={`flex items-center gap-2 p-3 sm:p-4 rounded-lg border text-xs ${
+                                      className={`flex items-center gap-2 p-3 rounded-lg border text-xs ${
                                         player.id === seasonDetail.championPlayerId
                                           ? 'border-yellow-500/20 bg-yellow-500/5'
                                           : 'border-border/20 bg-card/30'
                                       }`}
                                     >
-                                      <span className={`w-5 text-center font-bold text-[10px] ${
+                                      <span className={`w-5 text-center font-bold text-xs ${
                                         idx === 0 ? 'text-yellow-500' :
                                         idx === 1 ? 'text-muted-foreground' :
                                         idx === 2 ? 'text-amber-600' :
@@ -1252,7 +1252,7 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
                                       {player.id === seasonDetail.championPlayerId && (
                                         <Crown className="w-3 h-3 text-yellow-500 shrink-0" />
                                       )}
-                                      <span className="ml-auto text-[10px] text-muted-foreground">
+                                      <span className="ml-auto text-xs text-muted-foreground">
                                         {player.points}pts • {player.tournamentCount} tourney
                                       </span>
                                     </div>
@@ -1360,16 +1360,16 @@ function AddClubToSeasonButton({ seasonId, seasonDivision, dt, qc }: {
 
   return (
     <div className="relative">
-      <Button size="sm" variant="outline" className="text-[10px] h-7 w-7 p-0" onClick={() => setOpen(!open)}>
+      <Button size="sm" variant="outline" className="text-sm h-8 w-8 p-0" onClick={() => setOpen(!open)}>
         <Plus className="w-3 h-3" />
       </Button>
       {open && (
-        <div className="absolute right-0 top-8 z-50 w-56 bg-card border border-border/30 rounded-lg shadow-lg p-2 space-y-1.5">
+        <div className="absolute right-0 top-8 z-50 w-56 bg-card border border-border/30 rounded-lg shadow p-2 space-y-1.5">
           <Input
             placeholder="Cari club..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="text-[10px] h-7"
+            className="text-sm h-8"
           />
           <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-0.5">
             {filtered.map((profile) => (
@@ -1383,7 +1383,7 @@ function AddClubToSeasonButton({ seasonId, seasonDivision, dt, qc }: {
                 ) : (
                   <Shield className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 )}
-                <span className="text-[10px] truncate flex-1">{profile.name}</span>
+                <span className="text-sm truncate flex-1">{profile.name}</span>
                 {adding === profile.id ? (
                   <Loader2 className="w-3 h-3 animate-spin text-muted-foreground shrink-0" />
                 ) : (
@@ -1392,12 +1392,12 @@ function AddClubToSeasonButton({ seasonId, seasonDivision, dt, qc }: {
               </div>
             ))}
             {filtered.length === 0 && (
-              <p className="text-[9px] text-muted-foreground text-center py-2">
+              <p className="text-xs text-muted-foreground text-center py-2">
                 {available.length === 0 ? 'Semua club sudah ada di season' : 'Club tidak ditemukan'}
               </p>
             )}
           </div>
-          <Button size="sm" variant="ghost" className="text-[9px] h-6 w-full" onClick={() => { setOpen(false); setSearch(''); }}>Tutup</Button>
+          <Button size="sm" variant="ghost" className="text-xs h-8 w-full" onClick={() => { setOpen(false); setSearch(''); }}>Tutup</Button>
         </div>
       )}
     </div>
@@ -1438,7 +1438,7 @@ function ChampionSquadSelector({
   }
 
   if (allPlayers.length === 0) {
-    return <p className="text-[10px] text-muted-foreground text-center py-2">Tidak ada anggota club champion ditemukan</p>;
+    return <p className="text-sm text-muted-foreground text-center py-2">Tidak ada anggota club champion ditemukan</p>;
   }
 
   const filtered = search.trim()
@@ -1462,7 +1462,7 @@ function ChampionSquadSelector({
           return (
             <div
               key={player.id}
-              className={`flex items-center gap-2 p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
                 isSelected
                   ? 'border-yellow-500/30 bg-yellow-500/5'
                   : 'border-border/20 bg-card/30 hover:bg-muted/20'
@@ -1481,7 +1481,7 @@ function ChampionSquadSelector({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{player.gamertag}</p>
-                <p className="text-[9px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   <span className="capitalize">{player.division}</span>
                   {player.clubDivision !== player.division && (
                     <span className="text-idm-gold-warm ml-1">• dari club {player.clubDivision}</span>
@@ -1498,10 +1498,10 @@ function ChampionSquadSelector({
           );
         })}
         {filtered.length === 0 && (
-          <p className="text-[10px] text-muted-foreground text-center py-2">Anggota tidak ditemukan</p>
+          <p className="text-sm text-muted-foreground text-center py-2">Anggota tidak ditemukan</p>
         )}
       </div>
-      <p className="text-[9px] text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center">
         {allPlayers.length} anggota club {clubData?.clubName || 'champion'} • {maleCount} male, {femaleCount} female • bebas pilih dari divisi mana saja
       </p>
     </div>

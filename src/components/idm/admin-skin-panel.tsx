@@ -300,7 +300,7 @@ export function AdminSkinPanel() {
           <CardTitle className="text-sm flex items-center gap-2">
             <Shield className={`w-4 h-4 ${dt.text}`} />
             Katalog Skin
-            <Badge className="text-[9px] border-0 bg-muted">{skins.length} skin</Badge>
+            <Badge className="text-xs border-0 bg-muted">{skins.length} skin</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -320,11 +320,11 @@ export function AdminSkinPanel() {
                 return (
                   <div
                     key={skin.id}
-                    className={`relative p-4 sm:p-5 rounded-2xl border ${theme.accentBorder} ${skin.isActive ? 'bg-card' : 'bg-muted/30 opacity-60'}`}
+                    className={`relative p-3 rounded-lg border ${theme.accentBorder} ${skin.isActive ? 'bg-card' : 'bg-muted/30 opacity-60'}`}
                   >
                     {/* Subtle accent glow */}
                     <div
-                      className="absolute inset-0 rounded-2xl opacity-[0.04]"
+                      className="absolute inset-0 rounded-lg opacity-[0.04]"
                       style={{
                         background: colors?.glow || 'transparent',
                       }}
@@ -348,38 +348,38 @@ export function AdminSkinPanel() {
                             {skin.displayName}
                           </p>
                           {!skin.isActive && (
-                            <Badge className="text-[8px] border-0 bg-red-500/10 text-red-500">Inactive</Badge>
+                            <Badge className="text-xs border-0 bg-red-500/10 text-red-500">Inactive</Badge>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground line-clamp-1">
+                        <p className="text-sm text-muted-foreground line-clamp-1">
                           {skin.description}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           {/* Color swatch */}
                           <div className="flex items-center gap-1">
                             <div
-                              className="w-3 h-3 rounded-full border border-border/40"
+                              className="w-3 h-3 rounded-full border border-border"
                               style={{ background: colors?.frame || '#888' }}
                               title="Frame color"
                             />
-                            <span className="text-[9px] text-muted-foreground">Frame</span>
+                            <span className="text-xs text-muted-foreground">Frame</span>
                           </div>
 
                           {/* Duration badge */}
-                          <Badge className={`text-[9px] border-0 bg-amber-500/10 text-amber-400`}>
+                          <Badge className={`text-xs border-0 bg-amber-500/10 text-amber-400`}>
                             <Clock className="w-2.5 h-2.5 mr-0.5" />
                             Weekly
                           </Badge>
 
                           {/* Donor badge indicator */}
                           {skin.type === 'donor' && (
-                            <Badge className="text-[9px] border-0 bg-rose-500/10 text-rose-400">
-                              ❤️ Badge permanen
+                            <Badge className="text-xs border-0 bg-rose-500/10 text-rose-400">
+                              Badge permanen
                             </Badge>
                           )}
 
                           {/* Priority */}
-                          <Badge className="text-[9px] border-0 bg-muted text-muted-foreground">
+                          <Badge className="text-xs border-0 bg-muted text-muted-foreground">
                             P{skin.priority}
                           </Badge>
                         </div>
@@ -388,7 +388,7 @@ export function AdminSkinPanel() {
                       {/* Quick Award button */}
                       <Button
                         size="sm"
-                        className={`h-7 text-[10px] ${theme.accentBg} ${theme.accentText} hover:${theme.accentBg} border-0 px-2.5`}
+                        className={`h-8 text-sm ${theme.accentBg} ${theme.accentText} hover:${theme.accentBg} border-0 px-2.5`}
                         onClick={() => openAwardDialog(skin.type)}
                         disabled={!skin.isActive}
                       >
@@ -413,13 +413,13 @@ export function AdminSkinPanel() {
             <CardTitle className="text-sm flex items-center gap-2">
               <Crown className={`w-4 h-4 ${dt.text}`} />
               Pemegang Skin
-              <Badge className="text-[9px] border-0 bg-muted">
+              <Badge className="text-xs border-0 bg-muted">
                 {activeHolders.length} aktif
               </Badge>
             </CardTitle>
             <Button
               size="sm"
-              className="h-7 text-[10px]"
+              className="h-8 text-sm"
               onClick={() => openAwardDialog()}
             >
               <Award className="w-3 h-3 mr-1" /> Award Skin
@@ -450,7 +450,7 @@ export function AdminSkinPanel() {
                     return (
                       <div
                         key={holder.id}
-                        className={`flex items-center gap-3 p-3 sm:p-4 rounded-2xl bg-card border border-border/50 ${theme?.accentBorder || ''}`}
+                        className={`flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-card border border-border ${theme?.accentBorder || ''}`}
                       >
                         {/* Player info */}
                         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -463,20 +463,20 @@ export function AdminSkinPanel() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                               <p className="text-xs font-medium truncate">{holder.player.gamertag}</p>
-                              <Badge className={`text-[8px] border-0 ${
+                              <Badge className={`text-xs border-0 ${
                                 holder.player.division === 'male'
                                   ? 'bg-idm-male/10 text-idm-male'
                                   : 'bg-idm-female/10 text-idm-female'
                               }`}>
-                                {holder.player.division === 'male' ? '🕺' : '💃'}
+                                {holder.player.division === 'male' ? 'M' : 'F'}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <span className={theme?.accentText}>{holder.displayName}</span>
                               {holder.donorBadgeCount !== undefined && holder.donorBadgeCount > 0 && (
                                 <>
                                   <span>•</span>
-                                  <span className="text-rose-400">❤️×{holder.donorBadgeCount}{holder.donorBadgeCount >= 5 ? ' ★' : ''}</span>
+                                  <span className="text-rose-400">×{holder.donorBadgeCount}</span>
                                 </>
                               )}
                               {holder.reason && (
@@ -492,14 +492,14 @@ export function AdminSkinPanel() {
                         {/* Expiry info */}
                         <div className="shrink-0 text-right">
                           {holder.expiresAt ? (
-                            <div className="flex items-center gap-1 text-[10px] text-amber-400">
+                            <div className="flex items-center gap-1 text-xs text-amber-400">
                               <Clock className="w-3 h-3" />
                               {new Date(holder.expiresAt).toLocaleDateString('id-ID', {
                                 day: 'numeric', month: 'short'
                               })}
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1 text-[10px] text-amber-400">
+                            <div className="flex items-center gap-1 text-xs text-amber-400">
                               <Clock className="w-3 h-3" />
                               Weekly
                             </div>
@@ -510,7 +510,7 @@ export function AdminSkinPanel() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10 shrink-0"
+                          className="h-8 w-8 p-0 touch-icon text-red-500 hover:text-red-400 hover:bg-red-500/10 shrink-0"
                           onClick={() => setConfirmDialog({
                             open: true,
                             title: 'Cabut Skin?',
@@ -532,7 +532,7 @@ export function AdminSkinPanel() {
               {/* Expired holders (collapsed) */}
               {expiredHolders.length > 0 && (
                 <details className="group">
-                  <summary className="text-[10px] text-muted-foreground cursor-pointer flex items-center gap-1 hover:text-foreground transition-colors">
+                  <summary className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1 hover:text-foreground transition-colors">
                     <XCircle className="w-3 h-3" />
                     {expiredHolders.length} skin sudah expired
                     <span className="group-open:hidden">▸</span>
@@ -542,7 +542,7 @@ export function AdminSkinPanel() {
                     {expiredHolders.map((holder: SkinHolder) => (
                       <div
                         key={holder.id}
-                        className="flex items-center gap-2 p-3 sm:p-4 rounded-lg bg-muted/20 text-[10px]"
+                        className="flex items-center gap-2 p-3 sm:p-4 rounded-lg bg-muted/20 text-sm"
                       >
                         <span>{holder.icon}</span>
                         <span className="font-medium">{holder.player.gamertag}</span>
@@ -599,7 +599,7 @@ export function AdminSkinPanel() {
                         <span className="flex items-center gap-2">
                           <span>{def.icon}</span>
                           <span>{def.displayName}</span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-sm text-muted-foreground">
                             (Weekly, P{def.priority})
                           </span>
                         </span>
@@ -616,7 +616,7 @@ export function AdminSkinPanel() {
               const theme = skinThemeConfig[awardForm.skinType];
               if (!skinDef || !theme) return null;
               return (
-                <div className={`p-4 sm:p-5 rounded-2xl border ${theme.accentBorder} ${theme.accentBg}`}>
+                <div className={`p-3 rounded-lg border ${theme.accentBorder} ${theme.accentBg}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                       style={{ background: 'hsl(var(--muted) / 0.3)' }}
@@ -625,12 +625,12 @@ export function AdminSkinPanel() {
                     </div>
                     <div>
                       <p className={`text-sm font-semibold ${theme.accentText}`}>{skinDef.displayName}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         Priority {skinDef.priority} • Weekly (7 hari)
                       </p>
                       {skinDef.type === 'donor' && (
-                        <p className="text-[9px] text-rose-400 mt-0.5">
-                          ❤️ Badge hati permanen (+1 donasi count)
+                        <p className="text-xs text-rose-400 mt-0.5">
+                          Badge hati permanen (+1 donasi count)
                         </p>
                       )}
                     </div>
@@ -666,21 +666,21 @@ export function AdminSkinPanel() {
                       onClick={() => handleSelectPlayer(p)}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs">
-                          {p.division === 'male' ? '🕺' : '💃'}
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">
+                          {p.division === 'male' ? 'M' : 'F'}
                         </div>
                         <div>
                           <p className="text-xs font-medium">{p.gamertag}</p>
-                          <p className="text-[10px] text-muted-foreground">{p.name}</p>
+                          <p className="text-sm text-muted-foreground">{p.name}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {p.account?.id ? (
-                          <Badge className="text-[8px] border-0 bg-emerald-500/10 text-emerald-400">
+                          <Badge className="text-xs border-0 bg-emerald-500/10 text-emerald-400">
                             <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" /> Ada Akun
                           </Badge>
                         ) : (
-                          <Badge className="text-[8px] border-0 bg-red-500/10 text-red-400">
+                          <Badge className="text-xs border-0 bg-red-500/10 text-red-400">
                             <XCircle className="w-2.5 h-2.5 mr-0.5" /> Tanpa Akun
                           </Badge>
                         )}
@@ -692,7 +692,7 @@ export function AdminSkinPanel() {
 
               {/* No results */}
               {playerSearch.trim() && filteredPlayers.length === 0 && (
-                <p className="text-[10px] text-muted-foreground mt-1.5">Tidak ada player ditemukan</p>
+                <p className="text-sm text-muted-foreground mt-1.5">Tidak ada player ditemukan</p>
               )}
 
               {/* Selected player */}
@@ -701,17 +701,17 @@ export function AdminSkinPanel() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-idm-gold-warm/20 flex items-center justify-center text-sm">
-                        {selectedPlayer.division === 'male' ? '🕺' : '💃'}
+                        {selectedPlayer.division === 'male' ? 'M' : 'F'}
                       </div>
                       <div>
                         <p className="text-sm font-semibold">{selectedPlayer.gamertag}</p>
-                        <p className="text-[10px] text-muted-foreground">{selectedPlayer.name}</p>
+                        <p className="text-sm text-muted-foreground">{selectedPlayer.name}</p>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-6 w-6 p-0"
+                      className="h-8 w-8 p-0"
                       onClick={() => {
                         setSelectedPlayer(null);
                         setAwardForm(prev => ({ ...prev, accountId: '' }));
@@ -741,7 +741,7 @@ export function AdminSkinPanel() {
                 <Label className="text-xs text-muted-foreground">
                   Tanggal Expired (default: 7 hari)
                   {awardForm.skinType === 'donor' && (
-                    <span className="text-rose-400 ml-1">• Badge ❤️ tetap permanen</span>
+                    <span className="text-rose-400 ml-1">• Badge tetap permanen</span>
                   )}
                 </Label>
                 <Input
