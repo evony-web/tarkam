@@ -1599,3 +1599,21 @@ This guarantees every connector starts from an EXISTING match, avoiding the BYE 
 - `npx eslint src/components/idm/bracket-view.tsx` — ✅ No errors
 - `bun run lint` — ✅ No new errors (2 pre-existing errors in hero-section.tsx and shared.tsx)
 - Dev server compiles successfully (no bracket-view.tsx errors)
+
+---
+Task ID: bracket-fix-1
+Agent: Main Agent
+Task: Fix single elimination bracket connecting lines - filter to upper bracket only + sort by groupLabel position
+
+Work Log:
+- Identified root cause: BracketView's roundsData grouped ALL matches by round number, mixing upper/lower/grand_final brackets together. For single_elimination display, this meant R1 had U1-1, U1-2, AND L1-1 mixed together, causing wrong connector lines
+- Added bracket filtering for single_elimination: `matches.filter(m => m.bracket === 'upper' || !m.bracket)` so only upper bracket matches are used for single elimination rendering
+- Added groupLabel position-based sorting: matches within each round are now sorted by `getBracketPosition(groupLabel)` instead of just matchNumber, ensuring proper bracket ordering (U1-1 before U1-2 before U1-3, etc.)
+- Applied same groupLabel sorting to UpperSemiView's upperRounds and lowerRounds
+- Verified: lint passes clean, dev server compiles without errors, VLM analysis confirms connecting lines are visible and correct on desktop
+
+Stage Summary:
+- Single elimination bracket now correctly shows only upper bracket matches in horizontal column layout
+- Connecting lines correctly connect R1 matches to R2 matches using SOURCE→TARGET algorithm
+- Matches sorted by bracket position for proper visual ordering
+- Upper Semi view also benefits from correct position-based sorting

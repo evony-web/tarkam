@@ -1641,7 +1641,12 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
       .map(([round, roundMatches]) => ({
         round,
         label: getUpperSemiRoundLabel(round, 'upper', matches),
-        matches: roundMatches.sort((a, b) => (a.matchNumber ?? 0) - (b.matchNumber ?? 0)),
+        matches: [...roundMatches].sort((a, b) => {
+          const posA = getBracketPosition(a.groupLabel);
+          const posB = getBracketPosition(b.groupLabel);
+          if (posA && posB) return posA - posB;
+          return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+        }),
       }));
   }, [upperMatches, matches]);
 
@@ -1658,7 +1663,12 @@ function UpperSemiView({ matches }: { matches: Match[] }) {
       .map(([round, roundMatches]) => ({
         round,
         label: getUpperSemiRoundLabel(round, 'lower', matches),
-        matches: roundMatches.sort((a, b) => (a.matchNumber ?? 0) - (b.matchNumber ?? 0)),
+        matches: [...roundMatches].sort((a, b) => {
+          const posA = getBracketPosition(a.groupLabel);
+          const posB = getBracketPosition(b.groupLabel);
+          if (posA && posB) return posA - posB;
+          return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+        }),
       }));
   }, [lowerMatches, matches]);
 
@@ -1811,11 +1821,19 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
   const [connectors, setConnectors] = useState<ConnectorPath[]>([]);
   const [activeType, setActiveType] = useState(bracketType);
 
-  /* Group matches by round — auto-split if all in one round */
+  /* Group matches by round — for single elimination, only use upper bracket matches */
   const roundsData = useMemo(() => {
     if (!matches || matches.length === 0) return [];
 
-    const grouped = matches.reduce<Record<number, Match[]>>((acc, m) => {
+    // For single_elimination: only include matches from the 'upper' bracket
+    // (exclude 'lower', 'grand_final' etc. which belong to double elimination)
+    const filteredMatches = bracketType === 'single_elimination'
+      ? matches.filter(m => m.bracket === 'upper' || !m.bracket)
+      : matches;
+
+    if (filteredMatches.length === 0) return [];
+
+    const grouped = filteredMatches.reduce<Record<number, Match[]>>((acc, m) => {
       const round = m.round ?? 1;
       if (!acc[round]) acc[round] = [];
       acc[round].push(m);
@@ -1855,7 +1873,13 @@ export function BracketView({ matches, bracketType }: BracketViewProps) {
       .map(([, roundMatches], idx) => ({
         round: idx + 1,
         label: getRoundLabel(idx, Object.keys(grouped).length),
-        matches: [...roundMatches].sort((a, b) => (a.matchNumber ?? 0) - (b.matchNumber ?? 0)),
+        matches: [...roundMatches].sort((a, b) => {
+          // Sort by groupLabel position for proper bracket ordering
+          const posA = getBracketPosition(a.groupLabel);
+          const posB = getBracketPosition(b.groupLabel);
+          if (posA && posB) return posA - posB;
+          return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+        }),
       }));
 
     return sortedRounds;
