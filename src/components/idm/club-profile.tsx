@@ -330,7 +330,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
       aria-label={`Profil Club ${club.name}`}
     >
       <div
-        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col"
+        className="modal-container modal-container-lg modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
           {/* ═══ Sticky Close Button — always visible, outside scroll area ═══ */}
