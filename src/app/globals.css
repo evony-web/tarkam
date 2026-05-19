@@ -11698,7 +11698,7 @@ img[alt] {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
   border-radius: 1rem;
   border: 1px solid var(--border);
   background: var(--background);
@@ -11837,6 +11837,7 @@ img[alt] {
 .modal-body {
   padding: 1.25rem;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -11850,6 +11851,7 @@ img[alt] {
 .modal-body-compact {
   padding: 1rem;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 

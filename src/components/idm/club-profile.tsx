@@ -330,7 +330,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
       aria-label={`Profil Club ${club.name}`}
     >
       <div
-        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col overflow-hidden"
+        className="modal-container modal-container-md modal-container-gold modal-enter-slide max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
           {/* ── Header Banner (non-scrolling) ── */}
@@ -435,7 +435,7 @@ export function ClubProfile({ club, onClose, rank, onPlayerClick }: ClubProfileP
           </div>
 
           {/* ── Content (scrollable) ── */}
-          <div className="modal-body-compact pt-14! flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+          <div className="modal-body-compact pt-14! custom-scrollbar">
             {/* Name & Division */}
             <div className="text-center mb-4">
               <h2 className="text-xl font-black" style={{ background: 'linear-gradient(135deg, var(--idm-gold-warm), #F9CB25, var(--idm-gold-warm))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{club.name}</h2>
