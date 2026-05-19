@@ -43,6 +43,7 @@ const PaymentModal = dynamic(() => import('./payment-modal').then(m => ({ defaul
 const UnifiedLoginModal = dynamic(() => import('./unified-login-modal').then(m => ({ default: m.UnifiedLoginModal })), { ssr: false, loading: () => null });
 const DonationModal = dynamic(() => import('./donation-modal').then(m => ({ default: m.DonationModal })), { ssr: false, loading: () => null });
 const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
+const SeasonProgressSection = dynamic(() => import('./landing/season-progress-section').then(m => ({ default: m.SeasonProgressSection })), { ssr: false, loading: () => <div className="min-h-[60px] sm:min-h-[80px]" /> });
 const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
 
 // Shared hooks & components
@@ -785,6 +786,14 @@ export function LandingPage() {
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
+      />
+      </div>
+
+      {/* Season Progress — compact season timeline */}
+      <div className="section-reveal">
+      <SeasonProgressSection
+        maleData={maleData}
+        femaleData={femaleData}
       />
       </div>
 

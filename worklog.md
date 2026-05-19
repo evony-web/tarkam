@@ -324,3 +324,30 @@ Stage Summary:
 - No more 8 collapsed cards — clean, focused on latest results
 - Newest-first order = natural "feed" pattern (like news/social media)
 - File modified: `/home/z/my-project/src/components/idm/landing/hasil-section.tsx`
+
+---
+Task ID: 7
+Agent: main
+Task: Add Season Progress section to beranda (home page)
+
+Work Log:
+- Analyzed user feedback: user rejected Juara showcase (redundant with Juara menu) and Hot Player (same as #1 ranked), agreed with Season Progress
+- Reviewed existing data: `maleData.seasonProgress` already provides `totalWeeks`, `completedWeeks`, `percentage`
+- Reviewed `getSeasonPhase()` function: returns registration/competition/playoffs based on current week
+- Created `/home/z/my-project/src/components/idm/landing/season-progress-section.tsx`:
+  - Compact season timeline with 10 week progress bars (filled = completed, pulse = active, muted = upcoming)
+  - Phase badge (Registrasi / Kompetisi / Playoff) with color-coded icon
+  - Season name + progress stats ("3 / 10 minggu selesai · Minggu 4 berlangsung")
+  - Overall percentage progress bar
+  - Mobile-first responsive design
+- Added dynamic import in `landing-page.tsx` with lazy loading
+- Placed section between TournamentHub and Hasil section (after Kompetisi, before Hasil)
+- Fixed bug: `isCurrent` variable was scoped inside map callback but referenced at component level — created `hasActiveWeek` boolean at component scope
+- Cleaned up unused imports (SEASON_TOTAL_WEEKS, SEASON_PHASES, isUpcoming destructuring)
+
+Stage Summary:
+- New file: `/home/z/my-project/src/components/idm/landing/season-progress-section.tsx`
+- Modified: `/home/z/my-project/src/components/idm/landing-page.tsx` (added dynamic import + section placement)
+- Beranda section order: Hero → Marquee → Cari Turnamen → Kompetisi → **Season Progress** → Hasil → Peringkat → Clubs → Sponsors → Footer
+- Season Progress uses existing `seasonProgress` data from `/api/stats` — no new API needed
+- No lint errors introduced
