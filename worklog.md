@@ -119,3 +119,31 @@ Stage Summary:
 - Files modified: `player-profile.tsx`, `/api/players/[id]/matches/route.ts`
 - Match history now grouped by week, shows scores, MVP, bracket labels
 - Design: card-style rows with color-coded results, week headers with W/L summary
+
+---
+Task ID: 6
+Agent: Main
+Task: Redesign Hasil Section beranda — show all week results (not just active tournament), grouped by week with MVP
+
+Work Log:
+- Identified critical issue: old Hasil section only showed `activeTournament.matches` — results from previous weeks disappeared when new week started
+- Created new API endpoint `/api/season-results?division=male|female` — lightweight endpoint that returns all completed matches grouped by week for the active season
+- API returns: tournament matches (with bracket, scores, MVP) + league matches per week
+- Completely rewrote `hasil-section.tsx` with new architecture:
+  - WeekCard component: collapsible card per week, newest week expanded by default
+  - Week header shows: Week number, champion team (from Grand Final winner), match count
+  - Tournament matches grouped by bracket/round (Grand Final gold, Semi Final, Quarter, Lower, Liga)
+  - MVP badge ⭐ shown per match with gamertag
+  - Grand Final special rendering with 🏆👑 champion style
+  - League match rows with club names and scores
+  - GhostWeekCard for empty state
+  - Division filter (Semua/Cowo/Cewe) preserved
+  - Side-by-side Male/Female on desktop, stacked on mobile
+  - "Lihat Semua Hasil" CTA preserved
+
+Stage Summary:
+- Files created: `/home/z/my-project/src/app/api/season-results/route.ts` (new API)
+- Files modified: `/home/z/my-project/src/components/idm/landing/hasil-section.tsx` (full rewrite)
+- Hasil section now shows ALL weeks in the season, not just active tournament
+- Week grouping: collapsible cards with bracket labels, scores, MVP, champion
+- API tested and verified: male has 2 weeks of data, female has 1 completed week
