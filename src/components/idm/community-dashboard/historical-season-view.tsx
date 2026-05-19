@@ -179,7 +179,7 @@ function ChampionCard({ season, championPoints }: { season: SeasonDetailResponse
 }
 
 /* ═══════════════════════════════════════════
-   Standings Table — Player rankings from snapshot
+   Standings List — Player rankings card-per-row
    ═══════════════════════════════════════════ */
 function StandingsTable({ standings, division }: { standings: StandingPlayer[]; division: string }) {
   const isMale = division === 'male';
@@ -194,66 +194,65 @@ function StandingsTable({ standings, division }: { standings: StandingPlayer[]; 
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-border/20">
-            <th className="py-2 px-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-10">#</th>
-            <th className="py-2 px-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Player</th>
-            <th className="py-2 px-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Club</th>
-            <th className="py-2 px-2 text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings.map((player, idx) => {
-            const rank = player.rank || idx + 1;
-            const isTop3 = rank <= 3;
-            return (
-              <tr
-                key={player.id}
-                className={`border-b border-border/5 transition-colors hover:bg-muted/20 ${
-                  isTop3 ? 'bg-amber-500/[0.02]' : ''
-                }`}
-              >
-                <td className="py-2.5 px-2">
-                  <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
-                    rank === 1 ? 'bg-amber-500/20 text-amber-400' :
-                    rank === 2 ? 'bg-muted/15 text-muted-foreground' :
-                    rank === 3 ? 'bg-orange-500/15 text-orange-400' :
-                    'bg-muted/20 text-muted-foreground'
-                  }`}>
-                    {rank}
-                  </div>
-                </td>
-                <td className="py-2.5 px-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
-                      {player.gamertag}
-                    </span>
-                    {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
-                  </div>
-                </td>
-                <td className="py-2.5 px-2 hidden sm:table-cell">
-                  <span className="text-muted-foreground truncate block max-w-[120px]">
-                    {player.club || '-'}
+    <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-0.5">
+      {standings.map((player, idx) => {
+        const rank = player.rank || idx + 1;
+        const isTop3 = rank <= 3;
+        return (
+          <div
+            key={player.id}
+            className={`rounded-xl border transition-all duration-200 ${
+              rank === 1
+                ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                : isTop3
+                  ? 'bg-card/60 border-border/30'
+                  : idx % 2 === 0
+                    ? 'bg-card/50 border-border/20'
+                    : 'bg-card/35 border-border/15'
+            }`}
+          >
+            <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+              {/* Rank */}
+              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+                rank === 1
+                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+                  : rank === 2
+                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+                    : rank === 3
+                      ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+                      : 'bg-muted text-muted-foreground'
+              }`}>{rank}</span>
+
+              {/* Player info */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs sm:text-sm font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
+                    {player.gamertag}
                   </span>
-                </td>
-                <td className="py-2.5 px-2 text-right">
-                  <span className={`font-bold tabular-nums ${isTop3 ? (isMale ? 'text-idm-male' : 'text-idm-female') : 'text-foreground/70'}`}>
+                  {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
+                </div>
+                {player.club && <p className="text-[9px] text-muted-foreground truncate">{player.club}</p>}
+              </div>
+
+              {/* Points */}
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                <div className="text-center min-w-[36px]">
+                  <p className={`text-sm sm:text-base font-bold tabular-nums ${isTop3 ? (isMale ? 'text-idm-male' : 'text-idm-female') : 'text-foreground/70'}`}>
                     {player.points}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </p>
+                  <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════
-   Club Rankings Table — Club rankings from API data
+   Club Rankings — Card-per-row design
    ═══════════════════════════════════════════ */
 function ClubRankingsTable({ clubs }: { clubs: StandingClub[] }) {
   if (clubs.length === 0) {
@@ -269,67 +268,71 @@ function ClubRankingsTable({ clubs }: { clubs: StandingClub[] }) {
   const sortedClubs = [...clubs].sort((a, b) => b.points - a.points);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-border/20">
-            <th className="py-2 px-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-10">#</th>
-            <th className="py-2 px-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Club</th>
-            <th className="py-2 px-2 text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">W/L</th>
-            <th className="py-2 px-2 text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Points</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedClubs.map((club, idx) => {
-            const rank = idx + 1;
-            const isTop3 = rank <= 3;
-            return (
-              <tr
-                key={club.id}
-                className={`border-b border-border/5 transition-colors hover:bg-muted/20 ${
-                  isTop3 ? 'bg-amber-500/[0.02]' : ''
-                }`}
-              >
-                <td className="py-2.5 px-2">
-                  <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
-                    rank === 1 ? 'bg-amber-500/20 text-amber-400' :
-                    rank === 2 ? 'bg-muted/15 text-muted-foreground' :
-                    rank === 3 ? 'bg-orange-500/15 text-orange-400' :
-                    'bg-muted/20 text-muted-foreground'
-                  }`}>
-                    {rank}
+    <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-0.5">
+      {sortedClubs.map((club, idx) => {
+        const rank = idx + 1;
+        const isTop3 = rank <= 3;
+        return (
+          <div
+            key={club.id}
+            className={`rounded-xl border transition-all duration-200 ${
+              rank === 1
+                ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                : isTop3
+                  ? 'bg-card/60 border-border/30'
+                  : idx % 2 === 0
+                    ? 'bg-card/50 border-border/20'
+                    : 'bg-card/35 border-border/15'
+            }`}
+          >
+            <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+              {/* Rank */}
+              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+                rank === 1
+                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+                  : rank === 2
+                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+                    : rank === 3
+                      ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+                      : 'bg-muted text-muted-foreground'
+              }`}>{rank}</span>
+
+              {/* Club logo + info */}
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden shrink-0">
+                {club.profile?.logo ? (
+                  <img src={club.profile.logo} alt={club.profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-muted/30 flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
                   </div>
-                </td>
-                <td className="py-2.5 px-2">
-                  <div className="flex items-center gap-2">
-                    {club.profile?.logo ? (
-                      <img src={club.profile.logo} alt={club.profile.name} className="w-5 h-5 rounded object-cover" />
-                    ) : (
-                      <div className="w-5 h-5 rounded bg-muted/30 flex items-center justify-center">
-                        <Building2 className="w-3 h-3 text-muted-foreground" />
-                      </div>
-                    )}
-                    <span className={`font-semibold ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
-                      {club.profile?.name || 'Unknown'}
-                    </span>
-                    {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
-                  </div>
-                </td>
-                <td className="py-2.5 px-2 text-right hidden sm:table-cell">
-                  <span className="text-muted-foreground tabular-nums">
-                    {club.wins}/{club.losses}
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs sm:text-sm font-semibold truncate ${isTop3 ? 'text-foreground' : 'text-foreground/80'}`}>
+                    {club.profile?.name || 'Unknown'}
                   </span>
-                </td>
-                <td className="py-2.5 px-2 text-right">
-                  <span className={`font-bold tabular-nums ${isTop3 ? 'text-idm-gold-warm' : 'text-foreground/70'}`}>
+                  {rank === 1 && <Crown className="w-3 h-3 text-amber-400 shrink-0" />}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                <div className="hidden sm:block text-center min-w-[36px]">
+                  <p className="text-xs text-muted-foreground tabular-nums">{club.wins}/{club.losses}</p>
+                  <p className="text-[7px] text-muted-foreground">W/L</p>
+                </div>
+                <div className="text-center min-w-[36px]">
+                  <p className={`text-sm sm:text-base font-bold tabular-nums ${isTop3 ? 'text-idm-gold-warm' : 'text-foreground/70'}`}>
                     {club.points}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </p>
+                  <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -439,42 +442,32 @@ export const HistoricalSeasonView = React.memo(function HistoricalSeasonView({ s
       {/* Champion Card */}
       <ChampionCard season={data} championPoints={data.championPlayerPoints} />
 
-      {/* Player Standings */}
+      {/* Player Standings — Card-per-row */}
       {standings.length > 0 && (
-        <Card className="overflow-hidden">
-          <div className={`h-1 ${isMale ? 'bg-gradient-to-r from-idm-male/60 to-idm-male/20' : 'bg-gradient-to-r from-idm-female/60 to-idm-female/20'}`} />
-          <CardContent className="p-4 sm:p-6 relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Medal className={`w-4 h-4 ${isMale ? 'text-idm-male' : 'text-idm-female'}`} />
-                <h3 className="text-xs font-semibold uppercase tracking-wider">Peringkat Pemain</h3>
-              </div>
-              <Badge className={`${isMale ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'} border-0 text-[9px]`}>
-                {standings.length} Players
-              </Badge>
-            </div>
-            <StandingsTable standings={standings} division={season.division} />
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Medal className={`w-4 h-4 ${isMale ? 'text-idm-male' : 'text-idm-female'}`} />
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Pemain</h3>
+            <Badge className={`${isMale ? 'bg-idm-male/15 text-idm-male' : 'bg-idm-female/15 text-idm-female'} border-0 text-[9px] ml-auto`}>
+              {standings.length} Players
+            </Badge>
+          </div>
+          <StandingsTable standings={standings} division={season.division} />
+        </div>
       )}
 
-      {/* Club Rankings */}
+      {/* Club Rankings — Card-per-row */}
       {clubs.length > 0 && (
-        <Card className="overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-idm-gold-warm/60 to-idm-gold-warm/20" />
-          <CardContent className="p-4 sm:p-6 relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-idm-gold-warm" />
-                <h3 className="text-xs font-semibold uppercase tracking-wider">Peringkat Klub</h3>
-              </div>
-              <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border-0 text-[9px]">
-                {clubs.length} Clubs
-              </Badge>
-            </div>
-            <ClubRankingsTable clubs={clubs} />
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Shield className="w-4 h-4 text-idm-gold-warm" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Klub</h3>
+            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border-0 text-[9px] ml-auto">
+              {clubs.length} Clubs
+            </Badge>
+          </div>
+          <ClubRankingsTable clubs={clubs} />
+        </div>
       )}
 
       {/* Season Info Footer */}

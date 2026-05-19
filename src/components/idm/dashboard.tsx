@@ -7,14 +7,12 @@ import {
   Heart, MapPin, Users, Trophy, Clock, Flame,
   TrendingUp, Award, Gift, Zap, Crown, Sparkles,
   Radio, Shield, Music, Swords,
-  Gamepad2, Calendar, Target, Wallet, Search, List, Grid3X3, ChevronDown, ChevronUp, Filter
+  Gamepad2, Calendar, Target, Wallet, Search, List, Grid3X3, ChevronDown, ChevronUp, ChevronRight, Filter
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CountdownTimer } from './countdown-timer';
@@ -845,190 +843,221 @@ export function Dashboard() {
               </button>
             </div>
 
-            {/* Player Leaderboard — Toornament clean table */}
+            {/* Player Leaderboard — Card-per-row design */}
             {leaderboardSort === 'players' && (
-              <motion.div variants={item}>
-                <Card className={`${dt.casinoCard} overflow-hidden`}>
-                  <div className={dt.casinoBar} />
-                  {/* Toornament-style header bar */}
-                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                      <Award className={`w-3 h-3 ${dt.neonText}`} />
-                    </div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider">Peringkat Player</h3>
-                    <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TOP {displayedPlayers?.length || 10}</Badge>
+              <motion.div variants={item} className="space-y-3">
+                {/* Section header */}
+                <div className="flex items-center gap-2.5 px-1">
+                  <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                    <Award className={`w-3 h-3 ${dt.neonText}`} />
                   </div>
-                  <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold">#</TableHead>
-                          <TableHead className="text-[10px] font-semibold">Player</TableHead>
-                          <TableHead className="w-14 text-center text-[10px] font-semibold">Tier</TableHead>
-                          <TableHead className="w-14 text-right text-[10px] font-semibold">Pts</TableHead>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold">W</TableHead>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold">L</TableHead>
-                          <TableHead className="w-14 text-center text-[10px] font-semibold">Streak</TableHead>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold">MVP</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {displayedPlayers?.map((p, idx) => {
-                          const losses = p.matches - p.totalWins;
-                          return (
-                            <TableRow
-                              key={p.id}
-                              className={`cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
-                                idx < 3 ? `${dt.bgSubtle}` : ''
-                              }`}
-                              onClick={() => setSelectedPlayer(p)}
-                            >
-                              <TableCell className="text-center">
-                                <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                  idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                                  idx === 1 ? 'bg-gray-400/20 text-muted-foreground' :
-                                  idx === 2 ? 'bg-amber-600/20 text-amber-600' :
-                                  'text-muted-foreground'
-                                }`}>
-                                  {idx + 1}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-7 h-7 rounded-full ${dt.iconBg} flex items-center justify-center text-[9px] font-bold ${dt.text} shrink-0`}>
-                                    {p.gamertag.slice(0, 2).toUpperCase()}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-medium truncate">{p.gamertag}</p>
-                                    {p.club && <p className="text-[9px] text-muted-foreground truncate">{clubName(p.club)}</p>}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className={`text-right font-bold text-xs ${idx < 3 ? dt.neonText : ''}`}>{p.points}</TableCell>
-                              <TableCell className="text-center text-xs text-green-500 font-medium">{p.totalWins}</TableCell>
-                              <TableCell className="text-center text-xs text-red-500 font-medium">{losses > 0 ? losses : 0}</TableCell>
-                              <TableCell className="text-center text-xs">
-                                {p.streak > 1 ? (
-                                  <span className="text-orange-400 font-semibold">🔥{p.streak}</span>
-                                ) : (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center text-xs">
-                                {p.totalMvp > 0 ? (
-                                  <span className="text-yellow-500 font-semibold">{p.totalMvp}</span>
-                                ) : (
-                                  <span className="text-muted-foreground">0</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Show more / less toggle */}
-                  {data.topPlayers?.length > 10 && (
-                    <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-                      <button
-                        onClick={() => setShowAllPlayers(!showAllPlayers)}
-                        className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline`}
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
+                  <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>TOP {displayedPlayers?.length || 10}</Badge>
+                </div>
+
+                {/* Card list */}
+                <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-0.5">
+                  {displayedPlayers?.map((p, idx) => {
+                    const losses = p.matches - p.totalWins;
+                    const isTop = idx < 3;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedPlayer(p)}
+                        className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                          idx === 0
+                            ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                            : isTop
+                              ? 'bg-card/60 border-border/30'
+                              : idx % 2 === 0
+                                ? 'bg-card/50 border-border/20'
+                                : 'bg-card/35 border-border/15'
+                        } hover:border-idm-gold-warm/20 hover:bg-card/70`}
                       >
-                        {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.topPlayers.length})</>}
-                      </button>
-                    </div>
-                  )}
-                </Card>
+                        <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                          {/* Rank */}
+                          <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+                            idx === 0
+                              ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+                              : idx === 1
+                                ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+                                : idx === 2
+                                  ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+                                  : 'bg-muted text-muted-foreground'
+                          }`}>{idx + 1}</span>
+
+                          {/* Avatar */}
+                          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 ${
+                            idx === 0 ? 'ring-2 ring-idm-gold-warm/50' :
+                            idx === 1 ? 'ring-2 ring-gray-400/40' :
+                            idx === 2 ? 'ring-2 ring-amber-600/40' : ''
+                          }`}>
+                            <div className={`w-full h-full ${dt.iconBg} flex items-center justify-center text-[10px] font-bold ${dt.text}`}>
+                              {p.gamertag.slice(0, 2).toUpperCase()}
+                            </div>
+                          </div>
+
+                          {/* Player info */}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                            {p.club && <p className="text-[9px] text-muted-foreground truncate">{clubName(p.club)}</p>}
+                          </div>
+
+                          {/* Stats */}
+                          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                            <div className="text-center min-w-[36px]">
+                              <p className={`text-sm sm:text-base font-bold ${isTop ? dt.neonText : ''}`}>{p.points}</p>
+                              <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
+                              <div className="text-center min-w-[20px]">
+                                <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
+                                <p className="text-[7px] text-muted-foreground">W</p>
+                              </div>
+                              <div className="text-center min-w-[20px]">
+                                <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
+                                <p className="text-[7px] text-muted-foreground">L</p>
+                              </div>
+                            </div>
+                            <div className="hidden md:block text-center min-w-[28px]">
+                              {p.streak > 1 ? (
+                                <span className="text-orange-400 font-semibold flex items-center gap-0.5 justify-center text-xs"><Flame className="w-3 h-3" />{p.streak}</span>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              )}
+                              <p className="text-[7px] text-muted-foreground">streak</p>
+                            </div>
+                            <div className="hidden sm:block text-center min-w-[20px]">
+                              {p.totalMvp > 0 ? (
+                                <p className="text-yellow-500 font-semibold text-xs">{p.totalMvp}</p>
+                              ) : (
+                                <p className="text-muted-foreground text-xs">0</p>
+                              )}
+                              <p className="text-[7px] text-muted-foreground">mvp</p>
+                            </div>
+                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Show more / less toggle */}
+                {data.topPlayers?.length > 10 && (
+                  <div className="flex items-center justify-center pt-1">
+                    <button
+                      onClick={() => setShowAllPlayers(!showAllPlayers)}
+                      className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                    >
+                      {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.topPlayers.length})</>}
+                    </button>
+                  </div>
+                )}
               </motion.div>
             )}
 
-            {/* Club Standings — Toornament clean table */}
+            {/* Club Standings — Card-per-row design */}
             {leaderboardSort === 'clubs' && (
-              <motion.div variants={item}>
-                <Card className={`${dt.casinoCard} overflow-hidden`}>
-                  <div className={dt.casinoBar} />
-                  <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-                    <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                      <Shield className={`w-3 h-3 ${dt.neonText}`} />
-                    </div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wider">Klasemen Club</h3>
-                    <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.clubs?.length || 0} Clubs</Badge>
+              <motion.div variants={item} className="space-y-3">
+                {/* Section header */}
+                <div className="flex items-center gap-2.5 px-1">
+                  <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                    <Shield className={`w-3 h-3 ${dt.neonText}`} />
                   </div>
-                  {data.clubs?.length > 0 ? (
-                    <>
-                      <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                              <TableHead className="w-10 text-center text-[10px] font-semibold">#</TableHead>
-                              <TableHead className="text-[10px] font-semibold">Club</TableHead>
-                              <TableHead className="w-10 text-center text-[10px] font-semibold">W</TableHead>
-                              <TableHead className="w-10 text-center text-[10px] font-semibold">L</TableHead>
-                              <TableHead className="w-12 text-center text-[10px] font-semibold">Selisih</TableHead>
-                              <TableHead className="w-14 text-right text-[10px] font-semibold">Pts</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {displayedClubs?.map((club, idx) => (
-                              <TableRow
-                                key={club.id}
-                                className={`cursor-pointer transition-colors border-b ${dt.borderSubtle} ${
-                                  idx < 4 ? `${dt.bgSubtle}` : ''
-                                }`}
-                                onClick={() => setSelectedClub(club)}
-                              >
-                                <TableCell className="text-center">
-                                  <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                    idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                                    idx === 1 ? 'bg-gray-400/20 text-muted-foreground' :
-                                    idx === 2 ? 'bg-amber-600/20 text-amber-600' :
-                                    'text-muted-foreground'
-                                  }`}>
-                                    {idx + 1}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <div className={`w-7 h-7 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                                      <Shield className={`w-3.5 h-3.5 ${dt.text}`} />
-                                    </div>
-                                    <span className="text-xs font-semibold truncate">{club.name}</span>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
+                  <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.clubs?.length || 0} Clubs</Badge>
+                </div>
+
+                {data.clubs?.length > 0 ? (
+                  <>
+                    <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {displayedClubs?.map((club, idx) => {
+                        const isTop = idx < 4;
+                        return (
+                          <div
+                            key={club.id}
+                            onClick={() => setSelectedClub(club)}
+                            className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                              idx === 0
+                                ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                                : isTop
+                                  ? 'bg-card/60 border-border/30'
+                                  : idx % 2 === 0
+                                    ? 'bg-card/50 border-border/20'
+                                    : 'bg-card/35 border-border/15'
+                            } hover:border-idm-gold-warm/20 hover:bg-card/70`}
+                          >
+                            <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                              {/* Rank */}
+                              <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+                                idx === 0
+                                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+                                  : idx === 1
+                                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+                                    : idx === 2
+                                      ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+                                      : 'bg-muted text-muted-foreground'
+                              }`}>{idx + 1}</span>
+
+                              {/* Club logo */}
+                              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
+                                <Shield className={`w-4 h-4 ${dt.text}`} />
+                              </div>
+
+                              {/* Club info */}
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs sm:text-sm font-semibold truncate">{club.name}</p>
+                              </div>
+
+                              {/* Stats */}
+                              <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                                <div className="hidden sm:flex items-center gap-2">
+                                  <div className="text-center min-w-[20px]">
+                                    <p className="text-xs text-green-500 font-semibold">{club.wins}</p>
+                                    <p className="text-[7px] text-muted-foreground">W</p>
                                   </div>
-                                </TableCell>
-                                <TableCell className="text-center text-xs text-green-500 font-medium">{club.wins}</TableCell>
-                                <TableCell className="text-center text-xs text-red-500 font-medium">{club.losses}</TableCell>
-                                <TableCell className="text-center text-xs">
-                                  <span className={club.gameDiff > 0 ? 'text-green-500' : club.gameDiff < 0 ? 'text-red-500' : 'text-muted-foreground'}>
+                                  <div className="text-center min-w-[20px]">
+                                    <p className="text-xs text-red-500 font-semibold">{club.losses}</p>
+                                    <p className="text-[7px] text-muted-foreground">L</p>
+                                  </div>
+                                </div>
+                                <div className="hidden md:block text-center min-w-[28px]">
+                                  <span className={`text-xs font-semibold ${club.gameDiff > 0 ? 'text-green-500' : club.gameDiff < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
                                     {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
                                   </span>
-                                </TableCell>
-                                <TableCell className={`text-right font-bold text-xs ${idx === 0 ? dt.neonGradient : idx < 4 ? dt.neonText : ''}`}>{club.points}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                      {data.clubs?.length > 6 && (
-                        <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-                          <button
-                            onClick={() => setShowAllClubs(!showAllClubs)}
-                            className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline`}
-                          >
-                            {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="p-4">
-                      <div className={`p-6 rounded-xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                        <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-                        <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
-                        <p className="text-[10px] text-muted-foreground/70 mt-1">Club akan muncul setelah pendaftaran</p>
-                      </div>
+                                  <p className="text-[7px] text-muted-foreground">selisih</p>
+                                </div>
+                                <div className="text-center min-w-[36px]">
+                                  <p className={`text-sm sm:text-base font-bold ${idx === 0 ? dt.neonGradient : isTop ? dt.neonText : ''}`}>{club.points}</p>
+                                  <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-                </Card>
+
+                    {data.clubs?.length > 6 && (
+                      <div className="flex items-center justify-center pt-1">
+                        <button
+                          onClick={() => setShowAllClubs(!showAllClubs)}
+                          className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                        >
+                          {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
+                    <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
+                    <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
+                    <p className="text-[10px] text-muted-foreground/70 mt-1">Club akan muncul setelah pendaftaran</p>
+                  </div>
+                )}
               </motion.div>
             )}
           </motion.div>

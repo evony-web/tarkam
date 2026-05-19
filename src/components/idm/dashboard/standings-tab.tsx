@@ -2,16 +2,11 @@
 
 import React, { useState } from 'react';
 import { AvatarMedia } from '@/components/ui/avatar-media';
-import Image from 'next/image';
 
 import {
-  Users, Shield, Award, Flame, ChevronDown, ChevronUp, Search,
+  Users, Shield, Award, Flame, ChevronDown, ChevronUp, ChevronRight, Search,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 import { SkinBadgesRow, SkinName } from '../skin-renderer';
 import { getPrimarySkin } from '@/lib/skin-utils';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
@@ -29,6 +24,23 @@ const DIVISION_BADGE: Record<Division, { bg: string; text: string; icon: string;
   male: { bg: 'rgba(46,159,255,0.12)', text: '#57B5FF', icon: '♂', label: 'Cowo' },
   female: { bg: 'rgba(255,45,120,0.12)', text: '#FF5C9A', icon: '♀', label: 'Cewe' },
 };
+
+/* ─── Rank badge component ─── */
+function RankBadge({ rank }: { rank: number }) {
+  return (
+    <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 ${
+      rank === 1
+        ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-md shadow-yellow-500/25'
+        : rank === 2
+          ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-md shadow-gray-400/20'
+          : rank === 3
+            ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-md shadow-amber-600/20'
+            : 'bg-muted text-muted-foreground'
+    }`}>
+      {rank}
+    </span>
+  );
+}
 
 interface StandingsTabProps {
   data: StatsData;
@@ -52,7 +64,6 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
   const [searchOpen, setSearchOpen] = useState(false);
 
   // ── Merge both divisions' players into one unified list ──
-  // Sort: by points DESC, then by gamertag ASC (alphabetical) for tiebreaker
   const allPlayers = React.useMemo(() => {
     const currentPlayers = (data?.topPlayers ?? []).map(p => ({
       ...p,
@@ -63,9 +74,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
       division: (currentDivision === 'male' ? 'female' : 'male') as Division,
     }));
     return [...currentPlayers, ...otherPlayers].sort((a, b) => {
-      // Points DESC first
       if (b.points !== a.points) return b.points - a.points;
-      // Alphabetical tiebreaker
       return a.gamertag.localeCompare(b.gamertag);
     });
   }, [data?.topPlayers, otherDivisionData?.topPlayers, currentDivision]);
@@ -81,159 +90,166 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
   return (
     <div className="space-y-4">
 
-      {/* Toornament-style sub-tabs for Players/Clubs + Search button */}
+      {/* Sub-tabs for Players/Clubs + Search button */}
       <div className="flex items-center gap-2">
         <div className={`flex items-center gap-1 p-1 rounded-lg ${dt.bgSubtle} ${dt.border}`}>
           <button
             onClick={() => setLeaderboardSort('players')}
-            className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'players' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${leaderboardSort === 'players' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-3 h-3" /> Pemain
           </button>
           <button
             onClick={() => setLeaderboardSort('clubs')}
-            className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${leaderboardSort === 'clubs' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${leaderboardSort === 'clubs' ? `${dt.bg} ${dt.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Shield className="w-3 h-3" /> Klub
           </button>
         </div>
         <button
           onClick={() => setSearchOpen(true)}
-          className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dt.bgSubtle} ${dt.border} border ${dt.text} hover:${dt.bg}`}
+          className={`compact-dot flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${dt.bgSubtle} ${dt.border} border ${dt.text} hover:${dt.bg} cursor-pointer`}
         >
           <Search className="w-3 h-3" /> Cari
         </button>
       </div>
 
-      {/* Player Leaderboard — Unified Male + Female */}
+      {/* ═══ Player Leaderboard — Card-per-row design ═══ */}
       {leaderboardSort === 'players' && (
-        <div className="stagger-item-subtle stagger-d0">
-          <Card className={`${dt.casinoCard} overflow-hidden`}>
-            <div className={dt.casinoBar} />
-            {/* Header bar */}
-            <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-              <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                <Award className={`w-3 h-3 ${dt.neonText}`} />
-              </div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider">Peringkat Player</h3>
-              {/* Division count badges */}
-              <div className="ml-auto flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.male.bg, color: DIVISION_BADGE.male.text }}>♂ {maleCount}</span>
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.female.bg, color: DIVISION_BADGE.female.text }}>♀ {femaleCount}</span>
-              </div>
+        <div className="stagger-item-subtle stagger-d0 space-y-3">
+          {/* Section header */}
+          <div className="flex items-center gap-2.5 px-1">
+            <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+              <Award className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            {/* Mobile: no inner scroll — page itself scrolls. Desktop: max-height with inner scroll */}
-            <div className="sm:max-h-[500px] sm:overflow-y-auto custom-scrollbar">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 z-10">
-                    <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                      <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">#</TableHead>
-                      <TableHead className="text-[10px] font-semibold min-w-[120px] bg-muted/80 backdrop-blur-sm">Player</TableHead>
-                      <TableHead className="w-14 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Div</TableHead>
-                      <TableHead className="w-14 text-right text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Pts</TableHead>
-                      <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">W</TableHead>
-                      <TableHead className="w-10 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">L</TableHead>
-                      <TableHead className="w-14 text-center text-[10px] font-semibold hidden md:table-cell bg-muted/80 backdrop-blur-sm">Streak</TableHead>
-                      <TableHead className="w-10 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">MVP</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayedPlayers?.map((p, idx) => {
-                      const losses = p.matches - p.totalWins;
-                      const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === p.id;
-                      const playerSkins = skinMap[p.id];
-                      const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
-                      const trendUp = p.streak > 1;
-                      const playerDiv = (p.division || currentDivision) as Division;
-                      const divBadge = DIVISION_BADGE[playerDiv];
-                      return (
-                        <TableRow
-                          key={`${p.division}-${p.id}`}
-                          className={`standings-row-enter standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} ${playerDiv === 'male' ? 'standings-row-glow-male' : 'standings-row-glow-female'} cursor-pointer transition-all duration-200 border-b ${dt.borderSubtle} ${
-                            idx < 3 ? `${dt.bgSubtle}` : ''
-                          } ${isMe ? 'bg-idm-gold/5' : ''}`}
-                          style={{ animationDelay: `${idx * 50}ms`, touchAction: 'manipulation' }}
-                          onClick={() => setSelectedPlayer({ ...p, division: playerDiv })}
-                        >
-                          <TableCell className="text-center">
-                            <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                              idx === 0 ? 'rank-badge-gold-enhanced text-black' :
-                              idx === 1 ? 'rank-badge-silver-enhanced text-black' :
-                              idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
-                              'text-muted-foreground'
-                            }`}>
-                              {idx + 1}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-7 h-7 rounded-full overflow-hidden shrink-0 ${
-                                idx === 0 ? 'avatar-ring-gold' :
-                                idx === 1 ? 'avatar-ring-silver' :
-                                idx === 2 ? 'avatar-ring-bronze' : ''
-                              }`}>
-                                <AvatarMedia src={getAvatarUrl(p.gamertag, playerDiv, p.avatar)} alt={p.gamertag} width={28} height={28} className="w-full h-full" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <SkinName skin={primarySkin}>
-                                    <p className="text-xs font-medium truncate">{p.gamertag}</p>
-                                  </SkinName>
-                                  {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
-                                </div>
-                                {clubToString(p.club as any) && <p className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</p>}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span
-                              className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                              style={{ background: divBadge.bg, color: divBadge.text }}
-                            >
-                              {divBadge.icon} {divBadge.label}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={`font-bold text-xs ${idx < 3 ? dt.neonText : ''}`}>{p.points}</span>
-                            {trendUp && <span className="trend-up text-green-400 text-[9px] ml-0.5">↑</span>}
-                            {!trendUp && p.totalWins > 0 && idx > 3 && <span className="trend-down text-red-400/50 text-[9px] ml-0.5">↓</span>}
-                          </TableCell>
-                          <TableCell className="text-center text-xs text-green-500 font-medium">{p.totalWins}</TableCell>
-                          <TableCell className="text-center text-xs text-red-500 font-medium hidden sm:table-cell">{losses > 0 ? losses : 0}</TableCell>
-                          <TableCell className="text-center text-xs hidden md:table-cell">
-                            {p.streak > 1 ? (
-                              <span className="text-orange-400 font-semibold flex items-center gap-0.5 justify-center"><Flame className="w-3 h-3" />{p.streak}</span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center text-xs hidden sm:table-cell">
-                            {p.totalMvp > 0 ? (
-                              <span className="text-yellow-500 font-semibold">{p.totalMvp}</span>
-                            ) : (
-                              <span className="text-muted-foreground">0</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Peringkat Player</h3>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.male.bg, color: DIVISION_BADGE.male.text }}>♂ {maleCount}</span>
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: DIVISION_BADGE.female.bg, color: DIVISION_BADGE.female.text }}>♀ {femaleCount}</span>
             </div>
-            {/* Show more / less toggle */}
-            {allPlayers.length > 15 && (
-              <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-                <button
-                  onClick={() => setShowAllPlayers(!showAllPlayers)}
-                  className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline`}
+          </div>
+
+          {/* Card list */}
+          <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
+            {displayedPlayers?.map((p, idx) => {
+              const losses = p.matches - p.totalWins;
+              const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === p.id;
+              const playerSkins = skinMap[p.id];
+              const primarySkin = playerSkins && playerSkins.length > 0 ? getPrimarySkin(playerSkins) : null;
+              const trendUp = p.streak > 1;
+              const playerDiv = (p.division || currentDivision) as Division;
+              const divBadge = DIVISION_BADGE[playerDiv];
+              const isTop = idx < 3;
+
+              return (
+                <div
+                  key={`${p.division}-${p.id}`}
+                  onClick={() => setSelectedPlayer({ ...p, division: playerDiv })}
+                  className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                    idx === 0
+                      ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                      : isTop
+                        ? 'bg-card/60 border-border/30'
+                        : idx % 2 === 0
+                          ? 'bg-card/50 border-border/20'
+                          : 'bg-card/35 border-border/15'
+                  } ${isMe ? 'border-idm-gold-warm/30 bg-idm-gold-warm/[0.04]' : ''} hover:border-idm-gold-warm/20 hover:bg-card/70`}
+                  style={{ animationDelay: `${idx * 40}ms` }}
                 >
-                  {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({allPlayers.length})</>}
-                </button>
-              </div>
-            )}
-          </Card>
+                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                    {/* Rank */}
+                    <RankBadge rank={idx + 1} />
+
+                    {/* Avatar */}
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 ${
+                      idx === 0 ? 'ring-2 ring-idm-gold-warm/50' :
+                      idx === 1 ? 'ring-2 ring-gray-400/40' :
+                      idx === 2 ? 'ring-2 ring-amber-600/40' : ''
+                    }`}>
+                      <AvatarMedia src={getAvatarUrl(p.gamertag, playerDiv, p.avatar)} alt={p.gamertag} width={40} height={40} className="w-full h-full" />
+                    </div>
+
+                    {/* Player info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <SkinName skin={primarySkin}>
+                          <p className="text-xs sm:text-sm font-medium truncate">{p.gamertag}</p>
+                        </SkinName>
+                        {playerSkins && playerSkins.length > 0 && <SkinBadgesRow skins={playerSkins} />}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span
+                          className="inline-flex items-center gap-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ background: divBadge.bg, color: divBadge.text }}
+                        >
+                          {divBadge.icon} {divBadge.label}
+                        </span>
+                        {clubToString(p.club as any) && (
+                          <span className="text-[9px] text-muted-foreground truncate">{clubToString(p.club as any)}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats — Right side with divider */}
+                    <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                      {/* Points */}
+                      <div className="text-center min-w-[36px]">
+                        <p className={`text-sm sm:text-base font-bold ${isTop ? dt.neonText : ''}`}>{p.points}</p>
+                        <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                      </div>
+
+                      {/* W/L — Visible on sm+ */}
+                      <div className="hidden sm:flex items-center gap-2">
+                        <div className="text-center min-w-[20px]">
+                          <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
+                          <p className="text-[7px] text-muted-foreground">W</p>
+                        </div>
+                        <div className="text-center min-w-[20px]">
+                          <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
+                          <p className="text-[7px] text-muted-foreground">L</p>
+                        </div>
+                      </div>
+
+                      {/* Streak — Visible on md+ */}
+                      <div className="hidden md:block text-center min-w-[28px]">
+                        {p.streak > 1 ? (
+                          <span className="text-orange-400 font-semibold flex items-center gap-0.5 justify-center text-xs"><Flame className="w-3 h-3" />{p.streak}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                        <p className="text-[7px] text-muted-foreground">streak</p>
+                      </div>
+
+                      {/* MVP — Visible on sm+ */}
+                      <div className="hidden sm:block text-center min-w-[20px]">
+                        {p.totalMvp > 0 ? (
+                          <p className="text-yellow-500 font-semibold text-xs">{p.totalMvp}</p>
+                        ) : (
+                          <p className="text-muted-foreground text-xs">0</p>
+                        )}
+                        <p className="text-[7px] text-muted-foreground">mvp</p>
+                      </div>
+
+                      {/* Chevron */}
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Show more / less toggle */}
+          {allPlayers.length > 15 && (
+            <div className="flex items-center justify-center pt-1">
+              <button
+                onClick={() => setShowAllPlayers(!showAllPlayers)}
+                className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+              >
+                {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({allPlayers.length})</>}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -245,109 +261,121 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
         onOpenChange={setSearchOpen}
       />
 
-      {/* Club Standings — Toornament clean table (current division only) */}
+      {/* ═══ Club Standings — Card-per-row design ═══ */}
       {leaderboardSort === 'clubs' && (
-        <div className="stagger-item-subtle stagger-d1">
-          <Card className={`${dt.casinoCard} overflow-hidden`}>
-            <div className={dt.casinoBar} />
-            <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${dt.borderSubtle}`}>
-              <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                <Shield className={`w-3 h-3 ${dt.neonText}`} />
-              </div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider">Klasemen Club</h3>
-              <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.clubs?.length || 0} Clubs</Badge>
+        <div className="stagger-item-subtle stagger-d1 space-y-3">
+          {/* Section header */}
+          <div className="flex items-center gap-2.5 px-1">
+            <div className={`w-5 h-5 rounded ${dt.iconBg} flex items-center justify-center shrink-0`}>
+              <Shield className={`w-3 h-3 ${dt.neonText}`} />
             </div>
-            {data.clubs?.length > 0 ? (
-              <>
-                {/* Mobile: no inner scroll — page itself scrolls. Desktop: max-height with inner scroll */}
-                <div className="sm:max-h-[500px] sm:overflow-y-auto custom-scrollbar">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader className="sticky top-0 z-10">
-                        <TableRow className={`hover:bg-transparent border-b ${dt.border} bg-muted/30`}>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">#</TableHead>
-                          <TableHead className="text-[10px] font-semibold min-w-[140px] bg-muted/80 backdrop-blur-sm">Club</TableHead>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">W</TableHead>
-                          <TableHead className="w-10 text-center text-[10px] font-semibold hidden sm:table-cell bg-muted/80 backdrop-blur-sm">L</TableHead>
-                          <TableHead className="w-12 text-center text-[10px] font-semibold hidden md:table-cell bg-muted/80 backdrop-blur-sm">Selisih</TableHead>
-                          <TableHead className="w-14 text-right text-[10px] font-semibold bg-muted/80 backdrop-blur-sm">Pts</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {displayedClubs?.map((club, idx) => (
-                          <TableRow
-                            key={club.id}
-                            className={`standings-row-enter standings-row-glass ${idx % 2 === 0 ? 'standings-row-glass-even' : 'standings-row-glass-odd'} ${division === 'male' ? 'standings-row-glow-male' : 'standings-row-glow-female'} cursor-pointer transition-all duration-200 border-b ${dt.borderSubtle} ${
-                              idx < 4 ? `${dt.bgSubtle}` : ''
-                            }`}
-                            style={{ animationDelay: `${idx * 50}ms`, touchAction: 'manipulation' }}
-                            onClick={() => setSelectedClub(club)}
-                          >
-                            <TableCell className="text-center">
-                              <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
-                                idx === 0 ? 'rank-badge-gold-enhanced text-black' :
-                                idx === 1 ? 'rank-badge-silver-enhanced text-black' :
-                                idx === 2 ? 'rank-badge-bronze-enhanced text-black' :
-                                'text-muted-foreground'
-                              }`}>
-                                {idx + 1}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
-                                  {club.logo ? (
-                                    <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={28} height={28} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className={`w-full h-full ${dt.iconBg} flex items-center justify-center`}>
-                                      <Shield className={`w-3.5 h-3.5 ${dt.text}`} />
-                                    </div>
-                                  )}
-                                  {/* Season champion badge */}
-                                  {data.allSeasons?.some(s => s.status === 'completed' && s.championClub?.id === club.id) && (
-                                    <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-white/20">
-                                      <span className="text-[6px] font-black text-mid leading-none">S{data.allSeasons.find(s => s.status === 'completed' && s.championClub?.id === club.id)?.number}</span>
-                                    </div>
-                                  )}
-                                </div>
-                                <span className="text-xs font-semibold truncate">{club.name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center text-xs text-green-500 font-medium">{club.wins}</TableCell>
-                            <TableCell className="text-center text-xs text-red-500 font-medium hidden sm:table-cell">{club.losses}</TableCell>
-                            <TableCell className="text-center text-xs hidden md:table-cell">
-                              <span className={club.gameDiff > 0 ? 'text-green-500' : club.gameDiff < 0 ? 'text-red-500' : 'text-muted-foreground'}>
-                                {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
-                              </span>
-                            </TableCell>
-                            <TableCell className={`text-right font-bold text-xs ${idx === 0 ? dt.neonGradient : idx < 4 ? dt.neonText : ''}`}>{club.points}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-                {data.clubs?.length > 6 && (
-                  <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
-                    <button
-                      onClick={() => setShowAllClubs(!showAllClubs)}
-                      className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline`}
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Klasemen Club</h3>
+            <Badge className={`${dt.casinoBadge} ml-auto text-[9px]`}>{data.clubs?.length || 0} Clubs</Badge>
+          </div>
+
+          {data.clubs?.length > 0 ? (
+            <>
+              <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
+                {displayedClubs?.map((club, idx) => {
+                  const isTop = idx < 4;
+                  const isSeasonChampion = data.allSeasons?.some(s => s.status === 'completed' && s.championClub?.id === club.id);
+                  const championSeason = isSeasonChampion ? data.allSeasons?.find(s => s.status === 'completed' && s.championClub?.id === club.id) : null;
+
+                  return (
+                    <div
+                      key={club.id}
+                      onClick={() => setSelectedClub(club)}
+                      className={`rounded-xl border cursor-pointer transition-all duration-200 ${
+                        idx === 0
+                          ? 'bg-gradient-to-br from-idm-gold-warm/[0.06] via-card/80 to-idm-gold-warm/[0.03] border-idm-gold-warm/20 shadow-[0_0_10px_rgba(239,249,35,0.06),0_0_20px_rgba(239,249,35,0.03)]'
+                          : isTop
+                            ? 'bg-card/60 border-border/30'
+                            : idx % 2 === 0
+                              ? 'bg-card/50 border-border/20'
+                              : 'bg-card/35 border-border/15'
+                      } hover:border-idm-gold-warm/20 hover:bg-card/70`}
+                      style={{ animationDelay: `${idx * 40}ms` }}
                     >
-                      {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="p-4">
-                <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
-                  <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
-                  <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
-                  <p className="text-[10px] text-muted-foreground/80 mt-1">Club akan muncul setelah pendaftaran</p>
-                </div>
+                      <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
+                        {/* Rank */}
+                        <RankBadge rank={idx + 1} />
+
+                        {/* Club logo */}
+                        <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden shrink-0">
+                          {club.logo ? (
+                            <ClubLogoImage clubName={club.name} dbLogo={club.logo} alt={club.name} width={40} height={40} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className={`w-full h-full ${dt.iconBg} flex items-center justify-center`}>
+                              <Shield className={`w-4 h-4 ${dt.text}`} />
+                            </div>
+                          )}
+                          {isSeasonChampion && championSeason && (
+                            <div className="absolute -top-1 -right-1 z-10 min-w-[14px] h-[14px] rounded-full bg-idm-gold-warm flex items-center justify-center border border-border/20">
+                              <span className="text-[6px] font-black text-mid leading-none">S{championSeason.number}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Club info */}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-semibold truncate">{club.name}</p>
+                        </div>
+
+                        {/* Stats — Right side with divider */}
+                        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-border/40 shrink-0">
+                          {/* W/L — Visible on sm+ */}
+                          <div className="hidden sm:flex items-center gap-2">
+                            <div className="text-center min-w-[20px]">
+                              <p className="text-xs text-green-500 font-semibold">{club.wins}</p>
+                              <p className="text-[7px] text-muted-foreground">W</p>
+                            </div>
+                            <div className="text-center min-w-[20px]">
+                              <p className="text-xs text-red-500 font-semibold">{club.losses}</p>
+                              <p className="text-[7px] text-muted-foreground">L</p>
+                            </div>
+                          </div>
+
+                          {/* Game diff — Visible on md+ */}
+                          <div className="hidden md:block text-center min-w-[28px]">
+                            <span className={`text-xs font-semibold ${club.gameDiff > 0 ? 'text-green-500' : club.gameDiff < 0 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                              {club.gameDiff > 0 ? '+' : ''}{club.gameDiff}
+                            </span>
+                            <p className="text-[7px] text-muted-foreground">selisih</p>
+                          </div>
+
+                          {/* Total points */}
+                          <div className="text-center min-w-[36px]">
+                            <p className={`text-sm sm:text-base font-bold ${idx === 0 ? dt.neonGradient : isTop ? dt.neonText : ''}`}>{club.points}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase">pts</p>
+                          </div>
+
+                          {/* Chevron */}
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 hidden sm:block" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </Card>
+
+              {data.clubs?.length > 6 && (
+                <div className="flex items-center justify-center pt-1">
+                  <button
+                    onClick={() => setShowAllClubs(!showAllClubs)}
+                    className={`flex items-center gap-1 text-[10px] font-medium ${dt.text} hover:underline cursor-pointer`}
+                  >
+                    {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className={`p-6 rounded-2xl ${dt.bgSubtle} ${dt.border} text-center`}>
+              <Shield className={`w-8 h-8 mx-auto mb-2 opacity-30 ${dt.text}`} />
+              <p className="text-sm text-muted-foreground">Belum ada club terdaftar</p>
+              <p className="text-[10px] text-muted-foreground/80 mt-1">Club akan muncul setelah pendaftaran</p>
+            </div>
+          )}
         </div>
       )}
     </div>
