@@ -1870,8 +1870,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
               </div>
             )}
 
-            {/* ===== PRIZE EDITING (available in later phases) ===== */}
-            {['team_generation', 'bracket_generation', 'main_event', 'finalization'].includes(selected.status) && (
+            {/* ===== PRIZE EDITING (available in later phases, except finalization which has its own) ===== */}
+            {['team_generation', 'bracket_generation', 'main_event'].includes(selected.status) && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold flex items-center gap-1.5">
