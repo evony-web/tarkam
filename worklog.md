@@ -1414,3 +1414,40 @@ Stage Summary:
 - Zero text-[11px] team names remain — all minimum 12px
 - Lint passes (only pre-existing hero-section and shared.tsx errors remain)
 - Dev server compiles successfully with no new errors
+
+---
+Task ID: MPL-Bracket-Redesign
+Agent: Main Agent + Full-stack Developer Subagent
+Task: Redesign tournament bracket to MPL (Mobile Premier League) style with visual connecting lines
+
+Work Log:
+- Read and analyzed all bracket-related files: bracket-view.tsx (1886 lines), bracket-page.tsx, match-day-center.tsx, bracket-generator.ts, use-division-theme.ts
+- Identified key components to redesign: BracketMatchCard, BracketConnectors, and bracket layout in main BracketView
+- Delegated implementation to full-stack-developer subagent with detailed MPL-style design specs
+- Subagent redesigned BracketMatchCard with:
+  - Winner gradient background + left accent bar (3px division-colored bar)
+  - Larger team abbreviation avatars (w-7 h-7 rounded-md)
+  - Upgraded fonts: team name text-sm font-semibold, score text-base font-black
+  - Live indicator: pulsing red dot + "LIVE" badge
+  - Grand Final special treatment: gold border glow, gold-tinted background, champion crown indicator
+  - MVP indicator with crown icon and gamertag
+  - WALKOVER badge with amber styling
+- Subagent redesigned BracketConnectors with:
+  - Thicker main lines: strokeWidth "2" (was "1.5")
+  - Stronger glow layer: strokeWidth "6" (was "4"), opacity "0.15" (was "0.12")
+  - Larger junction dots: r="4" with additional glow circle r="7" behind
+  - Better winner path highlighting: opacity "0.7" vs "0.3" for pending
+- Subagent redesigned round headers with:
+  - Regular rounds: Pill-shaped badge (rounded-full) with division colors
+  - Grand Final: Special gold pill with Trophy icon, gold border, glow shadow
+  - isGrandFinal prop passed to BracketMatchCard for special treatment
+- Verified: bun run lint passes (no new errors, only pre-existing hero-section.tsx and shared.tsx errors)
+- Verified: Dev server compiles successfully
+
+Stage Summary:
+- Bracket now has professional MPL-style visual design
+- Match cards have prominent winner highlighting with division-colored accent bars
+- Connecting lines are thicker and more visible with glow effects
+- Grand Final has special gold treatment with champion crown indicator
+- Live matches show pulsing red dot indicator
+- Mobile-first design maintained (ZoomableContainer for pinch-zoom + horizontal scroll)
