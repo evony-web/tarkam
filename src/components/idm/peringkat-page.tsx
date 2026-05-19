@@ -78,6 +78,7 @@ export function PeringkatPage() {
           setSelectedPlayer={setSelectedPlayer}
           setSelectedClub={setSelectedClub}
           hideHeader
+          showAll
         />
       </div>
 

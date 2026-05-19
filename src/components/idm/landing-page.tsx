@@ -809,6 +809,9 @@ export function LandingPage() {
         isDataLoading={isDataLoading}
         setSelectedPlayer={setSelectedPlayer}
         setSelectedClub={setSelectedClub}
+        maxPlayers={10}
+        maxClubs={5}
+        onViewAll={() => setCurrentView('peringkat')}
       />
       </div>
 

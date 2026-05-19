@@ -15,6 +15,10 @@ interface PeringkatSectionProps {
   setSelectedPlayer: (player: StatsData['topPlayers'][0] & { division?: string } | null) => void;
   setSelectedClub: (club: StatsData['clubs'][0] & { division?: string } | null) => void;
   hideHeader?: boolean;
+  maxPlayers?: number;
+  maxClubs?: number;
+  showAll?: boolean;
+  onViewAll?: () => void;
 }
 
 export function PeringkatSection({
@@ -24,6 +28,10 @@ export function PeringkatSection({
   setSelectedPlayer,
   setSelectedClub,
   hideHeader = false,
+  maxPlayers = 10,
+  maxClubs = 6,
+  showAll = false,
+  onViewAll,
 }: PeringkatSectionProps) {
   const [leaderboardSort, setLeaderboardSort] = useState<'players' | 'clubs'>('players');
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
@@ -92,8 +100,10 @@ export function PeringkatSection({
             onLeaderboardSortChange={setLeaderboardSort}
             divisionFilter={divisionFilter}
             onDivisionFilterChange={setDivisionFilter}
-            maxPlayers={5}
-            maxClubs={5}
+            maxPlayers={maxPlayers}
+            maxClubs={maxClubs}
+            showAll={showAll}
+            onViewAll={onViewAll}
           />
         </div>
       </div>

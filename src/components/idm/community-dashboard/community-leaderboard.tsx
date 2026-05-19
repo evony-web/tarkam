@@ -59,6 +59,7 @@ interface CommunityLeaderboardProps {
   maxPlayers?: number;
   maxClubs?: number;
   onViewAll?: () => void;
+  showAll?: boolean;
 }
 
 type DivisionFilter = 'all' | 'male' | 'female';
@@ -75,6 +76,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
   maxPlayers = 10,
   maxClubs = 6,
   onViewAll,
+  showAll = false,
 }: CommunityLeaderboardProps) {
   const dt = useCommunityTheme();
   const division = useAppStore(s => s.division);
@@ -139,7 +141,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
     });
   }, [maleData, femaleData, divisionFilter]);
 
-  const displayedPlayers = showAllPlayers ? mergedPlayers : mergedPlayers.slice(0, maxPlayers);
+  const displayedPlayers = showAll ? mergedPlayers : (showAllPlayers ? mergedPlayers : mergedPlayers.slice(0, maxPlayers));
   const rawClubs = tarkamClubData?.clubs || [];
   // Filter clubs by division: male-only clubs, female-only clubs, or all
   const clubs = useMemo(() => {
@@ -150,7 +152,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
       return true;
     });
   }, [rawClubs, divisionFilter]);
-  const displayedClubs = showAllClubs ? clubs : clubs.slice(0, maxClubs);
+  const displayedClubs = showAll ? clubs : (showAllClubs ? clubs : clubs.slice(0, maxClubs));
 
   return (
     <div className="space-y-4">
@@ -262,7 +264,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
             </div>
           </div>
           {/* Show more / less toggle or CTA */}
-          {mergedPlayers.length > maxPlayers && (
+          {!showAll && mergedPlayers.length > maxPlayers && (
             <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
               {onViewAll ? (
                 <button
@@ -395,7 +397,7 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                   </Table>
                 </div>
               </div>
-              {clubs.length > maxClubs && (
+              {!showAll && clubs.length > maxClubs && (
                 <div className={`flex items-center justify-center py-2 border-t ${dt.borderSubtle}`}>
                   {onViewAll ? (
                     <button
