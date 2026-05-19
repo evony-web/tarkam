@@ -72,7 +72,7 @@ const DIVISION_STYLE = {
   },
 } as const;
 
-type DivisionStyle = typeof DIVISION_STYLE.male;
+type DivisionStyle = (typeof DIVISION_STYLE)[keyof typeof DIVISION_STYLE];
 
 /* ─── Bracket/Round label helper ─── */
 function getRoundLabel(bracket: string, round: number): string {
@@ -422,7 +422,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
     queryKey: ['season-results', 'male'],
     queryFn: async () => {
       const res = await fetch('/api/season-results?division=male');
-      if (!res.ok) return { weeks: [] } as SeasonResultsData;
+      if (!res.ok) return { season: { id: '', name: '', number: 0, status: '' }, weeks: [] } as SeasonResultsData;
       return res.json() as Promise<SeasonResultsData>;
     },
     staleTime: 30000,
@@ -432,7 +432,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
     queryKey: ['season-results', 'female'],
     queryFn: async () => {
       const res = await fetch('/api/season-results?division=female');
-      if (!res.ok) return { weeks: [] } as SeasonResultsData;
+      if (!res.ok) return { season: { id: '', name: '', number: 0, status: '' }, weeks: [] } as SeasonResultsData;
       return res.json() as Promise<SeasonResultsData>;
     },
     staleTime: 30000,

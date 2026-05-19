@@ -440,7 +440,7 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
     queryKey: ['season-results', divisionProp],
     queryFn: async () => {
       const res = await fetch(`/api/season-results?division=${divisionProp}`);
-      if (!res.ok) return { weeks: [] } as SeasonResultsData;
+      if (!res.ok) return { season: { id: '', name: '', number: 0, status: '' }, weeks: [] } as SeasonResultsData;
       return res.json() as Promise<SeasonResultsData>;
     },
     staleTime: 30000,
@@ -934,7 +934,7 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
     queryKey: ['season-results', divisionProp],
     queryFn: async () => {
       const res = await fetch(`/api/season-results?division=${divisionProp}`);
-      if (!res.ok) return { weeks: [] } as SeasonResultsData;
+      if (!res.ok) return { season: { id: '', name: '', number: 0, status: '' }, weeks: [] } as SeasonResultsData;
       return res.json() as Promise<SeasonResultsData>;
     },
     staleTime: 30000,
