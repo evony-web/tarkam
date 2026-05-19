@@ -1,5 +1,9 @@
-// Production schema (PostgreSQL)
-// Local dev: change provider back to "sqlite" after push
+// ──── Dual-Environment Schema ────
+// This schema is ALWAYS committed as "postgresql" for Vercel/Neon.
+// Local dev uses SQLite — the switch-provider.mjs script handles this:
+//   - `bun run dev` → auto-switches to sqlite, generates client, restores to postgresql
+//   - Vercel build → uses postgresql directly
+// NEVER change the provider manually — use: node scripts/switch-provider.mjs <sqlite|postgresql>
 
 generator client {
   provider = "prisma-client-js"
