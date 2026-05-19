@@ -987,7 +987,7 @@ function SultanOfSeasonCardPage({
 }
 
 
-/* ─── Sultan of Season — 💎 DIAMOND Division Card (full avatar portrait) ─── */
+/* ─── Sultan of Season — 💎 DIAMOND Division Card (MVP horizontal layout, diamond avatar) ─── */
 function SultanSeasonDiamondCard({
   sultanData,
   division,
@@ -1009,8 +1009,14 @@ function SultanSeasonDiamondCard({
   const cityInfo = sultan.city;
   const locationText = [cityInfo, clubName].filter(Boolean).join(' · ');
 
+  const stats = [
+    { label: 'Points', value: `${sultan.points}`, icon: Zap, color: 'text-idm-gold-warm/80' },
+    { label: 'Season', value: `S${seasonNumber}`, icon: Calendar, color: 'text-idm-gold-warm/70' },
+    { label: 'Tier', value: sultan.tier || '-', icon: Gem, color: 'text-idm-gold-warm/80' },
+  ];
+
   const content = (
-    <div className="p-4 sm:p-5">
+    <div className="p-4 lg:p-6">
       {/* Division label — only in bare mode (side-by-side) */}
       {bare && (
         <div className="flex items-center gap-1.5 mb-3">
@@ -1029,28 +1035,27 @@ function SultanSeasonDiamondCard({
         </div>
       )}
 
-      {/* 💎 Diamond layout with full-body avatar */}
-      <button
-        onClick={() => onPlayerClick({
-          id: sultan.id,
-          name: sultan.gamertag,
-          gamertag: sultan.gamertag,
-          avatar: sultan.avatar,
-          tier: sultan.tier,
-          points: sultan.points,
-          totalWins: 0,
-          streak: 0,
-          maxStreak: 0,
-          totalMvp: 0,
-          matches: 0,
-          division,
-          city: sultan.city ?? undefined,
-          club: sultan.club?.name ?? undefined,
-        }, division)}
-        className="flex flex-col items-center w-full cursor-pointer group/sultan-season"
-      >
-        {/* Large diamond avatar */}
-        <div className="relative">
+      <div className="flex gap-3 sm:gap-4 items-stretch">
+        {/* 💎 Diamond avatar panel — LEFT */}
+        <div
+          className="relative shrink-0 cursor-pointer group/sultan-season"
+          onClick={() => onPlayerClick({
+            id: sultan.id,
+            name: sultan.gamertag,
+            gamertag: sultan.gamertag,
+            avatar: sultan.avatar,
+            tier: sultan.tier,
+            points: sultan.points,
+            totalWins: 0,
+            streak: 0,
+            maxStreak: 0,
+            totalMvp: 0,
+            matches: 0,
+            division,
+            city: sultan.city ?? undefined,
+            club: sultan.club?.name ?? undefined,
+          }, division)}
+        >
           {/* Outer glow / facet reflection */}
           <div className="absolute inset-0 scale-125"
             style={{
@@ -1065,7 +1070,7 @@ function SultanSeasonDiamondCard({
             style={{ background: `radial-gradient(circle at 50% 50%, rgba(67,160,71,0.15), transparent 60%)` }} />
 
           {/* Diamond frame — outer faceted border */}
-          <div className="relative w-36 h-36 sm:w-44 sm:h-44"
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               background: `linear-gradient(135deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})`,
@@ -1079,7 +1084,7 @@ function SultanSeasonDiamondCard({
                 src={getAvatarUrl(sultan.gamertag, division, sultan.avatar)}
                 alt={sultan.gamertag}
                 fill
-                sizes="(max-width: 640px) 144px, 176px"
+                sizes="(max-width: 640px) 112px, 160px"
                 className="object-cover object-top group-hover/sultan-season:scale-110 transition-transform duration-500"
                 loading="lazy"
               />
@@ -1093,48 +1098,96 @@ function SultanSeasonDiamondCard({
           </div>
 
           {/* Gem badge — top center (crown of diamond) */}
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-lg border-2"
+          <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
+            <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${EMERALD_LIGHT}, ${EMERALD})`,
-                borderColor: hexToRgba(EMERALD_LIGHT, 0.5),
-                boxShadow: `0 2px 8px ${hexToRgba(EMERALD, 0.4)}`,
+                boxShadow: `0 0 12px ${hexToRgba(EMERALD, 0.4)}`,
               }}>
-              <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+              <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white" />
             </div>
           </div>
         </div>
 
-        {/* Name and stats below diamond */}
-        <div className="flex flex-col items-center mt-3 text-center">
-          <h3 className="text-base sm:text-lg font-black truncate" style={{ color: EMERALD_LIGHT }}>
-            {sultan.gamertag}
-          </h3>
-          <p className="text-[9px] text-muted-foreground/70 mt-0.5">Top Penyawer Season {seasonNumber}</p>
-          {locationText && (
-            <p className="text-[8px] text-muted-foreground/50 mt-0.5 truncate max-w-[200px]">{locationText}</p>
-          )}
-
-          {/* Certificate bar — stats */}
-          <div className="flex items-center gap-2 mt-2.5">
-            <span className="text-[10px] font-black tabular-nums px-2.5 py-1 rounded-full"
-              style={{ color: EMERALD_LIGHT, backgroundColor: hexToRgba(EMERALD, 0.1), border: `1px solid ${hexToRgba(EMERALD, 0.2)}` }}>
-              💎 S{seasonNumber}
-            </span>
-            <span className="text-[9px] text-muted-foreground/50">{sultan.points}pts</span>
+        {/* Stats panel — RIGHT */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          {/* Player name + location */}
+          <div>
+            <h3 className="text-sm lg:text-base font-black truncate" style={{ color: EMERALD_LIGHT }}>
+              {sultan.gamertag}
+            </h3>
+            <div className="flex items-center gap-1.5 mb-1">
+              {locationText && (
+                <span className="text-[9px] lg:text-[10px] text-muted-foreground/70 truncate">{locationText}</span>
+              )}
+              <Badge className={`${dt.badgeBg} text-[7px] lg:text-[8px] border py-0 px-1.5`}>
+                {division === 'male' ? '🕺 Cowo' : '💃 Cewe'}
+              </Badge>
+            </div>
+            {/* Tier badge */}
             {sultan.tier && (
-              <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-md border"
+              <Badge className="text-[7px] font-bold border py-0 px-1.5 mb-2"
                 style={{
                   color: EMERALD_LIGHT,
                   backgroundColor: hexToRgba(EMERALD, 0.08),
                   borderColor: hexToRgba(EMERALD, 0.15),
                 }}>
+                <Gem className="w-2 h-2 mr-0.5" style={{ color: EMERALD_LIGHT }} />
                 {sultan.tier}
-              </span>
+              </Badge>
             )}
           </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}
+              >
+                <stat.icon className={`w-3 h-3 shrink-0 ${stat.color}`} />
+                <div className="min-w-0">
+                  <p className={`text-[10px] sm:text-xs font-black tabular-nums ${stat.color} leading-tight`}>
+                    {stat.value}
+                  </p>
+                  <p className="text-[7px] sm:text-[8px] text-muted-foreground/60 uppercase tracking-wider font-semibold leading-tight">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA button */}
+          <button
+            onClick={() => onPlayerClick({
+              id: sultan.id,
+              name: sultan.gamertag,
+              gamertag: sultan.gamertag,
+              avatar: sultan.avatar,
+              tier: sultan.tier,
+              points: sultan.points,
+              totalWins: 0,
+              streak: 0,
+              maxStreak: 0,
+              totalMvp: 0,
+              matches: 0,
+              division,
+              city: sultan.city ?? undefined,
+              club: sultan.club?.name ?? undefined,
+            }, division)}
+            className="w-full py-1.5 rounded-lg border text-[9px] sm:text-[10px] font-bold hover:brightness-110 transition-all flex items-center justify-center gap-1 cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD_LIGHT, 0.08)})`,
+              borderColor: hexToRgba(EMERALD, 0.2),
+              color: EMERALD_LIGHT,
+            }}
+          >
+            <Gem className="w-2.5 h-2.5" />
+            Lihat Profil
+          </button>
         </div>
-      </button>
+      </div>
     </div>
   );
 
@@ -1151,7 +1204,7 @@ function SultanSeasonDiamondCard({
 }
 
 
-/* ─── Ghost Sultan of Season — 💎 DIAMOND Division Card (empty state) ─── */
+/* ─── Ghost Sultan of Season — 💎 DIAMOND Division Card (empty state, MVP horizontal) ─── */
 function GhostSultanSeasonDiamondCard({
   division,
   bare = false,
@@ -1165,7 +1218,7 @@ function GhostSultanSeasonDiamondCard({
   const accentColor = division === 'male' ? '#2E9FFF' : '#FF2D78';
 
   const content = (
-    <div className="p-4 sm:p-5">
+    <div className="p-4 lg:p-6">
       {/* Division label — only in bare mode */}
       {bare && (
         <div className="flex items-center gap-1.5 mb-3">
@@ -1179,21 +1232,11 @@ function GhostSultanSeasonDiamondCard({
         </div>
       )}
 
-      {/* Ghost diamond layout */}
-      <div className="flex flex-col items-center opacity-50">
-        {/* Ghost diamond shape */}
-        <div className="relative">
-          {/* Dim glow */}
-          <div className="absolute inset-0 scale-125"
-            style={{
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-              background: `conic-gradient(from 45deg, ${hexToRgba(EMERALD, 0.15)}, ${hexToRgba(EMERALD_LIGHT, 0.15)}, ${hexToRgba(EMERALD, 0.1)})`,
-              opacity: 0.4,
-              filter: 'blur(8px)',
-            }} />
-
+      <div className="flex gap-3 sm:gap-4 items-stretch opacity-50">
+        {/* Ghost diamond avatar panel */}
+        <div className="relative shrink-0">
           {/* Ghost diamond frame */}
-          <div className="relative w-36 h-36 sm:w-44 sm:h-44"
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               background: `linear-gradient(135deg, ${hexToRgba(EMERALD, 0.2)}, ${hexToRgba(EMERALD_LIGHT, 0.15)}, ${hexToRgba(EMERALD, 0.2)})`,
@@ -1210,25 +1253,42 @@ function GhostSultanSeasonDiamondCard({
           </div>
 
           {/* Ghost gem badge */}
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border-2"
+          <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 z-10">
+            <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-full flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${hexToRgba(EMERALD_LIGHT, 0.4)}, ${hexToRgba(EMERALD, 0.4)})`,
-                borderColor: hexToRgba(EMERALD_LIGHT, 0.2),
               }}>
-              <Gem className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" />
+              <Gem className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-white/40" />
             </div>
           </div>
         </div>
 
-        {/* Ghost name and stats */}
-        <div className="flex flex-col items-center mt-3">
-          <div className="h-5 w-20 rounded bg-muted/35 mb-1" />
-          <div className="h-3 w-28 rounded bg-muted/25 mb-2" />
-          <div className="flex items-center gap-2 mt-1">
-            <div className="h-5 w-12 rounded-full bg-muted/25" />
-            <div className="h-3 w-8 rounded bg-muted/20" />
+        {/* Ghost stats panel */}
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          <div>
+            <div className="h-5 w-24 rounded bg-muted/35 mb-2" />
+            <div className="h-3 w-16 rounded bg-muted/25 mb-4" />
           </div>
+
+          {/* Ghost stats grid */}
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-3">
+            {[
+              { color: 'bg-idm-gold-warm/15' },
+              { color: 'bg-idm-gold-warm/12' },
+              { color: 'bg-idm-gold-warm/10' },
+            ].map((stat, idx) => (
+              <div key={idx} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
+                <div className={`w-3 h-3 rounded ${stat.color} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="h-3 w-6 rounded bg-muted/30 mb-0.5" />
+                  <div className="h-2 w-8 rounded bg-muted/20" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ghost CTA button */}
+          <div className="w-full h-7 rounded-lg bg-muted/20 border border-border/10" />
         </div>
       </div>
     </div>
