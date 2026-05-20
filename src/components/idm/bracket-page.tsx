@@ -124,6 +124,10 @@ function ViewContent({
 /* ═══ HASIL PAGE — Shows match results only (no tabs) ═══ */
 export function HasilPage() {
   const { division, setDivision } = useAppStore();
+  const isMobile = useIsMobile();
+
+  /* On mobile: default to 'male' if division is 'semua' — no "Semua" tab on mobile */
+  const effectiveDivision = isMobile && division === 'semua' ? 'male' : division;
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,10 +135,11 @@ export function HasilPage() {
         icon={Swords}
         title="Hasil"
         subtitle="Hasil pertandingan tarkam"
-        division={division}
+        division={effectiveDivision}
         setDivision={setDivision}
+        hideSemua={isMobile}
       />
-      <ViewContent mode="results" division={division} />
+      <ViewContent mode="results" division={effectiveDivision} />
     </div>
   );
 }
