@@ -44,7 +44,7 @@ function DivisionChips({
           className={`compact-pill px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
             division === div.key
               ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
-              : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
+              : 'text-muted-foreground/70 hover:text-foreground border border-idm-gold-warm/10 hover:bg-muted/40 animate-pulse'
           }`}
         >
           {div.label}
