@@ -581,7 +581,7 @@ function FilterTabs({
           <button
             key={tab.key}
             onClick={() => onChange(tab.key)}
-            className="relative px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer overflow-hidden"
+            className="compact-pill relative px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer overflow-hidden"
             style={{
               background: isActive
                 ? `linear-gradient(135deg, ${tab.color}18 0%, ${tab.color}08 100%)`
@@ -727,7 +727,7 @@ function FeaturedBanner({
                 e.stopPropagation();
                 onStopPlayback();
               }}
-              className="absolute top-3 right-3 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/70 border border-white/15 text-white/80 hover:bg-black/90 hover:text-white transition-all duration-200 cursor-pointer"
+              className="compact-pill absolute top-3 right-3 z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/70 border border-white/15 text-white/80 hover:bg-black/90 hover:text-white transition-all duration-200 cursor-pointer"
               aria-label="Tutup video"
             >
               <X className="w-3.5 h-3.5" />
@@ -1539,7 +1539,7 @@ export function ExperiencesSection({
                 <div className="flex gap-3">
                   <button
                     onClick={() => onEnterApp('male')}
-                    className="relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 cursor-pointer overflow-hidden border"
+                    className="compact-pill relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 cursor-pointer overflow-hidden border"
                     style={{
                       background: 'linear-gradient(135deg, rgba(46,159,255,0.12) 0%, rgba(46,159,255,0.06) 100%)',
                       color: c.cyan,
@@ -1562,7 +1562,7 @@ export function ExperiencesSection({
                   </button>
                   <button
                     onClick={() => onEnterApp('female')}
-                    className="relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 cursor-pointer overflow-hidden border"
+                    className="compact-pill relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 cursor-pointer overflow-hidden border"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255,45,120,0.12) 0%, rgba(255,45,120,0.06) 100%)',
                       color: c.purple,

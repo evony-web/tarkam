@@ -117,7 +117,7 @@ function ParticipantsModal({
             <button
               onClick={() => onOpenChange(false)}
               aria-label="Tutup"
-              className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors cursor-pointer"
+              className="compact-pill w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center hover:bg-black/40 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4 text-white" />
             </button>
@@ -387,7 +387,7 @@ function TournamentCard({
           {participantCount > 0 && (
             <button
               onClick={() => setParticipantsModalOpen(true)}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/30 bg-muted/20 text-[10px] font-semibold text-muted-foreground hover:text-idm-gold-warm hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/5 transition-all cursor-pointer active:scale-95"
+              className="compact-pill shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/30 bg-muted/20 text-[10px] font-semibold text-muted-foreground hover:text-idm-gold-warm hover:border-idm-gold-warm/30 hover:bg-idm-gold-warm/5 transition-all cursor-pointer active:scale-95"
               title="Lihat list peserta"
             >
               <Users className="w-3 h-3" />

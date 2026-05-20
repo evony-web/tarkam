@@ -291,14 +291,14 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
               {onViewAll ? (
                 <button
                   onClick={onViewAll}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                  className="compact-pill flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
                 >
                   <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({mergedPlayers.length} Pemain)
                 </button>
               ) : (
                 <button
                   onClick={() => setShowAllPlayers(!showAllPlayers)}
-                  className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
+                  className={`compact-pill flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                 >
                   {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({mergedPlayers.length})</>}
                 </button>
@@ -415,14 +415,14 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                   {onViewAll ? (
                     <button
                       onClick={onViewAll}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
+                      className="compact-pill flex items-center gap-1.5 text-xs font-semibold text-idm-gold-warm hover:text-idm-gold-warm/80 hover:underline cursor-pointer transition-colors"
                     >
                       <ChevronDown className="w-3 h-3" /> Lihat Selengkapnya ({clubs.length} Klub)
                     </button>
                   ) : (
                     <button
                       onClick={() => setShowAllClubs(!showAllClubs)}
-                      className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
+                      className={`compact-pill flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                     >
                       {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({clubs.length})</>}
                     </button>
@@ -497,7 +497,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
         <div className={`flex items-center gap-1 p-1 rounded-lg ${ct.bgSubtle} ${ct.border}`}>
           <button
             onClick={() => onLeaderboardSortChange('players')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`compact-pill flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-3 h-3" /> Pemain
             <span className={`text-[10px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
@@ -506,7 +506,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
           </button>
           <button
             onClick={() => onLeaderboardSortChange('clubs')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
+            className={`compact-pill flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Shield className="w-3 h-3" /> Klub
             <span className={`text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
@@ -525,7 +525,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
             <button
               key={f.key}
               onClick={() => onDivisionFilterChange(f.key)}
-              className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
+              className={`compact-pill px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap cursor-pointer ${
                 divisionFilter === f.key
                   ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
                   : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'

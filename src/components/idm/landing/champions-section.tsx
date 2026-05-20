@@ -129,7 +129,7 @@ export function ChampionsSection({
                   {championVideoUrl && onVideoPlay && (
                     <button
                       onClick={() => onVideoPlay(championVideoUrl, 'Champion Showcase')}
-                      className="absolute top-5 right-5 z-20 flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-colors"
+                      className="compact-pill absolute top-5 right-5 z-20 flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-colors"
                       style={{
                         backgroundColor: 'rgba(239,249,35,0.15)',
                         border: '1px solid rgba(239,249,35,0.3)',

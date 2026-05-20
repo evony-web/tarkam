@@ -380,7 +380,7 @@ export function PlayersSection({
                     <div className="flex justify-center mt-6">
                       <button
                         onClick={() => setShowAllMalePlayers(!showAllMalePlayers)}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-semibold transition-all duration-300 cursor-pointer"
+                        className="compact-pill inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-semibold transition-all duration-300 cursor-pointer"
                         style={{
                           background: 'linear-gradient(135deg, rgba(46,159,255,0.08) 0%, rgba(46,159,255,0.03) 100%)',
                           color: 'var(--idm-male)',
@@ -608,7 +608,7 @@ export function PlayersSection({
                     <div className="flex justify-center mt-6">
                       <button
                         onClick={() => setShowAllFemalePlayers(!showAllFemalePlayers)}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-semibold transition-all duration-300 cursor-pointer"
+                        className="compact-pill inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-xs font-semibold transition-all duration-300 cursor-pointer"
                         style={{
                           background: 'linear-gradient(135deg, rgba(255,45,120,0.08) 0%, rgba(255,45,120,0.03) 100%)',
                           color: 'var(--idm-female)',

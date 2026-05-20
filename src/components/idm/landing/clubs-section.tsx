@@ -351,7 +351,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                         <div className="flex justify-center mt-8">
                           <button
                             onClick={() => setShowAllClubs(!showAllClubs)}
-                            className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5 text-idm-gold-warm text-xs font-semibold transition-all duration-300 hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/30 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-idm-gold-warm)_10%,transparent)] cursor-pointer"
+                            className="compact-pill relative inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5 text-idm-gold-warm text-xs font-semibold transition-all duration-300 hover:bg-idm-gold-warm/10 hover:border-idm-gold-warm/30 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-idm-gold-warm)_10%,transparent)] cursor-pointer"
                           >
                             {showAllClubs ? (
                               <>

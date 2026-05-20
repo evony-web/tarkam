@@ -886,7 +886,7 @@ function DuoChampionCard({
                     {/* Male champion mini card */}
                     {male ? (
                       <button
-                        className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg border hover:border-idm-gold-warm/20 transition-colors cursor-pointer text-left"
+                        className="compact-pill flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg border hover:border-idm-gold-warm/20 transition-colors cursor-pointer text-left"
                         style={{ borderColor: cm('var(--idm-male)', 10), backgroundColor: cm('var(--idm-male)', 3) }}
                         onClick={() => {
                           setSelectedPlayer({
@@ -935,7 +935,7 @@ function DuoChampionCard({
                     {/* Female champion mini card */}
                     {female ? (
                       <button
-                        className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg border hover:border-idm-gold-warm/20 transition-colors cursor-pointer text-left"
+                        className="compact-pill flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg border hover:border-idm-gold-warm/20 transition-colors cursor-pointer text-left"
                         style={{ borderColor: cm('var(--idm-female)', 10), backgroundColor: cm('var(--idm-female)', 3) }}
                         onClick={() => {
                           setSelectedPlayer({
