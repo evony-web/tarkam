@@ -1189,8 +1189,12 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
   }, []);
 
   // Get display label for a match
-  const getMatchDisplayLabel = (groupLabel: string | undefined): string => {
+  const getMatchDisplayLabel = (groupLabel: string | undefined, match?: Match): string => {
     if (!groupLabel) return '';
+    // Show "Waiting" indicator for L1 matches where rank 3 is pre-seeded
+    if (match && groupLabel.match(/^L1-\d+$/) && match.team1Id && !match.team2Id) {
+      return `LB R1 (Waiting)`;
+    }
     const upperMatch = groupLabel.match(/^U(\d+)-(\d+)$/);
     if (upperMatch) {
       const pos = parseInt(upperMatch[2]);
@@ -1261,7 +1265,7 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
                                 >
                                   <BracketMatchCard
                                     match={m}
-                                    matchLabel={getMatchDisplayLabel(m.groupLabel)}
+                                    matchLabel={getMatchDisplayLabel(m.groupLabel, m)}
                                     mode={mode}
                                     adminProps={adminProps}
                                   />
@@ -1274,22 +1278,25 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
                     </div>
                   )}
 
-                  {/* ── Drop indicator: UB → LB ── */}
+                  {/* ── Drop indicator: UB → LB (Rank 3 waiting) ── */}
                   {hasUpper && hasLower && (
-                    <div className="flex items-center justify-center gap-3 py-1">
-                      <div className="flex-1 flex items-center justify-end">
-                        <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
-                        <div className="h-px w-8 bg-red-400/25" />
+                    <div className="flex flex-col items-center gap-1 py-1">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="flex-1 flex items-center justify-end">
+                          <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
+                          <div className="h-px w-8 bg-red-400/25" />
+                        </div>
+                        <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="opacity-70">
+                          <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M6 14 L12 22 L18 14" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                          <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="6" strokeLinecap="round" opacity="0.15" />
+                        </svg>
+                        <div className="flex-1 flex items-center">
+                          <div className="h-px w-8 bg-red-400/25" />
+                          <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">melawan Peringkat 3 di LB</span>
+                        </div>
                       </div>
-                      <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="opacity-70">
-                        <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M6 14 L12 22 L18 14" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                        <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="6" strokeLinecap="round" opacity="0.15" />
-                      </svg>
-                      <div className="flex-1 flex items-center">
-                        <div className="h-px w-8 bg-red-400/25" />
-                        <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">turun ke Lower Bracket</span>
-                      </div>
+                      <span className="text-[9px] text-orange-400/60 font-medium">Peringkat 3 grup sudah menunggu di Lower Bracket</span>
                     </div>
                   )}
 
@@ -1323,7 +1330,7 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
                                 >
                                   <BracketMatchCard
                                     match={m}
-                                    matchLabel={getMatchDisplayLabel(m.groupLabel)}
+                                    matchLabel={getMatchDisplayLabel(m.groupLabel, m)}
                                     mode={mode}
                                     adminProps={adminProps}
                                   />
@@ -1438,11 +1445,12 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
               </thead>
               <tbody>
                 {teamStats.map((t, i) => (
-                  <tr key={t.name} className={`border-b ${dt.borderSubtle} ${i < 2 ? dt.bgSubtle : ''} ${dt.hoverBgSubtle} transition-colors`}>
+                  <tr key={t.name} className={`border-b ${dt.borderSubtle} ${i < 2 ? dt.bgSubtle : i === 2 ? 'bg-orange-500/5' : ''} ${dt.hoverBgSubtle} transition-colors`}>
                     <td className="text-center py-2">
                       <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-bold ${
                         i === 0 ? 'bg-yellow-500/20 text-yellow-500' :
                         i === 1 ? 'bg-green-500/20 text-green-500' :
+                        i === 2 ? 'bg-orange-500/20 text-orange-500' :
                         'text-muted-foreground'
                       }`}>{i + 1}</span>
                     </td>
@@ -1450,9 +1458,11 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
                       <div className="flex items-center gap-2">
                         <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
                           i < 2 ? `bg-gradient-to-br ${dt.division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} text-white` :
+                          i === 2 ? 'bg-orange-500/20 text-orange-500' :
                           `${dt.iconBg} ${dt.text}`
                         }`}>{t.name.slice(0, 2).toUpperCase()}</div>
-                        <span className={`font-semibold truncate ${i < 2 ? dt.neonText : ''}`}>{t.name}</span>
+                        <span className={`font-semibold truncate ${i < 2 ? dt.neonText : i === 2 ? 'text-orange-400' : ''}`}>{t.name}</span>
+                        {i === 2 && <span className="text-[8px] font-bold uppercase tracking-wider text-orange-400/70 ml-1">→ LB</span>}
                       </div>
                     </td>
                     <td className="text-center font-semibold text-green-500">{t.wins}</td>

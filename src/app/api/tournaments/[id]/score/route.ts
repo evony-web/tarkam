@@ -451,29 +451,38 @@ async function advanceGroupStagePlayoff(
   // Define advancement mapping — same pattern as advanceUpperSemi
   type Advancement = { winner?: { targetLabel: string; slot: 'team1Id' | 'team2Id' }; loser?: { targetLabel: string; slot: 'team1Id' | 'team2Id' } };
 
-  // 4-team double elimination (1-3 groups)
+  // 4-team double elimination (1-3 groups) — NEW FORMAT
+  // Rank 3 from groups is pre-seeded into L1 as team1; Upper SF loser fills team2
+  // Flow: U1 losers → L1 team2, L1 winners → L2, U2-1 loser → L3 team1, L2 winner → L3 team2, L3 winner → GF
   const advancementMap4: Record<string, Advancement> = {
-    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team1Id' } },
-    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
-    'U2-1': { winner: { targetLabel: 'GF', slot: 'team1Id' }, loser: { targetLabel: 'L2-1', slot: 'team1Id' } },
-    'L1-1': { winner: { targetLabel: 'L2-1', slot: 'team2Id' } },
-    'L2-1': { winner: { targetLabel: 'GF', slot: 'team2Id' } },
+    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
+    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-2', slot: 'team2Id' } },
+    'U2-1': { winner: { targetLabel: 'GF', slot: 'team1Id' }, loser: { targetLabel: 'L3-1', slot: 'team1Id' } },
+    'L1-1': { winner: { targetLabel: 'L2-1', slot: 'team1Id' } },
+    'L1-2': { winner: { targetLabel: 'L2-1', slot: 'team2Id' } },
+    'L2-1': { winner: { targetLabel: 'L3-1', slot: 'team2Id' } },
+    'L3-1': { winner: { targetLabel: 'GF', slot: 'team2Id' } },
   };
 
-  // 8-team double elimination (4 groups) — same as upper_semi 8-team map
+  // 8-team double elimination (4 groups) — NEW FORMAT
+  // Rank 3 from each group is pre-seeded into L1 as team1; Upper QF loser fills team2
+  // Flow: U1 losers → L1 team2, L1 winners → L2, U2 losers → L3 (cross), L2 winners → L3 (cross), L3 winners → L4, U3 loser → L4 team1
   const advancementMap8: Record<string, Advancement> = {
-    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team1Id' } },
-    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
-    'U1-3': { winner: { targetLabel: 'U2-2', slot: 'team1Id' }, loser: { targetLabel: 'L1-2', slot: 'team1Id' } },
-    'U1-4': { winner: { targetLabel: 'U2-2', slot: 'team2Id' }, loser: { targetLabel: 'L1-2', slot: 'team2Id' } },
-    'U2-1': { winner: { targetLabel: 'U3-1', slot: 'team1Id' }, loser: { targetLabel: 'L2-2', slot: 'team2Id' } },
-    'U2-2': { winner: { targetLabel: 'U3-1', slot: 'team2Id' }, loser: { targetLabel: 'L2-1', slot: 'team2Id' } },
+    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
+    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-2', slot: 'team2Id' } },
+    'U1-3': { winner: { targetLabel: 'U2-2', slot: 'team1Id' }, loser: { targetLabel: 'L1-3', slot: 'team2Id' } },
+    'U1-4': { winner: { targetLabel: 'U2-2', slot: 'team2Id' }, loser: { targetLabel: 'L1-4', slot: 'team2Id' } },
+    'U2-1': { winner: { targetLabel: 'U3-1', slot: 'team1Id' }, loser: { targetLabel: 'L3-2', slot: 'team2Id' } },
+    'U2-2': { winner: { targetLabel: 'U3-1', slot: 'team2Id' }, loser: { targetLabel: 'L3-1', slot: 'team2Id' } },
     'U3-1': { winner: { targetLabel: 'GF', slot: 'team1Id' }, loser: { targetLabel: 'L4-1', slot: 'team1Id' } },
     'L1-1': { winner: { targetLabel: 'L2-1', slot: 'team1Id' } },
-    'L1-2': { winner: { targetLabel: 'L2-2', slot: 'team1Id' } },
+    'L1-2': { winner: { targetLabel: 'L2-1', slot: 'team2Id' } },
+    'L1-3': { winner: { targetLabel: 'L2-2', slot: 'team1Id' } },
+    'L1-4': { winner: { targetLabel: 'L2-2', slot: 'team2Id' } },
     'L2-1': { winner: { targetLabel: 'L3-1', slot: 'team1Id' } },
-    'L2-2': { winner: { targetLabel: 'L3-1', slot: 'team2Id' } },
-    'L3-1': { winner: { targetLabel: 'L4-1', slot: 'team2Id' } },
+    'L2-2': { winner: { targetLabel: 'L3-2', slot: 'team1Id' } },
+    'L3-1': { winner: { targetLabel: 'L4-1', slot: 'team1Id' } },
+    'L3-2': { winner: { targetLabel: 'L4-1', slot: 'team2Id' } },
     'L4-1': { winner: { targetLabel: 'GF', slot: 'team2Id' } },
   };
 
@@ -484,7 +493,7 @@ async function advanceGroupStagePlayoff(
     advancementMap = advancementMap8;
   } else {
     // 5+ groups: Build a generic advancement map based on bracket labels
-    // Upper bracket: standard bracket position-based advancement
+    // NEW FORMAT: L1 matches have team1 = rank 3 (pre-seeded), upper losers go to team2
     const allPlayoffMatches = await db.match.findMany({
       where: { tournamentId, bracket: { in: ['upper', 'lower', 'grand_final'] } },
     });
@@ -498,6 +507,7 @@ async function advanceGroupStagePlayoff(
     for (let ri = 0; ri < upperRounds.length; ri++) {
       const roundMatches = upperMatches.filter(m => m.round === upperRounds[ri]).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
       const isLastUpperRound = ri === upperRounds.length - 1;
+      const isFirstUpperRound = ri === 0;
 
       for (let mi = 0; mi < roundMatches.length; mi++) {
         const m = roundMatches[mi];
@@ -525,29 +535,33 @@ async function advanceGroupStagePlayoff(
           }
 
           // Loser goes to lower bracket
-          // Find corresponding lower bracket match for this round
-          const lbRoundForDrop = lowerMatches.filter(m => {
-            const lbRoundLabel = m.groupLabel;
-            if (!lbRoundLabel) return false;
-            const lbParse = lbRoundLabel.match(/^L(\d+)-/);
-            if (!lbParse) return false;
-            // Map to the appropriate lower bracket round based on upper bracket round
-            return true;
-          });
+          // First upper round (U1) losers go to L1 team2 (rank 3 already has team1)
+          // Later upper round losers go to appropriate LB rounds
+          if (isFirstUpperRound) {
+            // U1 losers → L1 team2 (rank 3 already has team1)
+            const lbL1Matches = lowerMatches.filter(m => {
+              const lbLabel = m.groupLabel;
+              if (!lbLabel) return false;
+              return lbLabel.match(/^L1-\d+$/);
+            }).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 
-          // For generic brackets, drop losers into lower bracket rounds
-          // Odd lower rounds receive upper bracket drops
-          const lowerRoundForDrop = ri * 2 + 1;
-          const lbDropMatches = lowerMatches.filter(m => {
-            const lbLabel = m.groupLabel;
-            if (!lbLabel) return false;
-            const lbMatch = lbLabel.match(/^L(\d+)-(\d+)$/);
-            if (!lbMatch) return false;
-            return parseInt(lbMatch[1]) === lowerRoundForDrop;
-          }).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+            if (lbL1Matches[mi]?.groupLabel) {
+              entry.loser = { targetLabel: lbL1Matches[mi].groupLabel!, slot: 'team2Id' };
+            }
+          } else {
+            // Later upper round losers → appropriate lower bracket round
+            const lowerRoundForDrop = (ri + 1) * 2 - 1; // L3 for U2, L5 for U3, etc.
+            const lbDropMatches = lowerMatches.filter(m => {
+              const lbLabel = m.groupLabel;
+              if (!lbLabel) return false;
+              const lbMatch = lbLabel.match(/^L(\d+)-(\d+)$/);
+              if (!lbMatch) return false;
+              return parseInt(lbMatch[1]) === lowerRoundForDrop;
+            }).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 
-          if (lbDropMatches.length > 0 && lbDropMatches[mi]?.groupLabel) {
-            entry.loser = { targetLabel: lbDropMatches[mi].groupLabel!, slot: 'team1Id' };
+            if (lbDropMatches.length > 0 && lbDropMatches[mi]?.groupLabel) {
+              entry.loser = { targetLabel: lbDropMatches[mi].groupLabel!, slot: 'team2Id' };
+            }
           }
         }
 
@@ -1290,6 +1304,7 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
 
   if (numGroups === 1) {
     // Single group: 1st vs 4th (U1-1), 2nd vs 3rd (U1-2)
+    // NEW FORMAT: Rank 3 → Lower L1-2 (team1), Rank 4 → Lower L1-1 (team1)
     const group = standingsByGroup[groupLabels[0]];
     if (group && group.length >= 4) {
       const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
@@ -1300,9 +1315,24 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
       if (u12) {
         await db.match.update({ where: { id: u12.id }, data: { team1Id: group[1].teamId, team2Id: group[2].teamId, status: 'ready' } });
       }
+      // Seed rank 3 and rank 4 into Lower Bracket L1
+      // L1-1 team1 = rank 4 (faces U1-1 loser), L1-2 team1 = rank 3 (faces U1-2 loser)
+      if (group.length >= 3) {
+        const l12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-2' } });
+        if (l12) {
+          await db.match.update({ where: { id: l12.id }, data: { team1Id: group[2].teamId } });
+        }
+      }
+      if (group.length >= 4) {
+        const l11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-1' } });
+        if (l11) {
+          await db.match.update({ where: { id: l11.id }, data: { team1Id: group[3].teamId } });
+        }
+      }
     }
   } else if (numGroups === 2) {
     // 2 groups: A1 vs B2 (U1-1), B1 vs A2 (U1-2)
+    // NEW FORMAT: A3 → Lower L1-1 (team1), B3 → Lower L1-2 (team1)
     const groupA = standingsByGroup[groupLabels[0]];
     const groupB = standingsByGroup[groupLabels[1]];
 
@@ -1321,8 +1351,23 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
         await db.match.update({ where: { id: u12.id }, data: { team1Id: B1, team2Id: A2, status: 'ready' } });
       }
     }
+
+    // Seed rank 3 into Lower Bracket — A3 → L1-1, B3 → L1-2
+    if (groupA && groupA.length >= 3) {
+      const l11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-1' } });
+      if (l11) {
+        await db.match.update({ where: { id: l11.id }, data: { team1Id: groupA[2].teamId } });
+      }
+    }
+    if (groupB && groupB.length >= 3) {
+      const l12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-2' } });
+      if (l12) {
+        await db.match.update({ where: { id: l12.id }, data: { team1Id: groupB[2].teamId } });
+      }
+    }
   } else if (numGroups === 3) {
     // 3 groups — Top of each group + best 2nd place
+    // NEW FORMAT: Rank 3 from each group → Lower Bracket L1 (waiting)
     // Rank all 2nd place teams to find the best one
     const secondPlaceTeams = groupLabels
       .map(label => standingsByGroup[label]?.[1])
@@ -1352,9 +1397,32 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
         await db.match.update({ where: { id: u12.id }, data: { team1Id: groupWinners[1].team.teamId, team2Id: groupWinners[2].team.teamId, status: 'ready' } });
       }
     }
+
+    // Seed rank 3 from each group into Lower Bracket L1
+    // L1-1 team1 = rank 3 of group whose winner is in U1-1 (faces U1-1 loser)
+    // L1-2 team1 = rank 3 of group whose winner is in U1-2 (faces U1-2 loser)
+    const thirdPlaceTeams = groupLabels
+      .map(label => ({ label, team: standingsByGroup[label]?.[2] }))
+      .filter(g => g.team)
+      .sort((a, b) => (b.team?.points || 0) - (a.team?.points || 0));
+
+    if (thirdPlaceTeams.length >= 1) {
+      const l11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-1' } });
+      if (l11 && thirdPlaceTeams[0].team) {
+        await db.match.update({ where: { id: l11.id }, data: { team1Id: thirdPlaceTeams[0].team.teamId } });
+      }
+    }
+    if (thirdPlaceTeams.length >= 2) {
+      const l12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-2' } });
+      if (l12 && thirdPlaceTeams[1].team) {
+        await db.match.update({ where: { id: l12.id }, data: { team1Id: thirdPlaceTeams[1].team.teamId } });
+      }
+    }
   } else if (numGroups === 4) {
     // 4 groups — Quarter-finals with cross-bracket (double elimination)
+    // NEW FORMAT: Rank 3 from each group → Lower Bracket L1 (waiting for Upper QF losers)
     // U1-1: A1 vs D2, U1-2: B1 vs C2, U1-3: C1 vs B2, U1-4: D1 vs A2
+    // L1-1: A3 (vs U1-1 loser), L1-2: B3 (vs U1-2 loser), L1-3: C3 (vs U1-3 loser), L1-4: D3 (vs U1-4 loser)
     const groupA = standingsByGroup['A'];
     const groupB = standingsByGroup['B'];
     const groupC = standingsByGroup['C'];
@@ -1376,8 +1444,27 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
       const u14 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-4' } });
       if (u14) await db.match.update({ where: { id: u14.id }, data: { team1Id: groupD[0].teamId, team2Id: groupA[1].teamId, status: 'ready' } });
     }
+
+    // Seed rank 3 into Lower Bracket L1 (facing corresponding Upper QF loser)
+    if (groupA?.[2]) {
+      const l11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-1' } });
+      if (l11) await db.match.update({ where: { id: l11.id }, data: { team1Id: groupA[2].teamId } });
+    }
+    if (groupB?.[2]) {
+      const l12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-2' } });
+      if (l12) await db.match.update({ where: { id: l12.id }, data: { team1Id: groupB[2].teamId } });
+    }
+    if (groupC?.[2]) {
+      const l13 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-3' } });
+      if (l13) await db.match.update({ where: { id: l13.id }, data: { team1Id: groupC[2].teamId } });
+    }
+    if (groupD?.[2]) {
+      const l14 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'L1-4' } });
+      if (l14) await db.match.update({ where: { id: l14.id }, data: { team1Id: groupD[2].teamId } });
+    }
   } else {
     // 5+ groups — Generic playoff seeding into double elimination bracket
+    // NEW FORMAT: Rank 1&2 → Upper, Rank 3 → Lower L1 (waiting for upper losers)
     const playoffSize = Math.pow(2, Math.ceil(Math.log2(numGroups)));
     const wildcardsNeeded = playoffSize - numGroups;
 
@@ -1418,6 +1505,26 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
         await db.match.update({
           where: { id: firstRoundMatches[i].id },
           data: { team1Id, status: 'pending' },
+        });
+      }
+    }
+
+    // Seed rank 3 from each group into Lower Bracket L1 (team1 pre-seeded, team2 = upper loser TBD)
+    const thirdPlaceTeams = groupLabels
+      .map(label => ({ label, standing: standingsByGroup[label]?.[2] }))
+      .filter(g => g.standing)
+      .sort((a, b) => (b.standing?.points || 0) - (a.standing?.points || 0));
+
+    const l1Matches = await db.match.findMany({
+      where: { tournamentId, groupLabel: { startsWith: 'L1-' } },
+      orderBy: { matchNumber: 'asc' },
+    });
+
+    for (let i = 0; i < Math.min(l1Matches.length, thirdPlaceTeams.length); i++) {
+      if (thirdPlaceTeams[i].standing) {
+        await db.match.update({
+          where: { id: l1Matches[i].id },
+          data: { team1Id: thirdPlaceTeams[i].standing!.teamId },
         });
       }
     }

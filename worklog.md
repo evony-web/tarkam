@@ -594,3 +594,46 @@ Stage Summary:
 - Card alignment auto-adjusts to vertically center between feeder matches
 - ZoomableContainer added for mobile-friendly zoom/pan
 - File modified: `src/components/idm/bracket-view.tsx` (new GroupStagePlayoffBracket component + GroupStageView simplified)
+
+---
+Task ID: 10
+Agent: Main
+Task: Fix TypeScript lint errors + Implement new Playoff format (Rank 3 → Lower Bracket waiting)
+
+Work Log:
+- Fixed 7 lint errors across 4 files:
+  - hero-section.tsx: Changed setIsMobile in useEffect → useSyncExternalStore for mobile detection
+  - shared.tsx: Changed `var _cleanupVis` → `let _cleanupVis`
+  - match-day-center.tsx: Replaced 2x setState-in-effect with render-time state adjustment pattern
+  - tournament-manager.tsx: Removed useMemo wrappers where React Compiler couldn't preserve manual memoization
+- Implemented new playoff format per user request:
+  - Rank 1&2 → Upper Bracket (as before)
+  - Rank 3 → Lower Bracket L1 (pre-seeded as team1, waiting for Upper losers)
+  - Upper SF/QF losers → Lower Bracket L1 team2 (facing the waiting rank-3 teams)
+- Updated generate-bracket/route.ts:
+  - 1-3 groups: Added L1-1, L1-2 (rank 3 waiting) + L2-1 (consolidation) + L3-1 (UB Final loser drop) → GF
+  - 4 groups: Added L1-1..L1-4 (rank 3 waiting) + L2-1, L2-2 + L3-1, L3-2 (SF loser cross-drop) + L4-1 → GF
+  - 5+ groups: Updated generic bracket with L1 pre-seeding for rank 3
+- Updated score/route.ts:
+  - advancementMap4: U1 losers → L1 team2, L1 winners → L2, U2 loser → L3 team1, L2 winner → L3 team2, L3 winner → GF
+  - advancementMap8: U1 losers → L1 team2, L1 winners → L2, U2 losers → L3 (cross), L2 winners → L3, L3 winners → L4, U3 loser → L4
+  - Generic 5+ groups map: U1 losers → L1 team2, later U round losers → appropriate LB rounds team2
+  - checkAndSeedPlayoffs: Seeds rank 3 from each group into L1 matches as team1
+- Updated bracket-view.tsx:
+  - GroupStagePlayoffBracket: Updated drop indicator text "melawan Peringkat 3 di LB" + subtitle
+  - GroupStageView standings: Rank 3 highlighted with orange + "→ LB" label
+  - getMatchDisplayLabel: Shows "LB R1 (Waiting)" for L1 matches with team1 but no team2
+
+Stage Summary:
+- Lint: 0 errors (was 7)
+- New playoff format: Rank 3 from each group waits in Lower Bracket for Upper losers
+- All bracket sizes supported: 1-3 groups, 4 groups, 5+ groups
+- Backward compatible: old brackets still render correctly
+- Files modified:
+  - `src/components/idm/landing/hero-section.tsx` — lint fix
+  - `src/components/idm/landing/shared.tsx` — lint fix
+  - `src/components/idm/match-day-center.tsx` — lint fix
+  - `src/components/idm/tournament-manager.tsx` — lint fix
+  - `src/app/api/tournaments/[id]/generate-bracket/route.ts` — new bracket structure
+  - `src/app/api/tournaments/[id]/score/route.ts` — new advancement + seeding
+  - `src/components/idm/bracket-view.tsx` — visual updates (rank 3 highlight, drop indicator, waiting label)
