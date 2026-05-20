@@ -171,7 +171,7 @@ function SultanOfWeeklyCard({
               const allSultansForDiv = isCoSultan
                 ? [
                     { donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player },
-                    ...sultan.coSultans
+                    ...(sultan.coSultans ?? [])
                       .filter(cs => cs.donorName !== sultan.donorName)
                       .map((cs) => ({
                         donorName: cs.donorName,

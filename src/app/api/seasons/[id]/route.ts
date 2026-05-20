@@ -265,7 +265,7 @@ export async function PUT(
         include: {
           clubMembers: {
             where: { leftAt: null },
-            include: { profile: { select: { name: true } } },
+            include: { profile: { select: { id: true, name: true, logo: true } } },
             take: 1,
           },
         },
