@@ -522,3 +522,45 @@ Stage Summary:
   - `src/components/idm/bracket-view.tsx` — GroupStageView + SwissView enhanced with admin mode
   - `src/components/idm/tournament-manager.tsx` — Replaced inline rendering with BracketView for all formats
 - Key architectural improvement: All 4 tournament formats now use the SAME BracketView component with mode="admin", eliminating ~430 lines of duplicate inline code
+
+---
+Task ID: 4
+Agent: Main
+Task: Implement Double Elimination Playoff for Group Stage + Playoff format
+
+Work Log:
+- User approved changing group_stage playoff from single elimination to double elimination (upper + lower bracket + grand final)
+- Read all 4 key files: generate-bracket/route.ts, score/route.ts, bracket-generator.ts, bracket-view.tsx
+- Designed double elim bracket structure for different group counts:
+  - 1-3 groups (4 teams): U1-1, U1-2 (Upper SF) → U2-1 (Upper Final) → L1-1 (Lower SF) → L2-1 (Lower Final) → GF (Grand Final)
+  - 4 groups (8 teams): U1-1 to U1-4 (Upper QF) → U2-1, U2-2 (Upper SF) → U3-1 (Upper Final) → L1-1, L1-2 → L2-1, L2-2 → L3-1 → L4-1 (Lower Final) → GF
+  - 5+ groups: Generic double elimination with dynamic bracket creation
+- Modified generate-bracket/route.ts:
+  - Replaced all single elim playoff match creation (SF1/SF2/Final/3rd) with double elim structure (U/L/GF labels)
+  - Matches use same label format as upper_semi format (U1-1, L1-1, GF) for consistency
+  - Grand Final uses bracket: 'grand_final' (distinct from 'upper')
+- Modified score/route.ts:
+  - Replaced advanceGroupStagePlayoff with label-based advancement maps (same pattern as advanceUpperSemi)
+  - 4-team map for 1-3 groups, 8-team map for 4 groups, generic builder for 5+ groups
+  - Backward compat: old-style labels (SF1, SF2, QF1-4) detected and skipped
+  - Updated checkAndSeedPlayoffs to seed into U1-1/U1-2 labels instead of SF1/SF2
+- Modified bracket-generator.ts:
+  - Added generateGroupStagePlayoff function matching the API route's double elim structure
+- Modified bracket-view.tsx GroupStageView:
+  - Auto-detects bracket style: new double-elim (U1-1, L1-1, GF) vs old single-elim (SF1, SF2, Final, 3rd)
+  - New style: Renders Upper Bracket (round by round), drop indicator, Lower Bracket (orange theme), Grand Final (gold trophy)
+  - Old style: Preserved original SF1/SF2/Final/3rd rendering for backward compat
+  - Uses BracketMatchCard for consistent admin mode support
+- No new lint errors, dev server running 200 OK
+
+Stage Summary:
+- **Group Stage + Playoff now uses Double Elimination** instead of Single Elimination
+- Losing a match in playoff no longer means elimination — losers drop to Lower Bracket and can still reach Grand Final
+- Grand Final: Upper Bracket Winner vs Lower Bracket Winner (no bracket reset — simpler, still fair)
+- Same label format (U1-1, L1-1, GF) as upper_semi format for consistency
+- Files modified:
+  - `src/app/api/tournaments/[id]/generate-bracket/route.ts` — Double elim playoff match creation
+  - `src/app/api/tournaments/[id]/score/route.ts` — Double elim advancement + seeding
+  - `src/lib/tournament/bracket-generator.ts` — Library module update
+  - `src/components/idm/bracket-view.tsx` — GroupStageView double elim rendering + backward compat
+- Backward compatible: existing tournaments with old SF1/SF2 labels still render correctly

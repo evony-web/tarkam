@@ -1070,144 +1070,368 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
         </div>
       ))}
 
-      {/* Playoff Matches — Bracket visual */}
+      {/* Playoff Matches — Double Elimination Bracket */}
       {playoffMatches.length > 0 && (() => {
-        const sf1 = playoffMatches.find(m => m.groupLabel === 'SF1');
-        const sf2 = playoffMatches.find(m => m.groupLabel === 'SF2');
-        const grandFinal = playoffMatches.find(m => m.groupLabel === 'Final');
-        const thirdPlace = playoffMatches.find(m => m.groupLabel === '3rd');
-        const semiFinals = [sf1, sf2].filter(Boolean) as Match[];
-        const finals = [grandFinal, thirdPlace].filter(Boolean) as Match[];
+        // Detect bracket style: new double-elim (U1-1, L1-1, GF) vs old single-elim (SF1, SF2, Final, 3rd)
+        const isNewStyle = playoffMatches.some(m =>
+          m.groupLabel?.match(/^[UG][FLF]/) || m.groupLabel?.match(/^[UL]\d+-\d+$/) || m.groupLabel === 'GF'
+        );
 
-        // Helper to render playoff card
-        const renderPlayoffCard = (m: Match, labelOverride?: string) => {
-          const label = labelOverride || m.groupLabel || '';
-          const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
-          const isGrandFinal = label === 'Final';
+        // ── OLD STYLE: backward compat for SF1/SF2/Final/3rd ──
+        if (!isNewStyle) {
+          const sf1 = playoffMatches.find(m => m.groupLabel === 'SF1');
+          const sf2 = playoffMatches.find(m => m.groupLabel === 'SF2');
+          const grandFinal = playoffMatches.find(m => m.groupLabel === 'Final');
+          const thirdPlace = playoffMatches.find(m => m.groupLabel === '3rd');
+          const semiFinals = [sf1, sf2].filter(Boolean) as Match[];
+          const finals = [grandFinal, thirdPlace].filter(Boolean) as Match[];
 
-          if (isAdmin) {
+          const renderPlayoffCard = (m: Match, labelOverride?: string) => {
+            const label = labelOverride || m.groupLabel || '';
+            const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
+            const isGrandFinal = label === 'Final';
+
+            if (isAdmin) {
+              return (
+                <BracketMatchCard
+                  match={m}
+                  matchLabel={matchLabel}
+                  isGrandFinal={isGrandFinal}
+                  mode="admin"
+                  adminProps={adminProps}
+                />
+              );
+            }
+
+            const hasScore = m.score1 !== null && m.score2 !== null;
+            const winner1 = hasScore && m.score1! > m.score2!;
+            const winner2 = hasScore && m.score2! > m.score1!;
+            const isLive = m.status === 'live' || m.status === 'main_event';
+            const is3rd = label === '3rd';
+            const isByeMatch = (!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed';
+
             return (
-              <BracketMatchCard
-                match={m}
-                matchLabel={matchLabel}
-                isGrandFinal={isGrandFinal}
-                mode="admin"
-                adminProps={adminProps}
-              />
+              <div
+                key={m.id}
+                className={`hover-scale-sm rounded-lg overflow-hidden border transition-all relative ${
+                  isLive ? `border-red-500/30 ${dt.neonPulse}` :
+                  isGrandFinal ? 'border-idm-gold-warm/40 shadow-[0_0_12px_rgba(239,249,35,0.15)]' :
+                  is3rd ? 'border-orange-500/20' :
+                  'border-idm-gold-warm/20'
+                }`}
+                style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
+              >
+                <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between ${
+                  isGrandFinal ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
+                  is3rd ? 'bg-orange-500/5 text-orange-400' :
+                  `${dt.neonText} bg-idm-gold-warm/5`
+                }`}>
+                  <span className="flex items-center gap-1.5">
+                    {isGrandFinal && <span>🏆</span>}
+                    {is3rd && <span>🥉</span>}
+                    {matchLabel}
+                  </span>
+                  {isByeMatch && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
+                  )}
+                </div>
+                <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
+                  <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                    {m.team1?.name || 'TBD'}
+                  </span>
+                  <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
+                    {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
+                  </span>
+                </div>
+                <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
+                  <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
+                    {m.team2?.name || 'TBD'}
+                  </span>
+                  <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
+                    {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
+                  </span>
+                </div>
+              </div>
             );
-          }
-
-          const hasScore = m.score1 !== null && m.score2 !== null;
-          const winner1 = hasScore && m.score1! > m.score2!;
-          const winner2 = hasScore && m.score2! > m.score1!;
-          const isLive = m.status === 'live' || m.status === 'main_event';
-          const is3rd = label === '3rd';
-          const isByeMatch = (!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed';
+          };
 
           return (
-            <div
-              key={m.id}
-              className={`hover-scale-sm rounded-lg overflow-hidden border transition-all relative ${
-                isLive ? `border-red-500/30 ${dt.neonPulse}` :
-                isGrandFinal ? 'border-idm-gold-warm/40 shadow-[0_0_12px_rgba(239,249,35,0.15)]' :
-                is3rd ? 'border-orange-500/20' :
-                'border-idm-gold-warm/20'
-              }`}
-              style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
-            >
-              <div className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between ${
-                isGrandFinal ? 'bg-idm-gold-warm/10 text-idm-gold-warm' :
-                is3rd ? 'bg-orange-500/5 text-orange-400' :
-                `${dt.neonText} bg-idm-gold-warm/5`
-              }`}>
-                <span className="flex items-center gap-1.5">
-                  {isGrandFinal && <span>🏆</span>}
-                  {is3rd && <span>🥉</span>}
-                  {matchLabel}
-                </span>
-                {isByeMatch && (
-                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">WALKOVER</span>
-                )}
-              </div>
-              <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
-                <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
-                  {m.team1?.name || 'TBD'}
-                </span>
-                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : 'text-muted-foreground'}`}>
-                  {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
-                </span>
-              </div>
-              <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
-                <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
-                  {m.team2?.name || 'TBD'}
-                </span>
-                <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : 'text-muted-foreground'}`}>
-                  {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
-                </span>
-              </div>
+            <div className="space-y-4">
+              {semiFinals.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider`}>
+                      ⚔️ Semi Final
+                    </div>
+                    <div className={`flex-1 h-px ${dt.borderSubtle}`} />
+                    <span className="text-[10px] text-muted-foreground">Pemenang lolos Grand Final</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {sf1 && renderPlayoffCard(sf1, 'SF1')}
+                    {sf2 && renderPlayoffCard(sf2, 'SF2')}
+                  </div>
+                </div>
+              )}
+              {semiFinals.length > 0 && finals.length > 0 && (
+                <div className="flex items-center justify-center gap-2 py-1">
+                  <div className="flex-1 flex items-center justify-end">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
+                      <div className="h-px w-8 bg-idm-gold-warm/30" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <div className="w-px h-3 bg-idm-gold-warm/20" />
+                    <div className="w-3 h-3 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
+                      <Crown className="w-2 h-2 text-idm-gold-warm" />
+                    </div>
+                    <div className="w-px h-3 bg-orange-500/20" />
+                  </div>
+                  <div className="flex-1 flex items-center">
+                    <div className="flex items-center gap-1">
+                      <div className="h-px w-8 bg-orange-500/20" />
+                      <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {finals.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-idm-gold-warm/20">
+                      🏆 Grand Final
+                    </div>
+                    <div className={`flex-1 h-px ${dt.borderSubtle}`} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {grandFinal && renderPlayoffCard(grandFinal, 'Final')}
+                    {thirdPlace && renderPlayoffCard(thirdPlace, '3rd')}
+                  </div>
+                </div>
+              )}
             </div>
           );
+        }
+
+        // ── NEW STYLE: Double Elimination Bracket ──
+        const upperMatches = playoffMatches.filter(m => m.bracket === 'upper');
+        const lowerMatches = playoffMatches.filter(m => m.bracket === 'lower');
+        const gfMatches = playoffMatches.filter(m => m.bracket === 'grand_final');
+
+        // Group UB matches by round, sorted ascending
+        const upperRounds = (() => {
+          const grouped = new Map<number, Match[]>();
+          upperMatches.forEach(m => {
+            const round = m.round ?? 1;
+            if (!grouped.has(round)) grouped.set(round, []);
+            grouped.get(round)!.push(m);
+          });
+          return Array.from(grouped.entries())
+            .sort(([a], [b]) => a - b)
+            .map(([round, roundMatches]) => ({
+              round,
+              label: getUpperSemiRoundLabel(round, 'upper', playoffMatches),
+              matches: [...roundMatches].sort((a, b) => {
+                const posA = getBracketPosition(a.groupLabel);
+                const posB = getBracketPosition(b.groupLabel);
+                if (posA && posB) return posA - posB;
+                return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+              }),
+            }));
+        })();
+
+        // Group LB matches by round, sorted ascending
+        const lowerRounds = (() => {
+          const grouped = new Map<number, Match[]>();
+          lowerMatches.forEach(m => {
+            const round = m.round ?? 1;
+            if (!grouped.has(round)) grouped.set(round, []);
+            grouped.get(round)!.push(m);
+          });
+          return Array.from(grouped.entries())
+            .sort(([a], [b]) => a - b)
+            .map(([round, roundMatches]) => ({
+              round,
+              label: getUpperSemiRoundLabel(round, 'lower', playoffMatches),
+              matches: [...roundMatches].sort((a, b) => {
+                const posA = getBracketPosition(a.groupLabel);
+                const posB = getBracketPosition(b.groupLabel);
+                if (posA && posB) return posA - posB;
+                return (a.matchNumber ?? 0) - (b.matchNumber ?? 0);
+              }),
+            }));
+        })();
+
+        const hasUpper = upperRounds.length > 0;
+        const hasLower = lowerRounds.length > 0;
+        const hasGF = gfMatches.length > 0;
+
+        // Get display label for a match
+        const getMatchDisplayLabel = (groupLabel: string | undefined): string => {
+          if (!groupLabel) return '';
+          // U1-1 → "Upper SF 1", U1-3 → "Upper QF 3", etc.
+          const upperMatch = groupLabel.match(/^U(\d+)-(\d+)$/);
+          if (upperMatch) {
+            const round = parseInt(upperMatch[1]);
+            const pos = parseInt(upperMatch[2]);
+            if (upperRounds.length <= 2) return `USF ${pos}`;
+            const roundIdx = upperRounds.findIndex(r => r.round === (upperMatches[0]?.round ?? 0) + round - 1);
+            if (round === 1) return `UQF ${pos}`;
+            if (round === upperRounds.length) return `UF`;
+            return `USF ${pos}`;
+          }
+          // L1-1 → "LR1-1", etc.
+          const lowerMatch = groupLabel.match(/^L(\d+)-(\d+)$/);
+          if (lowerMatch) {
+            return `L${lowerMatch[1]}-${lowerMatch[2]}`;
+          }
+          if (groupLabel === 'GF') return 'Grand Final';
+          return groupLabel;
         };
 
         return (
-          <div className="space-y-4">
-            {/* ── Semi Final Section ── */}
-            {semiFinals.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className={`px-3 py-1.5 rounded-lg bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider`}>
-                    ⚔️ Semi Final
-                  </div>
-                  <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                  <span className="text-[10px] text-muted-foreground">Pemenang lolos Grand Final</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {sf1 && renderPlayoffCard(sf1, 'SF1')}
-                  {sf2 && renderPlayoffCard(sf2, 'SF2')}
-                </div>
-              </div>
-            )}
+          <div className="rounded-2xl overflow-hidden border border-border/60">
+            {/* Section Header */}
+            <div className={`flex items-center gap-2.5 px-4 py-2.5 border-b ${dt.borderSubtle} ${dt.bg}`}>
+              <Swords className={`w-4 h-4 ${dt.neonText}`} />
+              <h3 className={`text-sm font-bold uppercase tracking-wider ${dt.text}`}>Double Elimination Playoff</h3>
+              <span className="text-[10px] text-muted-foreground ml-auto">
+                {playoffMatches.length} pertandingan
+              </span>
+            </div>
+            <div className="p-2">
+              <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
+                <div className="relative min-w-max px-2">
+                  <div className="flex flex-col gap-6">
+                    {/* ── UPPER BRACKET ── */}
+                    {hasUpper && (
+                      <div>
+                        <div className="text-center mb-3">
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${dt.bg} ${dt.text} text-xs font-bold uppercase tracking-wider border ${dt.borderSubtle}`}>
+                            <Swords className="w-3 h-3 opacity-60" />
+                            Upper Bracket
+                          </div>
+                        </div>
+                        <div className="flex gap-8 overflow-x-auto">
+                          {upperRounds.map((round) => (
+                            <div key={`ub-${round.round}`} className="flex flex-col" style={{ minWidth: '180px' }}>
+                              <div className="text-center mb-3">
+                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${dt.bg} ${dt.text} text-[10px] font-bold uppercase tracking-wider border ${dt.borderSubtle}`}>
+                                  {round.label}
+                                </div>
+                              </div>
+                              <div className="flex-1 flex flex-col gap-3">
+                                {round.matches.map((m) => (
+                                  <BracketMatchCard
+                                    key={m.id}
+                                    match={m}
+                                    matchLabel={getMatchDisplayLabel(m.groupLabel)}
+                                    mode={mode}
+                                    adminProps={adminProps}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-            {/* Connection visual */}
-            {semiFinals.length > 0 && finals.length > 0 && (
-              <div className="flex items-center justify-center gap-2 py-1">
-                <div className="flex-1 flex items-center justify-end">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
-                    <div className="h-px w-8 bg-idm-gold-warm/30" />
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  <div className="w-px h-3 bg-idm-gold-warm/20" />
-                  <div className="w-3 h-3 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
-                    <Crown className="w-2 h-2 text-idm-gold-warm" />
-                  </div>
-                  <div className="w-px h-3 bg-orange-500/20" />
-                </div>
-                <div className="flex-1 flex items-center">
-                  <div className="flex items-center gap-1">
-                    <div className="h-px w-8 bg-orange-500/20" />
-                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
-                  </div>
-                </div>
-              </div>
-            )}
+                    {/* ── Drop indicator: UB → LB ── */}
+                    {hasUpper && hasLower && (
+                      <div className="flex items-center justify-center gap-3 py-1">
+                        <div className="flex-1 flex items-center justify-end">
+                          <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Yang kalah</span>
+                          <div className="h-px w-8 bg-red-400/25" />
+                        </div>
+                        <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="opacity-70">
+                          <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M6 14 L12 22 L18 14" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                          <path d="M12 2 L12 18" stroke="#f87171" strokeWidth="6" strokeLinecap="round" opacity="0.15" />
+                        </svg>
+                        <div className="flex-1 flex items-center">
+                          <div className="h-px w-8 bg-red-400/25" />
+                          <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">turun ke Lower Bracket</span>
+                        </div>
+                      </div>
+                    )}
 
-            {/* ── Grand Final + 3rd Place Section ── */}
-            {finals.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="px-3 py-1.5 rounded-lg bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-idm-gold-warm/20">
-                    🏆 Grand Final
+                    {/* ── LOWER BRACKET ── */}
+                    {hasLower && (
+                      <div>
+                        <div className="text-center mb-3">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/5 text-orange-400 text-xs font-bold uppercase tracking-wider border border-orange-500/20">
+                            <Swords className="w-3 h-3 opacity-60" />
+                            Lower Bracket
+                          </div>
+                        </div>
+                        <div className="flex gap-8 overflow-x-auto">
+                          {lowerRounds.map((round) => (
+                            <div key={`lb-${round.round}`} className="flex flex-col" style={{ minWidth: '180px' }}>
+                              <div className="text-center mb-3">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/5 text-orange-400 text-[10px] font-bold uppercase tracking-wider border border-orange-500/20">
+                                  {round.label}
+                                </div>
+                              </div>
+                              <div className="flex-1 flex flex-col gap-3">
+                                {round.matches.map((m) => (
+                                  <BracketMatchCard
+                                    key={m.id}
+                                    match={m}
+                                    matchLabel={getMatchDisplayLabel(m.groupLabel)}
+                                    mode={mode}
+                                    adminProps={adminProps}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Grand Final ── */}
+                    {hasGF && (
+                      <div>
+                        <div className="flex items-center justify-center gap-3 py-1">
+                          <div className="flex-1 flex items-center justify-end">
+                            <span className="text-[10px] font-bold text-idm-gold-warm uppercase tracking-wider">UB Winner</span>
+                            <div className="h-px w-6 bg-idm-gold-warm/30" />
+                          </div>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <div className="w-px h-2 bg-idm-gold-warm/20" />
+                            <div className="w-4 h-4 rounded-full border border-idm-gold-warm/40 bg-idm-gold-warm/10 flex items-center justify-center shadow-[0_0_8px_rgba(239,249,35,0.2)]">
+                              <Trophy className="w-2.5 h-2.5 text-idm-gold-warm" />
+                            </div>
+                            <div className="w-px h-2 bg-orange-500/20" />
+                          </div>
+                          <div className="flex-1 flex items-center">
+                            <div className="h-px w-6 bg-orange-500/20" />
+                            <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">LB Winner</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-center mt-2">
+                          <div className="flex flex-col items-center" style={{ minWidth: '220px' }}>
+                            <div className="text-center mb-3">
+                              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-idm-gold-warm/20 via-idm-gold-warm/10 to-idm-gold-warm/20 text-idm-gold-warm text-sm font-black uppercase tracking-wider border border-idm-gold-warm/40 shadow-[0_0_24px_rgba(239,249,35,0.2)]">
+                                <Trophy className="w-4 h-4" />
+                                Grand Final
+                              </div>
+                            </div>
+                            {gfMatches.map((m) => (
+                              <BracketMatchCard key={m.id} match={m} isGrandFinal matchLabel="Grand Final" mode={mode} adminProps={adminProps} />
+                            ))}
+                            <div className="text-center mt-2">
+                              <span className="text-[10px] text-idm-gold-warm/60 font-semibold">UB Winner vs LB Winner</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className={`flex-1 h-px ${dt.borderSubtle}`} />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {grandFinal && renderPlayoffCard(grandFinal, 'Final')}
-                  {thirdPlace && renderPlayoffCard(thirdPlace, '3rd')}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         );
       })()}

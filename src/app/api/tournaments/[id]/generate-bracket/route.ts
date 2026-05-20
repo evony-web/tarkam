@@ -483,18 +483,18 @@ export async function POST(
 
   // ===== GROUP STAGE =====
   // Distributes teams evenly across groups (max difference of 1 team per group).
-  // Then creates round-robin matches within each group, followed by playoff bracket.
+  // Then creates round-robin matches within each group, followed by double elimination playoff.
   //
   // Examples:
-  //   4 teams → 2 groups (2+2) → SF (top 1 each) → Final + 3rd
-  //   5 teams → 2 groups (3+2) → SF (top 2 each) → Final + 3rd
-  //   6 teams → 2 groups (3+3) → SF (top 2 each) → Final + 3rd
-  //   7 teams → 2 groups (4+3) → SF (top 2 each) → Final + 3rd
-  //   8 teams → 2 groups (4+4) → SF (top 2 each) → Final + 3rd
-  //   9 teams → 3 groups (3+3+3) → SF (top 2 from best groups) → Final + 3rd
-  //  10 teams → 2 groups (5+5) or 3 groups (4+3+3) → depends on preference
-  //  12 teams → 4 groups (3+3+3+3) → QF (top 2 each) → SF → Final + 3rd
-  //  16 teams → 4 groups (4+4+4+4) → QF (top 2 each) → SF → Final + 3rd
+  //   4 teams → 2 groups (2+2) → Double Elim (4 teams: UB Semi → UB Final, LB → GF)
+  //   5 teams → 2 groups (3+2) → Double Elim (4 teams)
+  //   6 teams → 2 groups (3+3) → Double Elim (4 teams)
+  //   7 teams → 2 groups (4+3) → Double Elim (4 teams)
+  //   8 teams → 2 groups (4+4) → Double Elim (4 teams)
+  //   9 teams → 3 groups (3+3+3) → Double Elim (4 teams)
+  //  10 teams → 2 groups (5+5) or 3 groups (4+3+3) → Double Elim (4 teams)
+  //  12 teams → 4 groups (3+3+3+3) → Double Elim (8 teams: UB QF → SF → Final, LB → GF)
+  //  16 teams → 4 groups (4+4+4+4) → Double Elim (8 teams)
   //
   else if (format === 'group_stage') {
     const groupLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -564,222 +564,115 @@ export async function POST(
     }
 
     // ── Create playoff bracket based on number of groups ──
-    // Playoff structure depends on how many teams advance from each group
-    if (numGroups === 1) {
-      // Single group: top 4 advance → SF (1st vs 4th, 2nd vs 3rd)
-      matchNumber++;
-      const sf1 = await db.match.create({
+    // Double elimination: Upper Bracket + Lower Bracket + Grand Final
+    const createPlayoffMatch = async (
+      round: number,
+      mNum: number,
+      bracket: 'upper' | 'lower' | 'grand_final',
+      groupLabel: string,
+      team1Id: string | null,
+      team2Id: string | null,
+    ) => {
+      const status = (team1Id && team2Id) ? 'ready' : 'pending';
+      const match = await db.match.create({
         data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF1', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
+          tournamentId: id, round, matchNumber: mNum,
+          bracket, groupLabel, format: 'BO3',
+          team1Id, team2Id, status,
         },
       });
-      matches.push(sf1);
+      matches.push(match);
+      return match;
+    };
 
-      matchNumber++;
-      const sf2 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF2', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf2);
-
-      matchNumber++;
-      const final_ = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'Final', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(final_);
-
-      matchNumber++;
-      const thirdPlace = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'lower', groupLabel: '3rd', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(thirdPlace);
-    } else if (numGroups === 2) {
-      // 2 groups: top 2 from each group advance → SF (A1 vs B2, B1 vs A2)
-      matchNumber++;
-      const sf1 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF1', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf1);
-
-      matchNumber++;
-      const sf2 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF2', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf2);
-
-      matchNumber++;
-      const final_ = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'Final', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(final_);
-
-      matchNumber++;
-      const thirdPlace = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'lower', groupLabel: '3rd', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(thirdPlace);
-    } else if (numGroups === 3) {
-      // 3 groups: top from each group + best 2nd place → SF
-      matchNumber++;
-      const sf1 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF1', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf1);
-
-      matchNumber++;
-      const sf2 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'SF2', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf2);
-
-      matchNumber++;
-      const final_ = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'Final', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(final_);
-
-      matchNumber++;
-      const thirdPlace = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'lower', groupLabel: '3rd', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(thirdPlace);
+    if (numGroups <= 3) {
+      // 1-3 groups: 4 teams advance → 4-team double elimination
+      // Upper R1: U1-1, U1-2 (Semi Finals)
+      // Upper R2: U2-1 (Upper Final)
+      // Lower R1: L1-1 (Lower Semi)
+      // Lower R2: L2-1 (Lower Final)
+      // Grand Final: GF
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-1', null, null);
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-2', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'upper', 'U2-1', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'lower', 'L1-1', null, null);
+      await createPlayoffMatch(4, ++matchNumber, 'lower', 'L2-1', null, null);
+      await createPlayoffMatch(5, ++matchNumber, 'grand_final', 'GF', null, null);
     } else if (numGroups === 4) {
-      // 4 groups: top 2 from each group → QF (cross-bracket) → SF → Final
-      matchNumber++;
-      const qf1 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'QF1', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(qf1);
-
-      matchNumber++;
-      const qf2 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'QF2', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(qf2);
-
-      matchNumber++;
-      const qf3 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'QF3', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(qf3);
-
-      matchNumber++;
-      const qf4 = await db.match.create({
-        data: {
-          tournamentId: id, round: 2, matchNumber, bracket: 'upper', groupLabel: 'QF4', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(qf4);
-
-      matchNumber++;
-      const sf1 = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'SF1', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf1);
-
-      matchNumber++;
-      const sf2 = await db.match.create({
-        data: {
-          tournamentId: id, round: 3, matchNumber, bracket: 'upper', groupLabel: 'SF2', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(sf2);
-
-      matchNumber++;
-      const final_ = await db.match.create({
-        data: {
-          tournamentId: id, round: 4, matchNumber, bracket: 'upper', groupLabel: 'Final', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(final_);
-
-      matchNumber++;
-      const thirdPlace = await db.match.create({
-        data: {
-          tournamentId: id, round: 4, matchNumber, bracket: 'lower', groupLabel: '3rd', format: 'BO3',
-          team1Id: null, team2Id: null, status: 'pending',
-        },
-      });
-      matches.push(thirdPlace);
+      // 4 groups: 8 teams advance → 8-team double elimination
+      // Upper R1: U1-1, U1-2, U1-3, U1-4 (Quarter Finals)
+      // Upper R2: U2-1, U2-2 (Semi Finals)
+      // Upper R3: U3-1 (Upper Final)
+      // Lower R1: L1-1, L1-2
+      // Lower R2: L2-1, L2-2
+      // Lower R3: L3-1
+      // Lower R4: L4-1 (Lower Final)
+      // Grand Final: GF
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-1', null, null);
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-2', null, null);
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-3', null, null);
+      await createPlayoffMatch(2, ++matchNumber, 'upper', 'U1-4', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'upper', 'U2-1', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'upper', 'U2-2', null, null);
+      await createPlayoffMatch(4, ++matchNumber, 'upper', 'U3-1', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'lower', 'L1-1', null, null);
+      await createPlayoffMatch(3, ++matchNumber, 'lower', 'L1-2', null, null);
+      await createPlayoffMatch(4, ++matchNumber, 'lower', 'L2-1', null, null);
+      await createPlayoffMatch(4, ++matchNumber, 'lower', 'L2-2', null, null);
+      await createPlayoffMatch(5, ++matchNumber, 'lower', 'L3-1', null, null);
+      await createPlayoffMatch(6, ++matchNumber, 'lower', 'L4-1', null, null);
+      await createPlayoffMatch(7, ++matchNumber, 'grand_final', 'GF', null, null);
     } else {
-      // 5+ groups: generic playoff bracket seeded by group standings
+      // 5+ groups: generic double elimination playoff bracket
       const playoffTeams = nextPowerOf2(numGroups);
       const playoffRounds = Math.ceil(Math.log2(playoffTeams));
 
-      let playoffMatchNumber = matchNumber;
+      // Upper bracket rounds
       for (let round = 2; round <= 1 + playoffRounds; round++) {
-        const matchesInRound = Math.floor(playoffTeams / Math.pow(2, round - 1));
+        const roundWithinBracket = round - 1; // 1-indexed within upper bracket
+        const matchesInRound = Math.floor(playoffTeams / Math.pow(2, roundWithinBracket));
         for (let i = 1; i <= matchesInRound; i++) {
-          playoffMatchNumber++;
-          const isLastRound = round === 1 + playoffRounds;
-          const label = round === 2 ? `R${round}-${i}` :
-            isLastRound && i === 1 ? 'Final' :
-            isLastRound && i === 2 ? '3rd' :
-            `R${round}-${i}`;
-
-          const matchBracket = (isLastRound && i === 2) ? 'lower' : 'upper';
-          const matchFormatOverride = 'BO3';
-
-          const match = await db.match.create({
-            data: {
-              tournamentId: id, round, matchNumber: playoffMatchNumber,
-              bracket: matchBracket, groupLabel: label,
-              format: matchFormatOverride,
-              team1Id: null, team2Id: null, status: 'pending',
-            },
-          });
-          matches.push(match);
+          await createPlayoffMatch(round, ++matchNumber, 'upper', `U${roundWithinBracket}-${i}`, null, null);
         }
       }
-      matchNumber = playoffMatchNumber;
+
+      // Lower bracket rounds (double the upper bracket rounds minus 1)
+      const upperFinalRound = 1 + playoffRounds;
+      const lowerRounds = playoffRounds * 2 - 2;
+      let lowerRoundOffset = 0;
+      for (let lr = 1; lr <= lowerRounds; lr++) {
+        // Alternate between single and double match rounds
+        const isDropRound = lr % 2 === 1; // rounds that receive drops from upper bracket
+        const matchesInRound = isDropRound
+          ? Math.floor(playoffTeams / Math.pow(2, Math.ceil(lr / 2) + 1))
+          : Math.floor(playoffTeams / Math.pow(2, Math.ceil(lr / 2) + 1));
+
+        // Calculate actual match count for this lower round
+        let matchCount: number;
+        if (lr === 1) {
+          matchCount = Math.floor(playoffTeams / 4); // Losers of U1 face each other
+        } else if (lr === lowerRounds) {
+          matchCount = 1; // Lower Final
+        } else if (lr % 2 === 1) {
+          // Odd rounds: receive upper bracket losers
+          const upperRoundDropping = Math.ceil(lr / 2) + 1;
+          const droppingMatches = Math.floor(playoffTeams / Math.pow(2, upperRoundDropping));
+          matchCount = Math.max(1, droppingMatches);
+        } else {
+          // Even rounds: consolidate
+          const prevMatchCount = Math.floor(playoffTeams / Math.pow(2, Math.ceil((lr - 1) / 2) + 1));
+          matchCount = Math.max(1, Math.ceil(prevMatchCount / 2));
+        }
+
+        const roundNum = upperFinalRound + lr;
+        for (let i = 1; i <= matchCount; i++) {
+          await createPlayoffMatch(roundNum, ++matchNumber, 'lower', `L${lr}-${i}`, null, null);
+        }
+        lowerRoundOffset = lr;
+      }
+
+      // Grand Final
+      await createPlayoffMatch(upperFinalRound + lowerRounds + 1, ++matchNumber, 'grand_final', 'GF', null, null);
     }
   }
 

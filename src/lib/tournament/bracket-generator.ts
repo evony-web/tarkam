@@ -156,6 +156,7 @@ export function generateRoundRobin(teams: string[], tournamentId: string): Brack
 }
 
 // Generate Group Stage — Distributes teams evenly across groups (max diff of 1)
+// Then creates double elimination playoff bracket
 export function generateGroupStage(
   teams: string[],
   groupCount: number,
@@ -193,6 +194,102 @@ export function generateGroupStage(
   }
   
   return { groups, matches };
+}
+
+// Generate Group Stage Double Elimination Playoff Bracket
+// Creates upper bracket, lower bracket, and grand final matches
+export function generateGroupStagePlayoff(
+  numGroups: number,
+  startRound: number = 2,
+  startMatchNumber: number = 1
+): BracketMatch[] {
+  const matches: BracketMatch[] = [];
+  let matchNumber = startMatchNumber - 1;
+
+  const createMatch = (
+    round: number,
+    bracket: 'upper' | 'lower' | 'grand_final',
+    bracketRound: string,
+    groupLabel: string,
+  ): BracketMatch => {
+    const match: BracketMatch = {
+      round,
+      matchNumber: ++matchNumber,
+      bracket: bracket as BracketType,
+      bracketRound,
+      status: MatchStatus.PENDING,
+    };
+    matches.push(match);
+    return match;
+  };
+
+  if (numGroups <= 3) {
+    // 4-team double elimination
+    createMatch(startRound, 'upper', 'UPPER', 'U1-1');
+    createMatch(startRound, 'upper', 'UPPER', 'U1-2');
+    createMatch(startRound + 1, 'upper', 'UPPER', 'U2-1');
+    createMatch(startRound + 1, 'lower', 'LOWER', 'L1-1');
+    createMatch(startRound + 2, 'lower', 'LOWER', 'L2-1');
+    createMatch(startRound + 3, 'grand_final', 'GRAND_FINAL', 'GF');
+  } else if (numGroups === 4) {
+    // 8-team double elimination
+    createMatch(startRound, 'upper', 'UPPER', 'U1-1');
+    createMatch(startRound, 'upper', 'UPPER', 'U1-2');
+    createMatch(startRound, 'upper', 'UPPER', 'U1-3');
+    createMatch(startRound, 'upper', 'UPPER', 'U1-4');
+    createMatch(startRound + 1, 'upper', 'UPPER', 'U2-1');
+    createMatch(startRound + 1, 'upper', 'UPPER', 'U2-2');
+    createMatch(startRound + 2, 'upper', 'UPPER', 'U3-1');
+    createMatch(startRound + 1, 'lower', 'LOWER', 'L1-1');
+    createMatch(startRound + 1, 'lower', 'LOWER', 'L1-2');
+    createMatch(startRound + 2, 'lower', 'LOWER', 'L2-1');
+    createMatch(startRound + 2, 'lower', 'LOWER', 'L2-2');
+    createMatch(startRound + 3, 'lower', 'LOWER', 'L3-1');
+    createMatch(startRound + 4, 'lower', 'LOWER', 'L4-1');
+    createMatch(startRound + 5, 'grand_final', 'GRAND_FINAL', 'GF');
+  } else {
+    // 5+ groups: generic double elimination bracket
+    const playoffTeams = getNextPowerOfTwo(numGroups);
+    const playoffRounds = Math.ceil(Math.log2(playoffTeams));
+
+    // Upper bracket rounds
+    for (let round = startRound; round < startRound + playoffRounds; round++) {
+      const roundWithinBracket = round - startRound + 1;
+      const matchesInRound = Math.floor(playoffTeams / Math.pow(2, roundWithinBracket));
+      for (let i = 1; i <= matchesInRound; i++) {
+        createMatch(round, 'upper', 'UPPER', `U${roundWithinBracket}-${i}`);
+      }
+    }
+
+    // Lower bracket rounds
+    const upperFinalRound = startRound + playoffRounds - 1;
+    const lowerRounds = playoffRounds * 2 - 2;
+    for (let lr = 1; lr <= lowerRounds; lr++) {
+      let matchCount: number;
+      if (lr === 1) {
+        matchCount = Math.floor(playoffTeams / 4);
+      } else if (lr === lowerRounds) {
+        matchCount = 1;
+      } else if (lr % 2 === 1) {
+        const upperRoundDropping = Math.ceil(lr / 2) + 1;
+        const droppingMatches = Math.floor(playoffTeams / Math.pow(2, upperRoundDropping));
+        matchCount = Math.max(1, droppingMatches);
+      } else {
+        const prevMatchCount = Math.floor(playoffTeams / Math.pow(2, Math.ceil((lr - 1) / 2) + 1));
+        matchCount = Math.max(1, Math.ceil(prevMatchCount / 2));
+      }
+
+      const roundNum = upperFinalRound + lr;
+      for (let i = 1; i <= matchCount; i++) {
+        createMatch(roundNum, 'lower', 'LOWER', `L${lr}-${i}`);
+      }
+    }
+
+    // Grand Final
+    createMatch(upperFinalRound + lowerRounds + 1, 'grand_final', 'GRAND_FINAL', 'GF');
+  }
+
+  return matches;
 }
 
 // Generate Swiss System

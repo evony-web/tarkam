@@ -333,8 +333,8 @@ export async function POST(
       return NextResponse.json(result.updatedMatch);
     }
 
-    // Playoff match advancement for group_stage format
-    if (format === 'group_stage' && (bracket === 'upper' || bracket === 'lower') && match2.round >= 2) {
+    // Playoff match advancement for group_stage format (double elimination)
+    if (format === 'group_stage' && (bracket === 'upper' || bracket === 'lower' || bracket === 'grand_final') && match2.round >= 2) {
       await advanceGroupStagePlayoff(id, match2, winnerId, loserId);
       await checkAllMatchesComplete(id);
       return NextResponse.json(result.updatedMatch);
@@ -428,7 +428,7 @@ export async function POST(
   }
 }
 
-// ===== Helper: Advance group stage playoff matches =====
+// ===== Helper: Advance group stage playoff matches (Double Elimination) =====
 async function advanceGroupStagePlayoff(
   tournamentId: string,
   match: { id: string; round: number; matchNumber: number; bracket: string; groupLabel: string | null },
@@ -438,210 +438,193 @@ async function advanceGroupStagePlayoff(
   const label = match.groupLabel;
   if (!label) return;
 
+  // Check if this is an old-style bracket (SF1, SF2, Final, 3rd) for backward compat
+  const isOldStyle = ['SF1', 'SF2', 'Final', '3rd', 'QF1', 'QF2', 'QF3', 'QF4'].includes(label) || label?.startsWith('R');
+  if (isOldStyle) return; // Don't advance old-style brackets with new logic
+
   // Count groups to determine playoff structure
   const groupMatches = await db.match.findMany({
     where: { tournamentId, bracket: 'group' },
   });
   const numGroups = new Set(groupMatches.map(m => m.groupLabel)).size;
 
-  if (numGroups <= 2) {
-    // Standard 2-group or 1-group: SF1, SF2, Final, 3rd
-    if (label === 'SF1') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, round: 3, bracket: 'upper', groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, round: 3, bracket: 'lower', groupLabel: '3rd' } });
+  // Define advancement mapping — same pattern as advanceUpperSemi
+  type Advancement = { winner?: { targetLabel: string; slot: 'team1Id' | 'team2Id' }; loser?: { targetLabel: string; slot: 'team1Id' | 'team2Id' } };
 
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team1Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team1Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    } else if (label === 'SF2') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, round: 3, bracket: 'upper', groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, round: 3, bracket: 'lower', groupLabel: '3rd' } });
+  // 4-team double elimination (1-3 groups)
+  const advancementMap4: Record<string, Advancement> = {
+    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team1Id' } },
+    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
+    'U2-1': { winner: { targetLabel: 'GF', slot: 'team1Id' }, loser: { targetLabel: 'L2-1', slot: 'team1Id' } },
+    'L1-1': { winner: { targetLabel: 'L2-1', slot: 'team2Id' } },
+    'L2-1': { winner: { targetLabel: 'GF', slot: 'team2Id' } },
+  };
 
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team2Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team2Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    }
-  } else if (numGroups === 3) {
-    // 3 groups: SF1, SF2, Final, 3rd (same labels, different seeding)
-    if (label === 'SF1') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: '3rd' } });
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team1Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team1Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    } else if (label === 'SF2') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: '3rd' } });
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team2Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team2Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    }
+  // 8-team double elimination (4 groups) — same as upper_semi 8-team map
+  const advancementMap8: Record<string, Advancement> = {
+    'U1-1': { winner: { targetLabel: 'U2-1', slot: 'team1Id' }, loser: { targetLabel: 'L1-1', slot: 'team1Id' } },
+    'U1-2': { winner: { targetLabel: 'U2-1', slot: 'team2Id' }, loser: { targetLabel: 'L1-1', slot: 'team2Id' } },
+    'U1-3': { winner: { targetLabel: 'U2-2', slot: 'team1Id' }, loser: { targetLabel: 'L1-2', slot: 'team1Id' } },
+    'U1-4': { winner: { targetLabel: 'U2-2', slot: 'team2Id' }, loser: { targetLabel: 'L1-2', slot: 'team2Id' } },
+    'U2-1': { winner: { targetLabel: 'U3-1', slot: 'team1Id' }, loser: { targetLabel: 'L2-2', slot: 'team2Id' } },
+    'U2-2': { winner: { targetLabel: 'U3-1', slot: 'team2Id' }, loser: { targetLabel: 'L2-1', slot: 'team2Id' } },
+    'U3-1': { winner: { targetLabel: 'GF', slot: 'team1Id' }, loser: { targetLabel: 'L4-1', slot: 'team1Id' } },
+    'L1-1': { winner: { targetLabel: 'L2-1', slot: 'team1Id' } },
+    'L1-2': { winner: { targetLabel: 'L2-2', slot: 'team1Id' } },
+    'L2-1': { winner: { targetLabel: 'L3-1', slot: 'team1Id' } },
+    'L2-2': { winner: { targetLabel: 'L3-1', slot: 'team2Id' } },
+    'L3-1': { winner: { targetLabel: 'L4-1', slot: 'team2Id' } },
+    'L4-1': { winner: { targetLabel: 'GF', slot: 'team2Id' } },
+  };
+
+  let advancementMap: Record<string, Advancement> | null = null;
+  if (numGroups <= 3) {
+    advancementMap = advancementMap4;
   } else if (numGroups === 4) {
-    // 4 groups: QF1-QF4, SF1-SF2, Final, 3rd
-    if (label?.startsWith('QF')) {
-      // QF winner → SF, QF loser eliminated
-      if (label === 'QF1' || label === 'QF2') {
-        const sf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF1' } });
-        if (sf1 && winnerId) {
-          const slot = label === 'QF1' ? 'team1Id' : 'team2Id';
-          await db.match.update({ where: { id: sf1.id }, data: { [slot]: winnerId } });
-          const updated = await db.match.findUnique({ where: { id: sf1.id } });
-          if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-            await db.match.update({ where: { id: sf1.id }, data: { status: 'ready' } });
-          }
-        }
-      } else if (label === 'QF3' || label === 'QF4') {
-        const sf2 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF2' } });
-        if (sf2 && winnerId) {
-          const slot = label === 'QF3' ? 'team1Id' : 'team2Id';
-          await db.match.update({ where: { id: sf2.id }, data: { [slot]: winnerId } });
-          const updated = await db.match.findUnique({ where: { id: sf2.id } });
-          if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-            await db.match.update({ where: { id: sf2.id }, data: { status: 'ready' } });
-          }
-        }
-      }
-    } else if (label === 'SF1') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: '3rd' } });
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team1Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team1Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    } else if (label === 'SF2') {
-      const finalMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } });
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: '3rd' } });
-      if (finalMatch && winnerId) {
-        await db.match.update({ where: { id: finalMatch.id }, data: { team2Id: winnerId } });
-        const updated = await db.match.findUnique({ where: { id: finalMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: finalMatch.id }, data: { status: 'ready' } });
-        }
-      }
-      if (thirdMatch && loserId) {
-        await db.match.update({ where: { id: thirdMatch.id }, data: { team2Id: loserId } });
-        const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-        }
-      }
-    }
+    advancementMap = advancementMap8;
   } else {
-    // 5+ groups: Generic playoff bracket advancement using position-based labels
-    // Labels are in format "R{round}-{position}" for early rounds, "Final"/"3rd" for last rounds
-    if (label === 'Final' || label === '3rd') {
-      // No further advancement
-      return;
-    }
+    // 5+ groups: Build a generic advancement map based on bracket labels
+    // Upper bracket: standard bracket position-based advancement
+    const allPlayoffMatches = await db.match.findMany({
+      where: { tournamentId, bracket: { in: ['upper', 'lower', 'grand_final'] } },
+    });
+    const upperMatches = allPlayoffMatches.filter(m => m.bracket === 'upper');
+    const lowerMatches = allPlayoffMatches.filter(m => m.bracket === 'lower');
 
-    const labelMatch = label.match(/^R(\d+)-(\d+)$/);
-    if (labelMatch) {
-      const round = parseInt(labelMatch[1]);
-      const pos = parseInt(labelMatch[2]);
-      const nextRound = round + 1;
-      const nextPos = Math.ceil(pos / 2);
+    const genericMap: Record<string, Advancement> = {};
 
-      // Find next round match
-      let nextLabel: string;
-      const nextRoundMatchCount = await db.match.count({
-        where: { tournamentId, round: nextRound, bracket: 'upper' },
-      });
+    // Upper bracket advancement
+    const upperRounds = [...new Set(upperMatches.map(m => m.round))].sort((a, b) => a - b);
+    for (let ri = 0; ri < upperRounds.length; ri++) {
+      const roundMatches = upperMatches.filter(m => m.round === upperRounds[ri]).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+      const isLastUpperRound = ri === upperRounds.length - 1;
 
-      if (nextRoundMatchCount === 1) {
-        nextLabel = pos === 1 ? 'Final' : '3rd';
-      } else {
-        nextLabel = `R${nextRound}-${nextPos}`;
-      }
+      for (let mi = 0; mi < roundMatches.length; mi++) {
+        const m = roundMatches[mi];
+        const mLabel = m.groupLabel;
+        if (!mLabel) continue;
 
-      const nextMatch = await db.match.findFirst({
-        where: { tournamentId, round: nextRound, groupLabel: nextLabel },
-      });
+        const entry: Advancement = {};
 
-      if (nextMatch && winnerId) {
-        const isOdd = pos % 2 === 1;
-        await db.match.update({
-          where: { id: nextMatch.id },
-          data: isOdd ? { team1Id: winnerId } : { team2Id: winnerId },
-        });
-        const updated = await db.match.findUnique({ where: { id: nextMatch.id } });
-        if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-          await db.match.update({ where: { id: nextMatch.id }, data: { status: 'ready' } });
-        }
-      }
+        if (isLastUpperRound) {
+          // Upper final: winner → GF, loser → LB final
+          entry.winner = { targetLabel: 'GF', slot: 'team1Id' };
+          // Find lower bracket final match
+          const lbFinalRound = Math.max(...lowerMatches.map(m => m.round));
+          const lbFinal = lowerMatches.find(m => m.round === lbFinalRound);
+          if (lbFinal?.groupLabel) {
+            entry.loser = { targetLabel: lbFinal.groupLabel, slot: 'team1Id' };
+          }
+        } else {
+          // Standard upper bracket advancement
+          const nextRoundMatches = upperMatches.filter(m => m.round === upperRounds[ri + 1]).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+          const targetIdx = Math.floor(mi / 2);
+          const slot: 'team1Id' | 'team2Id' = mi % 2 === 0 ? 'team1Id' : 'team2Id';
+          if (nextRoundMatches[targetIdx]?.groupLabel) {
+            entry.winner = { targetLabel: nextRoundMatches[targetIdx].groupLabel!, slot };
+          }
 
-      // For 3rd place: losers from the semi-final round go to 3rd place match
-      const thirdMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: '3rd' } });
-      if (thirdMatch && loserId) {
-        // Only advance losers from the round before the final
-        const finalMatch = await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } });
-        if (finalMatch) {
-          const finalRound = (await db.match.findFirst({ where: { tournamentId, groupLabel: 'Final' } }))?.round || 0;
-          if (round === finalRound - 1) {
-            const isOdd = pos % 2 === 1;
-            await db.match.update({
-              where: { id: thirdMatch.id },
-              data: isOdd ? { team1Id: loserId } : { team2Id: loserId },
-            });
-            const updated = await db.match.findUnique({ where: { id: thirdMatch.id } });
-            if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
-              await db.match.update({ where: { id: thirdMatch.id }, data: { status: 'ready' } });
-            }
+          // Loser goes to lower bracket
+          // Find corresponding lower bracket match for this round
+          const lbRoundForDrop = lowerMatches.filter(m => {
+            const lbRoundLabel = m.groupLabel;
+            if (!lbRoundLabel) return false;
+            const lbParse = lbRoundLabel.match(/^L(\d+)-/);
+            if (!lbParse) return false;
+            // Map to the appropriate lower bracket round based on upper bracket round
+            return true;
+          });
+
+          // For generic brackets, drop losers into lower bracket rounds
+          // Odd lower rounds receive upper bracket drops
+          const lowerRoundForDrop = ri * 2 + 1;
+          const lbDropMatches = lowerMatches.filter(m => {
+            const lbLabel = m.groupLabel;
+            if (!lbLabel) return false;
+            const lbMatch = lbLabel.match(/^L(\d+)-(\d+)$/);
+            if (!lbMatch) return false;
+            return parseInt(lbMatch[1]) === lowerRoundForDrop;
+          }).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+
+          if (lbDropMatches.length > 0 && lbDropMatches[mi]?.groupLabel) {
+            entry.loser = { targetLabel: lbDropMatches[mi].groupLabel!, slot: 'team1Id' };
           }
         }
+
+        genericMap[mLabel] = entry;
+      }
+    }
+
+    // Lower bracket advancement
+    const lowerRounds = [...new Set(lowerMatches.map(m => m.round))].sort((a, b) => a - b);
+    for (let ri = 0; ri < lowerRounds.length; ri++) {
+      const roundMatches = lowerMatches.filter(m => m.round === lowerRounds[ri]).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+      const isLastLowerRound = ri === lowerRounds.length - 1;
+
+      for (let mi = 0; mi < roundMatches.length; mi++) {
+        const m = roundMatches[mi];
+        const mLabel = m.groupLabel;
+        if (!mLabel || genericMap[mLabel]) continue; // Already set by drop logic
+
+        const entry: Advancement = {};
+
+        if (isLastLowerRound) {
+          // Lower final: winner → GF
+          entry.winner = { targetLabel: 'GF', slot: 'team2Id' };
+        } else {
+          // Standard lower bracket advancement
+          const nextRoundMatches = lowerMatches.filter(m => m.round === lowerRounds[ri + 1]).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
+          const targetIdx = Math.floor(mi / 2);
+          const slot: 'team1Id' | 'team2Id' = mi % 2 === 0 ? 'team1Id' : 'team2Id';
+          if (nextRoundMatches[targetIdx]?.groupLabel) {
+            entry.winner = { targetLabel: nextRoundMatches[targetIdx].groupLabel!, slot };
+          }
+        }
+
+        genericMap[mLabel] = entry;
+      }
+    }
+
+    advancementMap = genericMap;
+  }
+
+  if (!advancementMap) return;
+
+  const matchAdvancement = advancementMap[label];
+  if (!matchAdvancement) return; // No advancement for this match (e.g., GF)
+
+  // Advance winner
+  if (matchAdvancement.winner && winnerId) {
+    const { targetLabel, slot } = matchAdvancement.winner;
+    const targetMatch = await db.match.findFirst({
+      where: { tournamentId, groupLabel: targetLabel },
+    });
+    if (targetMatch) {
+      await db.match.update({
+        where: { id: targetMatch.id },
+        data: { [slot]: winnerId },
+      });
+      const updated = await db.match.findUnique({ where: { id: targetMatch.id } });
+      if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
+        await db.match.update({ where: { id: targetMatch.id }, data: { status: 'ready' } });
+      }
+    }
+  }
+
+  // Advance loser
+  if (matchAdvancement.loser && loserId) {
+    const { targetLabel, slot } = matchAdvancement.loser;
+    const targetMatch = await db.match.findFirst({
+      where: { tournamentId, groupLabel: targetLabel },
+    });
+    if (targetMatch) {
+      await db.match.update({
+        where: { id: targetMatch.id },
+        data: { [slot]: loserId },
+      });
+      const updated = await db.match.findUnique({ where: { id: targetMatch.id } });
+      if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
+        await db.match.update({ where: { id: targetMatch.id }, data: { status: 'ready' } });
       }
     }
   }
@@ -1263,9 +1246,11 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
   const allGroupDone = groupMatches.length > 0 && groupMatches.every(m => m.status === 'completed');
   if (!allGroupDone) return;
 
-  // Check if playoffs already seeded
+  // Check if playoffs already seeded (look for new double-elim labels first, then old SF1)
+  const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
+  if (u11?.team1Id) return; // Already seeded (new double elim)
   const sf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF1' } });
-  if (sf1?.team1Id) return; // Already seeded
+  if (sf1?.team1Id) return; // Already seeded (old single elim — backward compat)
 
   // Compute group standings
   const groupLabels = [...new Set(groupMatches.map(m => m.groupLabel))].sort() as string[];
@@ -1304,21 +1289,20 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
   const numGroups = groupLabels.length;
 
   if (numGroups === 1) {
-    // Single group: 1st vs 4th (SF1), 2nd vs 3rd (SF2)
+    // Single group: 1st vs 4th (U1-1), 2nd vs 3rd (U1-2)
     const group = standingsByGroup[groupLabels[0]];
     if (group && group.length >= 4) {
-      const sf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF1' } });
-      if (sf1) {
-        await db.match.update({ where: { id: sf1.id }, data: { team1Id: group[0].teamId, team2Id: group[3].teamId, status: 'ready' } });
+      const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
+      if (u11) {
+        await db.match.update({ where: { id: u11.id }, data: { team1Id: group[0].teamId, team2Id: group[3].teamId, status: 'ready' } });
       }
-      const sf2 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF2' } });
-      if (sf2) {
-        await db.match.update({ where: { id: sf2.id }, data: { team1Id: group[1].teamId, team2Id: group[2].teamId, status: 'ready' } });
+      const u12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-2' } });
+      if (u12) {
+        await db.match.update({ where: { id: u12.id }, data: { team1Id: group[1].teamId, team2Id: group[2].teamId, status: 'ready' } });
       }
     }
   } else if (numGroups === 2) {
-    // 2 groups: A1 vs B2 (SF1), B1 vs A2 (SF2)
-    // Handles balanced distribution: e.g., 5 teams → Group A (3), Group B (2)
+    // 2 groups: A1 vs B2 (U1-1), B1 vs A2 (U1-2)
     const groupA = standingsByGroup[groupLabels[0]];
     const groupB = standingsByGroup[groupLabels[1]];
 
@@ -1328,17 +1312,17 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
       const B1 = groupB[0].teamId;
       const B2 = groupB[1].teamId;
 
-      const sf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF1' } });
-      if (sf1) {
-        await db.match.update({ where: { id: sf1.id }, data: { team1Id: A1, team2Id: B2, status: 'ready' } });
+      const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
+      if (u11) {
+        await db.match.update({ where: { id: u11.id }, data: { team1Id: A1, team2Id: B2, status: 'ready' } });
       }
-      const sf2 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF2' } });
-      if (sf2) {
-        await db.match.update({ where: { id: sf2.id }, data: { team1Id: B1, team2Id: A2, status: 'ready' } });
+      const u12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-2' } });
+      if (u12) {
+        await db.match.update({ where: { id: u12.id }, data: { team1Id: B1, team2Id: A2, status: 'ready' } });
       }
     }
   } else if (numGroups === 3) {
-    // Bug #4 fix: 3 groups — Top of each group + best 2nd place
+    // 3 groups — Top of each group + best 2nd place
     // Rank all 2nd place teams to find the best one
     const secondPlaceTeams = groupLabels
       .map(label => standingsByGroup[label]?.[1])
@@ -1348,7 +1332,7 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
     const best2nd = secondPlaceTeams[0];
     if (!best2nd) return;
 
-    // Get the 3 group winners, excluding the group that has the best 2nd place
+    // Get the 3 group winners
     const groupWinners = groupLabels
       .map(label => ({ label, team: standingsByGroup[label]?.[0] }))
       .filter(Boolean);
@@ -1356,45 +1340,44 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
     // Sort group winners by points for seeding
     groupWinners.sort((a, b) => (b.team?.points || 0) - (a.team?.points || 0));
 
-    // SF1: Best group winner vs Best 2nd place
-    // SF2: 2nd best group winner vs 3rd best group winner
+    // U1-1: Best group winner vs Best 2nd place
+    // U1-2: 2nd best group winner vs 3rd best group winner
     if (groupWinners.length >= 3 && best2nd) {
-      const sf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF1' } });
-      if (sf1 && groupWinners[0].team) {
-        await db.match.update({ where: { id: sf1.id }, data: { team1Id: groupWinners[0].team.teamId, team2Id: best2nd.teamId, status: 'ready' } });
+      const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
+      if (u11 && groupWinners[0].team) {
+        await db.match.update({ where: { id: u11.id }, data: { team1Id: groupWinners[0].team.teamId, team2Id: best2nd.teamId, status: 'ready' } });
       }
-      const sf2 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'SF2' } });
-      if (sf2 && groupWinners[1].team && groupWinners[2].team) {
-        await db.match.update({ where: { id: sf2.id }, data: { team1Id: groupWinners[1].team.teamId, team2Id: groupWinners[2].team.teamId, status: 'ready' } });
+      const u12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-2' } });
+      if (u12 && groupWinners[1].team && groupWinners[2].team) {
+        await db.match.update({ where: { id: u12.id }, data: { team1Id: groupWinners[1].team.teamId, team2Id: groupWinners[2].team.teamId, status: 'ready' } });
       }
     }
   } else if (numGroups === 4) {
-    // Bug #4 fix: 4 groups — Quarter-finals with cross-bracket
-    // QF1: A1 vs D2, QF2: B1 vs C2, QF3: C1 vs B2, QF4: D1 vs A2
+    // 4 groups — Quarter-finals with cross-bracket (double elimination)
+    // U1-1: A1 vs D2, U1-2: B1 vs C2, U1-3: C1 vs B2, U1-4: D1 vs A2
     const groupA = standingsByGroup['A'];
     const groupB = standingsByGroup['B'];
     const groupC = standingsByGroup['C'];
     const groupD = standingsByGroup['D'];
 
     if (groupA?.[0] && groupD?.[1]) {
-      const qf1 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'QF1' } });
-      if (qf1) await db.match.update({ where: { id: qf1.id }, data: { team1Id: groupA[0].teamId, team2Id: groupD[1].teamId, status: 'ready' } });
+      const u11 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-1' } });
+      if (u11) await db.match.update({ where: { id: u11.id }, data: { team1Id: groupA[0].teamId, team2Id: groupD[1].teamId, status: 'ready' } });
     }
     if (groupB?.[0] && groupC?.[1]) {
-      const qf2 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'QF2' } });
-      if (qf2) await db.match.update({ where: { id: qf2.id }, data: { team1Id: groupB[0].teamId, team2Id: groupC[1].teamId, status: 'ready' } });
+      const u12 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-2' } });
+      if (u12) await db.match.update({ where: { id: u12.id }, data: { team1Id: groupB[0].teamId, team2Id: groupC[1].teamId, status: 'ready' } });
     }
     if (groupC?.[0] && groupB?.[1]) {
-      const qf3 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'QF3' } });
-      if (qf3) await db.match.update({ where: { id: qf3.id }, data: { team1Id: groupC[0].teamId, team2Id: groupB[1].teamId, status: 'ready' } });
+      const u13 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-3' } });
+      if (u13) await db.match.update({ where: { id: u13.id }, data: { team1Id: groupC[0].teamId, team2Id: groupB[1].teamId, status: 'ready' } });
     }
     if (groupD?.[0] && groupA?.[1]) {
-      const qf4 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'QF4' } });
-      if (qf4) await db.match.update({ where: { id: qf4.id }, data: { team1Id: groupD[0].teamId, team2Id: groupA[1].teamId, status: 'ready' } });
+      const u14 = await db.match.findFirst({ where: { tournamentId, groupLabel: 'U1-4' } });
+      if (u14) await db.match.update({ where: { id: u14.id }, data: { team1Id: groupD[0].teamId, team2Id: groupA[1].teamId, status: 'ready' } });
     }
   } else {
-    // Bug #4 fix: 5+ groups — Generic playoff seeding
-    // Top of each group + best 2nd places to fill bracket
+    // 5+ groups — Generic playoff seeding into double elimination bracket
     const playoffSize = Math.pow(2, Math.ceil(Math.log2(numGroups)));
     const wildcardsNeeded = playoffSize - numGroups;
 
@@ -1416,10 +1399,9 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
       ...secondPlaceTeams.slice(0, wildcardsNeeded).map(g => g.standing!.teamId),
     ];
 
-    // Seed into first playoff round matches using position labels
-    const firstPlayoffRound = 2;
+    // Seed into first playoff round matches using U1-N labels
     const firstRoundMatches = await db.match.findMany({
-      where: { tournamentId, round: firstPlayoffRound, bracket: 'upper' },
+      where: { tournamentId, round: 2, bracket: 'upper' },
       orderBy: { matchNumber: 'asc' },
     });
 
