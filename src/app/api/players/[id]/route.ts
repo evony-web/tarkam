@@ -192,7 +192,8 @@ export async function PUT(
     revalidatePath('/');
     revalidatePath('/api/stats');
     revalidatePath('/api/league');
-    revalidateTag('league-data', 'max');
+    revalidateTag('landing-stats');
+    revalidateTag('landing-league');
   } catch (e) {
     console.warn('[PUT /api/players/[id]] revalidateTag error (non-critical):', e);
   }

@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { createAuditLog } from '@/lib/audit';
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function GET(
   _request: Request,
@@ -370,6 +370,8 @@ export async function PUT(
     // Invalidate Next.js server cache so landing page shows updated champion data
     revalidatePath('/');
     revalidatePath('/api/league');
+    revalidateTag('landing-stats');
+    revalidateTag('landing-league');
 
     await createAuditLog({
       adminId: authResult.id,

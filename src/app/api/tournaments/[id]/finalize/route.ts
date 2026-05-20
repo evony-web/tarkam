@@ -423,9 +423,8 @@ export async function POST(
   // Finalization changes champion data, standings, and points —
   // must purge all relevant caches so the landing page and dashboard update immediately.
   try {
-    revalidateTag('league-data', 'max');
-    revalidateTag('landing-stats', 'max');
-    revalidateTag('landing-league', 'max');
+    revalidateTag('landing-stats');
+    revalidateTag('landing-league');
     revalidatePath('/');
     revalidatePath('/api/stats');
     revalidatePath('/api/league');

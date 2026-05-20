@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/api-auth';
 import { createAuditLog } from '@/lib/audit';
 import { autoAwardSeasonChampionSkins } from '@/lib/skin-auto-award';
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**
  * POST /api/seasons/[id]/close
@@ -204,6 +204,8 @@ export async function POST(
     // Invalidate caches
     revalidatePath('/');
     revalidatePath('/api/league');
+    revalidateTag('landing-stats');
+    revalidateTag('landing-league');
 
     // Pusher: Notify real-time clients about season closure
     try {
