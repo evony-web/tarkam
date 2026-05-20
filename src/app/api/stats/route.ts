@@ -971,7 +971,8 @@ export async function GET(request: Request) {
   const tournamentMap = new Map(tournaments.map((t: any) => [t.id, t]));
 
   // Group donations by tournamentId, then by donorName
-  const tournamentDonors = new Map<string, Map<string, { totalAmount: number; donationCount: number }>>();
+  // Includes earliestDonationAt for automatic tie-breaking when amounts are equal
+  const tournamentDonors = new Map<string, Map<string, { totalAmount: number; donationCount: number; earliestDonationAt: Date }>>();
   for (const d of seasonDonations) {
     if (!d.tournamentId) continue;
     const tId = d.tournamentId as string;
@@ -982,10 +983,12 @@ export async function GET(request: Request) {
       donorMap = new Map();
       tournamentDonors.set(tId, donorMap);
     }
-    const entry = donorMap.get(d.donorName) ?? { totalAmount: 0, donationCount: 0 };
+    const existing = donorMap.get(d.donorName);
+    const donationDate = d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt as string | number);
     donorMap.set(d.donorName, {
-      totalAmount: entry.totalAmount + d.amount,
-      donationCount: entry.donationCount + 1,
+      totalAmount: (existing?.totalAmount || 0) + d.amount,
+      donationCount: (existing?.donationCount || 0) + 1,
+      earliestDonationAt: existing ? (existing.earliestDonationAt < donationDate ? existing.earliestDonationAt : donationDate) : donationDate,
     });
   }
 
@@ -993,13 +996,15 @@ export async function GET(request: Request) {
   if (activeTournament?.donations?.length) {
     const tId = activeTournament.id;
     if (!tournamentDonors.has(tId)) {
-      const donorMap = new Map<string, { totalAmount: number; donationCount: number }>();
+      const donorMap = new Map<string, { totalAmount: number; donationCount: number; earliestDonationAt: Date }>();
       for (const d of activeTournament.donations) {
         if (d.status !== 'approved') continue;
-        const entry = donorMap.get(d.donorName) ?? { totalAmount: 0, donationCount: 0 };
+        const donationDate = d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt as string | number);
+        const existing = donorMap.get(d.donorName);
         donorMap.set(d.donorName, {
-          totalAmount: entry.totalAmount + d.amount,
-          donationCount: entry.donationCount + 1,
+          totalAmount: (existing?.totalAmount || 0) + d.amount,
+          donationCount: (existing?.donationCount || 0) + 1,
+          earliestDonationAt: existing ? (existing.earliestDonationAt < donationDate ? existing.earliestDonationAt : donationDate) : donationDate,
         });
       }
       if (donorMap.size > 0) {
@@ -1017,22 +1022,41 @@ export async function GET(request: Request) {
     })
   );
 
-  // For each tournament with donations, find the top donor
+  // ═══ For each tournament with donations, determine Sultan of the Week ═══
+  // Tie-breaking rules (automatic, no admin intervention needed):
+  //   1. Highest totalAmount wins
+  //   2. If amounts are equal → earliest donation wins (first to donate)
+  //   3. If still tied → most donation count wins (more active supporter)
+  //   4. If still fully tied → Co-Sultan (both get the title)
+  // Admin can still override via tournament.sultanPlayerId
   const sultanOfWeekly: any[] = [];
   for (const [tId, donorMap] of tournamentDonors) {
     const tournament = tournamentMap.get(tId) || activeTournament;
     if (!tournament) continue;
 
-    // ═══ Sultan override: if admin manually set sultanPlayerId, use that instead of computed ═══
-    // This allows admin to override the Sultan when multiple donors have the same amount.
+    // Sort donors by: totalAmount DESC → earliestDonationAt ASC → donationCount DESC
+    const sortedDonors = Array.from(donorMap.entries())
+      .sort((a, b) => {
+        if (b[1].totalAmount !== a[1].totalAmount) return b[1].totalAmount - a[1].totalAmount;
+        // Tie-break 1: earliest donation wins
+        const timeDiff = +a[1].earliestDonationAt - +b[1].earliestDonationAt;
+        if (timeDiff !== 0) return timeDiff;
+        // Tie-break 2: more donations wins
+        return b[1].donationCount - a[1].donationCount;
+      });
+
+    if (sortedDonors.length === 0) continue;
+
+    // ─── Check for Co-Sultan (amounts truly equal after tie-breaks) ───
+    const topAmount = sortedDonors[0][1].totalAmount;
+    const coSultans = sortedDonors.filter(([_, data]) => data.totalAmount === topAmount);
+    const isCoSultan = coSultans.length > 1;
+
+    // ═══ Sultan override: if admin manually set sultanPlayerId, use that instead ═══
     if (tournament.sultanPlayerId) {
       const overridePlayer = playerByGamertag.get(
-        // Find the player by ID in allPlayersForDonorMatching
         (allPlayersForDonorMatching as any[]).find((p: any) => p.id === tournament.sultanPlayerId)?.gamertag?.toLowerCase() || ''
       );
-      // Also compute top donor data for display
-      const sortedDonors = Array.from(donorMap.entries())
-        .sort((a, b) => b[1].totalAmount - a[1].totalAmount);
 
       let playerInfo: {
         id: string;
@@ -1074,35 +1098,18 @@ export async function GET(request: Request) {
         donationCount: sortedDonors[0]?.[1]?.donationCount || 0,
         player: playerInfo,
         isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
-        isOverride: true, // Flag for UI: this Sultan was manually set by admin
+        isOverride: true,
+        isCoSultan: false,
+        coSultans: [],
       });
       continue;
     }
 
-    // Find top donor for this tournament (default: computed from donations)
-    const sortedDonors = Array.from(donorMap.entries())
-      .sort((a, b) => b[1].totalAmount - a[1].totalAmount);
-    if (sortedDonors.length === 0) continue;
-
-    const [topDonorName, topDonorData] = sortedDonors[0];
-
-    // Try to match donorName to a player (cross-division: matches ANY player regardless of division)
-    const matchedPlayer = playerByGamertag.get(topDonorName?.toLowerCase());
-    let playerInfo: {
-      id: string;
-      gamertag: string;
-      avatar: string | null;
-      tier: string;
-      points: number;
-      totalWins: number;
-      totalMvp: number;
-      streak: number;
-      division: string;
-      city?: string;
-      club: string | { id: string; name: string; logo?: string | null } | null;
-    } | null = null;
-    if (matchedPlayer) {
-      playerInfo = {
+    // ═══ Build player info helper ═══
+    const buildPlayerInfo = (donorName: string) => {
+      const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
+      if (!matchedPlayer) return null;
+      return {
         id: matchedPlayer.id,
         gamertag: matchedPlayer.gamertag,
         avatar: matchedPlayer.avatar,
@@ -1111,22 +1118,60 @@ export async function GET(request: Request) {
         totalWins: matchedPlayer.totalWins,
         totalMvp: matchedPlayer.totalMvp,
         streak: matchedPlayer.streak,
-        division: matchedPlayer.division, // The donor's ACTUAL division (may differ from tournament division)
+        division: matchedPlayer.division,
         city: matchedPlayer.city,
         club: matchedPlayer.club || null,
       };
+    };
+
+    // ═══ Co-Sultan: multiple donors with the same top amount ═══
+    if (isCoSultan) {
+      const coSultanData = coSultans.map(([name, data]) => ({
+        donorName: name,
+        totalAmount: data.totalAmount,
+        donationCount: data.donationCount,
+        player: buildPlayerInfo(name),
+        isCrossDivision: (() => {
+          const p = playerByGamertag.get(name?.toLowerCase());
+          return p ? p.division !== tournament.division : false;
+        })(),
+      }));
+
+      sultanOfWeekly.push({
+        weekNumber: tournament.weekNumber,
+        tournamentName: tournament.name,
+        tournamentId: tId,
+        tournamentDivision: tournament.division,
+        // Primary donor: first after tie-break (earliest donation)
+        donorName: sortedDonors[0][0] || 'Anonymous',
+        totalAmount: topAmount,
+        donationCount: sortedDonors[0][1].donationCount,
+        player: coSultanData[0].player,
+        isCrossDivision: coSultanData[0].isCrossDivision,
+        isCoSultan: true,
+        isOverride: false,
+        coSultans: coSultanData,
+      });
+      continue;
     }
+
+    // ═══ Single Sultan (default case) ═══
+    const [topDonorName, topDonorData] = sortedDonors[0];
+    const playerInfo = buildPlayerInfo(topDonorName);
 
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
       tournamentName: tournament.name,
       tournamentId: tId,
-      tournamentDivision: tournament.division, // The tournament's division (male/female)
+      tournamentDivision: tournament.division,
       donorName: topDonorName || 'Anonymous',
       totalAmount: topDonorData.totalAmount,
       donationCount: topDonorData.donationCount,
       player: playerInfo,
-      isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false, // Flag for UI highlight
+      isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
+      isCoSultan: false,
+      isOverride: false,
+      coSultans: [],
     });
   }
 
@@ -1135,6 +1180,7 @@ export async function GET(request: Request) {
 
   // ═══ SULTAN OF THE WEEK — Add virtual skin entries to skinMap ═══
   // Only the LATEST week's Sultan gets the sultan_weekly skin (current reigning Sultan)
+  // Co-Sultans also get the skin
   const SULTAN_WEEKLY_COLORS = JSON.stringify({
     frame: '#800020',
     name: '#C4A3A5|#800020|#5C0015',
@@ -1144,21 +1190,44 @@ export async function GET(request: Request) {
   });
 
   for (const sultan of sultanOfWeekly) {
+    // Add skin for primary Sultan
     if (sultan.player?.id) {
       const pid = sultan.player.id;
       if (!skinMap[pid]) skinMap[pid] = [];
-      // Only add if not already present
       if (!skinMap[pid].some((s: any) => s.type === 'sultan_weekly')) {
         skinMap[pid].push({
           type: 'sultan_weekly',
-          icon: '❤️',
-          displayName: 'Sultan of the Week',
+          icon: sultan.isCoSultan ? '❤️‍🔥' : '❤️',
+          displayName: sultan.isCoSultan ? 'Co-Sultan of the Week' : 'Sultan of the Week',
           colorClass: SULTAN_WEEKLY_COLORS,
           priority: 5,
           duration: 'weekly',
-          reason: `Sultan of the Week ${sultan.tournamentName || 'W' + sultan.weekNumber}`,
+          reason: sultan.isCoSultan
+            ? `Co-Sultan of the Week ${sultan.tournamentName || 'W' + sultan.weekNumber}`
+            : `Sultan of the Week ${sultan.tournamentName || 'W' + sultan.weekNumber}`,
           expiresAt: null,
         });
+      }
+    }
+    // Add skin for Co-Sultans
+    if (sultan.isCoSultan && sultan.coSultans) {
+      for (const coSultan of sultan.coSultans) {
+        if (coSultan.player?.id && coSultan.player.id !== sultan.player?.id) {
+          const pid = coSultan.player.id;
+          if (!skinMap[pid]) skinMap[pid] = [];
+          if (!skinMap[pid].some((s: any) => s.type === 'sultan_weekly')) {
+            skinMap[pid].push({
+              type: 'sultan_weekly',
+              icon: '❤️‍🔥',
+              displayName: 'Co-Sultan of the Week',
+              colorClass: SULTAN_WEEKLY_COLORS,
+              priority: 5,
+              duration: 'weekly',
+              reason: `Co-Sultan of the Week ${sultan.tournamentName || 'W' + sultan.weekNumber}`,
+              expiresAt: null,
+            });
+          }
+        }
       }
     }
   }

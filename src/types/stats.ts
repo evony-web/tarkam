@@ -313,6 +313,30 @@ export interface SultanOfWeekly {
   } | null;
   /** True when the matched player's division differs from the tournament's division (cross-division donor) */
   isCrossDivision: boolean;
+  /** True when multiple donors have the same top amount (Co-Sultan) */
+  isCoSultan?: boolean;
+  /** True when this Sultan was manually set by admin (override) */
+  isOverride?: boolean;
+  /** List of co-sultans when isCoSultan is true */
+  coSultans?: {
+    donorName: string;
+    totalAmount: number;
+    donationCount: number;
+    player?: {
+      id: string;
+      gamertag: string;
+      avatar?: string | null;
+      tier: string;
+      points: number;
+      totalWins: number;
+      totalMvp: number;
+      streak: number;
+      division: string;
+      city?: string;
+      club?: string | { id: string; name: string; logo?: string | null } | null;
+    } | null;
+    isCrossDivision: boolean;
+  }[];
 }
 
 /** Weekly top performer — "Bintang Minggu Ini" composite score */

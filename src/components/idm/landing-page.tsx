@@ -22,6 +22,7 @@ import dynamic from 'next/dynamic';
    Desktop: taller placeholders match wider multi-column layouts
    Using min-h ensures placeholder never clips content; actual height fills naturally */
 const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="min-h-[320px] sm:min-h-[420px]" /> });
+const DonorLeaderboardSection = dynamic(() => import('./landing/donor-leaderboard-section').then(m => ({ default: m.DonorLeaderboardSection })), { ssr: false, loading: () => <div className="min-h-[400px] sm:min-h-[500px]" /> });
 const PlayersSection = dynamic(() => import('./landing/players-section').then(m => ({ default: m.PlayersSection })), { ssr: false, loading: () => <div className="min-h-[360px] sm:min-h-[480px]" /> });
 const HighlightsSection = dynamic(() => import('./landing/highlights-section').then(m => ({ default: m.HighlightsSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
 const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
@@ -785,6 +786,23 @@ export function LandingPage() {
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
+      />
+      </div>
+
+      <SectionDivider />
+
+      {/* Leaderboard Penyawer — Weekly donor leaderboard */}
+      <div className="section-reveal">
+      <DonorLeaderboardSection
+        maleData={maleData}
+        femaleData={femaleData}
+        isDataLoading={isDataLoading}
+        onSawer={() => {
+          setPaymentModalDivision('male');
+          const tid = tournamentStatus?.male?.tournamentId;
+          setDonationTournamentId(tid || null);
+          setDonationModalOpen(true);
+        }}
       />
       </div>
 

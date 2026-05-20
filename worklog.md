@@ -637,3 +637,66 @@ Stage Summary:
   - `src/app/api/tournaments/[id]/generate-bracket/route.ts` — new bracket structure
   - `src/app/api/tournaments/[id]/score/route.ts` — new advancement + seeding
   - `src/components/idm/bracket-view.tsx` — visual updates (rank 3 highlight, drop indicator, waiting label)
+
+---
+Task ID: 1
+Agent: Main
+Task: Add sultanPlayerId override on Tournament model + Re-approve Predator donation + Set Varnces as Sultan of Week 2
+
+Work Log:
+- Added `sultanPlayerId` nullable FK to Tournament model in prisma/schema.prisma
+- Added `sultanTournaments` reverse relation on Player model
+- Added `TournamentSultan` named relation between Player and Tournament
+- Pushed schema to Neon (production) and SQLite (local)
+- Re-approved Predator's donation (was rejected, now approved again)
+- Set Varnces as sultanPlayerId on current tournament in both Neon and SQLite
+- Updated stats route: when tournament has sultanPlayerId set, that player is used as Sultan
+- Added isOverride and isCoSultan flags to sultanOfWeekly API response
+- Updated SultanOfWeekly TypeScript type with isCoSultan, isOverride, coSultans fields
+- Verified API returns Varnces as Sultan (via override) and Predator still shows in weeklyTopDonors
+- Lint and TypeScript checks pass clean
+- Pushed to GitHub (commit 3535c4c)
+
+Stage Summary:
+- Tournament model now has sultanPlayerId for admin manual override of Sultan
+- Predator donation re-approved, Varnces set as Sultan of Week 2
+- Stats API respects sultanPlayerId override
+- Pushed to GitHub: 3535c4c
+
+---
+Task ID: 2
+Agent: Main
+Task: Implement Leaderboard Penyawer + Automatic Tie-Break for Sultan of the Week
+
+Work Log:
+- Updated stats route donor grouping to include `earliestDonationAt` for tie-breaking
+- Implemented automatic tie-breaking rules in Sultan of the Week computation:
+  1. Highest totalAmount wins
+  2. If equal → earliest donation wins (first to donate)
+  3. If still tied → most donation count wins
+  4. If still fully tied → Co-Sultan (both get the title)
+- Added Co-Sultan support: when multiple donors have same top amount, all become Sultan
+- Updated skin map to give sultan_weekly skin to all Co-Sultans (with ❤️‍🔥 icon)
+- Updated SultanOfWeekly TypeScript type with isCoSultan, isOverride, coSultans fields
+- Created new `donor-leaderboard-section.tsx` component for beranda:
+  - Section Header with "🏆 Leaderboard Penyawer" title
+  - Week badge + Division toggle (Semua/♂ Cowo/♀ Cewe)
+  - Sultan of the Week hero card (maroon gradient, Co-Sultan support)
+  - Top 8 donors leaderboard list with rank medals, division badges, sawer tier, progress bars
+  - Summary bar with total saweran → prize pool, per-division breakdown
+  - "💰 Sawer Sekarang" CTA button
+  - Empty state with friendly message
+- Added DonorLeaderboardSection to landing-page.tsx (after TournamentHub, before HasilSection)
+- TypeScript and lint checks pass clean
+- NOT PUSHED YET (user wants to see results first)
+
+Stage Summary:
+- Automatic tie-breaking for Sultan of the Week (no admin intervention needed)
+- Co-Sultan support when amounts are truly equal
+- Leaderboard Penyawer section on beranda showing Sultan + top 8 donors
+- Files modified:
+  - `src/app/api/stats/route.ts` — tie-break logic + Co-Sultan
+  - `src/types/stats.ts` — updated SultanOfWeekly type
+  - `src/components/idm/landing/donor-leaderboard-section.tsx` — NEW component
+  - `src/components/idm/landing-page.tsx` — added DonorLeaderboardSection
+- NOT PUSHED — waiting for user approval
