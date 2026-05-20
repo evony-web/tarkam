@@ -785,3 +785,39 @@ Stage Summary:
 - Co-Sultan (Sultan Bersama) detection works when multiple donors have equal top amounts
 - Player avatars show in leaderboard when donorName matches a player gamertag
 - Server stable with SQLite provider on local sandbox
+
+---
+Task ID: 5
+Agent: Main
+Task: Add Week Selector to Donor Leaderboard — Browse previous weeks' donors + Sultan updates per selected week
+
+Work Log:
+- Analyzed current leaderboard: only showed "Season" vs "Latest Week" toggle — no way to browse previous weeks
+- Redesigned `donor-leaderboard-section.tsx` with full week browsing:
+  - Changed `TimeRange` type from `'season' | 'week'` to `'season' | number` (week number)
+  - Added `WeekSelector` component: compact pill navigation with left/right arrows for 5+ weeks
+  - Pre-computed `weekDonorsMap` (Map<number, DivisionDonor[]>) for ALL available weeks
+  - Pre-computed `weekSultansMap` (Map<number, SultanOfWeekly[]>) for Sultan per week
+  - Available weeks extracted from `sultanOfWeekly` + active tournament week numbers
+  - Latest week has a dot indicator (●) in the week selector
+- Enhanced `SultanOfWeeklyCard` to support multiple sultans per week (both divisions):
+  - Grid layout for multi-division weeks (side by side on desktop, stacked on mobile)
+  - Each division shows its own Sultan with division badge (♂ Cowo / ♀ Cewe)
+  - Co-Sultan (❤️‍🔥) badge shown when applicable
+  - Shows tournament name and week number at bottom
+- When user selects a specific week:
+  - Donor list updates to show that week's donors (from `sultanOfWeekly.allDonors`)
+  - Sultan of the Week card updates to show that week's Sultan(s)
+  - Summary bar shows total donation for that specific week
+- When "Season" is selected:
+  - Shows overall ranking across all weeks (same as before)
+  - Sultan card shows latest week's Sultan
+- Division filter (Semua/Cowo/Cewe) still works with week selector
+- Lint passes clean, dev server running 200 OK
+
+Stage Summary:
+- Users can now browse ANY week's donor list, not just the latest
+- Sultan of the Week card updates based on selected week (shows both male & female division sultans)
+- Week selector: compact pills with navigation arrows (max 5 visible at a time)
+- File modified: `/home/z/my-project/src/components/idm/landing/donor-leaderboard-section.tsx`
+- No API changes needed — all data already available from `sultanOfWeekly.allDonors`

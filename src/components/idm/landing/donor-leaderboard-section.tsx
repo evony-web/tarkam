@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, HandCoins, Crown, Sparkles, Users } from 'lucide-react';
+import { Heart, HandCoins, Crown, Sparkles, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCurrencyShort } from '@/lib/utils';
 import { getSawerTier } from '@/lib/skin-utils';
 import { SectionHeader, AnimatedSection } from './shared';
@@ -13,6 +13,7 @@ import type { StatsData, SultanOfWeekly, TopDonor } from '@/types/stats';
    DONOR LEADERBOARD SECTION — Landing Page
    Premium Apple-style "Leaderboard Penyawer" with
    Sultan of the Week hero card + top 8 donors list
+   + Week Selector for browsing previous weeks
    ═══════════════════════════════════════════════════════ */
 
 interface DonorLeaderboardSectionProps {
@@ -28,7 +29,8 @@ const MAROON_LIGHT = '#d4576a';
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
 
 type DivisionFilter = 'all' | 'male' | 'female';
-type TimeRange = 'season' | 'week';
+/** TimeRange: 'season' for overall, or a specific week number */
+type TimeRange = 'season' | number;
 
 /* ─── Enriched donor with per-division breakdown ─── */
 interface DivisionDonor extends TopDonor {
@@ -101,31 +103,18 @@ function SawerTierBadge({ amount }: { amount: number }) {
 /* ═══════════════════════════════════════════════════════
    SULTAN OF THE WEEK — Hero Card
    Maroon gradient with heart decorations
+   Now supports showing Sultan for a specific week
    ═══════════════════════════════════════════════════════ */
 function SultanOfWeeklyCard({
-  sultan,
-  coSultans,
+  sultans,
 }: {
-  sultan: SultanOfWeekly;
-  coSultans?: SultanOfWeekly['coSultans'];
+  sultans: SultanOfWeekly[];
 }) {
-  const isCoSultan = sultan.isCoSultan && coSultans && coSultans.length > 0;
+  if (sultans.length === 0) return null;
 
-  // All sultans to display (primary + co-sultans)
-  const allSultans = isCoSultan
-    ? [
-        { donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player },
-        ...coSultans.map((cs) => ({
-          donorName: cs.donorName,
-          totalAmount: cs.totalAmount,
-          donationCount: cs.donationCount,
-          player: cs.player,
-        })),
-      ]
-    : [{ donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player }];
-
-  const divisionLabel = sultan.tournamentDivision === 'female' ? '♀ Cewe' : '♂ Cowo';
-  const divisionColor = sultan.tournamentDivision === 'female' ? 'text-idm-female-light' : 'text-idm-male-light';
+  // Show up to 2 sultans (one per division if available)
+  const displaySultans = sultans.slice(0, 2);
+  const isMultiDivision = displaySultans.length > 1;
 
   return (
     <AnimatedSection variant="premium" className="mb-6">
@@ -166,71 +155,108 @@ function SultanOfWeeklyCard({
               <Crown className="w-3.5 h-3.5" style={{ color: MAROON_LIGHT }} />
             </div>
             <span className="text-xs sm:text-sm font-black uppercase tracking-wider" style={{ color: MAROON_LIGHT }}>
-              {isCoSultan ? '❤️‍🔥 Co-Sultan of the Week' : '❤️ Sultan of the Week'}
+              ❤️ Sultan of the Week
             </span>
-            <span
-              className="text-[9px] font-bold px-2 py-0.5 rounded-full border ml-auto shrink-0"
-              style={{
-                color: divisionColor,
-                backgroundColor: sultan.tournamentDivision === 'female' ? 'rgba(255,92,154,0.1)' : 'rgba(87,181,255,0.1)',
-                borderColor: sultan.tournamentDivision === 'female' ? 'rgba(255,92,154,0.25)' : 'rgba(87,181,255,0.25)',
-              }}
-            >
-              {divisionLabel}
+            <span className="text-[10px] font-bold ml-auto shrink-0" style={{ color: MAROON_LIGHT }}>
+              Week {displaySultans[0].weekNumber}
             </span>
           </div>
 
-          {/* Sultan(s) display */}
-          <div className={`flex ${isCoSultan ? 'flex-row gap-4 sm:gap-6' : 'flex-row items-center gap-4'}`}>
-            {allSultans.map((s, idx) => {
-              const avatarInitials = getInitials(s.donorName);
-              const hasPlayerAvatar = s.player?.avatar;
+          {/* Sultan(s) display — grid for multi-division, single row for one */}
+          <div className={`grid ${isMultiDivision ? 'grid-cols-1 sm:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+            {displaySultans.map((sultan, idx) => {
+              const isCoSultan = sultan.isCoSultan && sultan.coSultans && sultan.coSultans.length > 0;
+              const allSultansForDiv = isCoSultan
+                ? [
+                    { donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player },
+                    ...sultan.coSultans.map((cs) => ({
+                      donorName: cs.donorName,
+                      totalAmount: cs.totalAmount,
+                      donationCount: cs.donationCount,
+                      player: cs.player,
+                    })),
+                  ]
+                : [{ donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player }];
+
+              const divisionLabel = sultan.tournamentDivision === 'female' ? '♀ Cewe' : '♂ Cowo';
+              const divisionColor = sultan.tournamentDivision === 'female' ? 'text-idm-female-light' : 'text-idm-male-light';
 
               return (
-                <div key={`${s.donorName}-${idx}`} className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    {/* Avatar */}
-                    <div
-                      className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0"
-                      style={{
-                        border: `2px solid rgba(128,0,32,0.3)`,
-                        boxShadow: `0 0 16px rgba(128,0,32,0.15)`,
-                      }}
-                    >
-                      {hasPlayerAvatar ? (
-                        <img
-                          src={s.player!.avatar!}
-                          alt={s.donorName}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div
-                          className="w-full h-full flex items-center justify-center"
-                          style={{ background: `linear-gradient(135deg, ${MAROON}, ${MAROON_LIGHT})` }}
-                        >
-                          <span className="text-sm font-bold text-white/90">{avatarInitials}</span>
-                        </div>
+                <div key={`${sultan.tournamentDivision}-${idx}`} className={isMultiDivision ? 'border border-idm-gold-warm/5 rounded-xl p-3' : ''}>
+                  {/* Division badge */}
+                  {isMultiDivision && (
+                    <div className="mb-2">
+                      <span
+                        className="text-[9px] font-bold px-2 py-0.5 rounded-full border"
+                        style={{
+                          color: divisionColor,
+                          backgroundColor: sultan.tournamentDivision === 'female' ? 'rgba(255,92,154,0.1)' : 'rgba(87,181,255,0.1)',
+                          borderColor: sultan.tournamentDivision === 'female' ? 'rgba(255,92,154,0.25)' : 'rgba(87,181,255,0.25)',
+                        }}
+                      >
+                        {divisionLabel}
+                      </span>
+                      {isCoSultan && (
+                        <span className="text-[9px] font-bold ml-1.5 px-2 py-0.5 rounded-full border border-idm-gold-warm/20 bg-idm-gold-warm/5 text-idm-gold-warm">
+                          ❤️‍🔥 Co-Sultan
+                        </span>
                       )}
                     </div>
+                  )}
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-base sm:text-lg font-black truncate"
-                        style={{ color: MAROON_LIGHT }}
-                      >
-                        {s.donorName}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-sm sm:text-base font-bold" style={{ color: MAROON }}>
-                          {formatCurrencyShort(s.totalAmount)}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/60">
-                          {s.donationCount}x sawer
-                        </span>
-                      </div>
-                    </div>
+                  {/* Sultan entries */}
+                  <div className="space-y-2">
+                    {allSultansForDiv.map((s, sIdx) => {
+                      const avatarInitials = getInitials(s.donorName);
+                      const hasPlayerAvatar = s.player?.avatar;
+
+                      return (
+                        <div key={`${s.donorName}-${sIdx}`} className="flex items-center gap-3">
+                          {/* Avatar */}
+                          <div
+                            className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden shrink-0"
+                            style={{
+                              border: `2px solid rgba(128,0,32,0.3)`,
+                              boxShadow: `0 0 12px rgba(128,0,32,0.12)`,
+                            }}
+                          >
+                            {hasPlayerAvatar ? (
+                              <img
+                                src={s.player!.avatar!}
+                                alt={s.donorName}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full flex items-center justify-center"
+                                style={{ background: `linear-gradient(135deg, ${MAROON}, ${MAROON_LIGHT})` }}
+                              >
+                                <span className="text-[11px] font-bold text-white/90">{avatarInitials}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className="text-sm sm:text-base font-black truncate"
+                              style={{ color: MAROON_LIGHT }}
+                            >
+                              {s.donorName}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs sm:text-sm font-bold" style={{ color: MAROON }}>
+                                {formatCurrencyShort(s.totalAmount)}
+                              </span>
+                              <span className="text-[9px] text-muted-foreground/60">
+                                {s.donationCount}x sawer
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -241,16 +267,96 @@ function SultanOfWeeklyCard({
           <div className="mt-3 pt-3" style={{ borderTop: `1px solid rgba(128,0,32,0.12)` }}>
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-muted-foreground/60">
-                {sultan.tournamentName}
-              </span>
-              <span className="text-[10px] font-bold" style={{ color: MAROON_LIGHT }}>
-                Week {sultan.weekNumber}
+                {displaySultans.map(s => s.tournamentName).join(' • ')}
               </span>
             </div>
           </div>
         </div>
       </div>
     </AnimatedSection>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   WEEK SELECTOR — Compact week pill navigation
+   ═══════════════════════════════════════════════════════ */
+function WeekSelector({
+  availableWeeks,
+  selectedWeek,
+  onSelectWeek,
+  latestWeek,
+}: {
+  availableWeeks: number[];
+  selectedWeek: number;
+  latestWeek: number;
+  onSelectWeek: (week: number) => void;
+}) {
+  // Show max 5 weeks at a time with navigation
+  const MAX_VISIBLE = 5;
+  const selectedIndex = availableWeeks.indexOf(selectedWeek);
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  // Calculate visible window
+  const startIdx = Math.max(0, Math.min(selectedIndex - Math.floor(MAX_VISIBLE / 2), availableWeeks.length - MAX_VISIBLE));
+  const endIdx = Math.min(startIdx + MAX_VISIBLE, availableWeeks.length);
+  const visibleWeeks = availableWeeks.slice(startIdx, endIdx);
+
+  const canScrollLeft = startIdx > 0;
+  const canScrollRight = endIdx < availableWeeks.length;
+
+  return (
+    <div className="flex items-center gap-1">
+      {/* Left arrow */}
+      <button
+        onClick={() => setScrollOffset(prev => Math.max(0, prev - 1))}
+        disabled={!canScrollLeft}
+        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all ${
+          canScrollLeft
+            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+            : 'text-muted-foreground/20 cursor-not-allowed'
+        }`}
+        aria-label="Previous weeks"
+      >
+        <ChevronLeft className="w-3 h-3" />
+      </button>
+
+      {/* Week pills */}
+      <div className="flex items-center gap-1">
+        {visibleWeeks.map((week) => (
+          <button
+            key={week}
+            onClick={() => onSelectWeek(week)}
+            className={`px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+              selectedWeek === week
+                ? week === latestWeek
+                  ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
+                  : 'bg-idm-gold-warm/10 text-idm-gold-warm/80'
+                : 'text-muted-foreground/50 hover:text-idm-gold-warm/60 hover:bg-idm-gold-warm/5'
+            }`}
+            aria-pressed={selectedWeek === week}
+          >
+            W{week}
+            {week === latestWeek && (
+              <span className="ml-0.5 text-[7px] text-idm-gold-warm/50">●</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Right arrow */}
+      <button
+        onClick={() => setScrollOffset(prev => prev + 1)}
+        disabled={!canScrollRight}
+        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all ${
+          canScrollRight
+            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+            : 'text-muted-foreground/20 cursor-not-allowed'
+        }`}
+        aria-label="Next weeks"
+      >
+        <ChevronRight className="w-3 h-3" />
+      </button>
+    </div>
   );
 }
 
@@ -266,19 +372,25 @@ export function DonorLeaderboardSection({
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
   const [timeRange, setTimeRange] = useState<TimeRange>('season');
 
-  // ── Pre-compute both datasets ──
-  const { seasonDonors, weekDonors, weekNumber, latestSultan } = useMemo(() => {
-    // ── Sultan of the Week: per-week, from sultanOfWeekly ──
+  // ── Pre-compute all data ──
+  const { seasonDonors, weekDonorsMap, availableWeeks, weekSultansMap, latestWeekNumber } = useMemo(() => {
+    // ── All Sultan of the Week entries ──
     const allSultans: SultanOfWeekly[] = [
       ...(maleData?.sultanOfWeekly || []),
       ...(femaleData?.sultanOfWeekly || []),
     ];
-    const latestWeekNum = allSultans.length > 0
-      ? Math.max(...allSultans.map(s => s.weekNumber))
-      : 0;
-    const latest = allSultans.length > 0
-      ? allSultans.reduce((a, b) => (a.weekNumber >= b.weekNumber ? a : b))
-      : undefined;
+
+    // ── Available weeks (sorted ascending) ──
+    const weekSet = new Set(allSultans.map(s => s.weekNumber));
+    // Also add weeks from active tournament
+    const maleWeek = maleData?.activeTournament?.weekNumber;
+    const femaleWeek = femaleData?.activeTournament?.weekNumber;
+    if (maleWeek) weekSet.add(maleWeek);
+    if (femaleWeek) weekSet.add(femaleWeek);
+    const availableWeeks = Array.from(weekSet).sort((a, b) => a - b);
+
+    // ── Latest week number ──
+    const latestWeekNumber = availableWeeks.length > 0 ? availableWeeks[availableWeeks.length - 1] : 0;
 
     // Helper: merge donors into donorMap
     const buildDonorMap = () => new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number; player?: TopDonor['player'] }>();
@@ -354,26 +466,67 @@ export function DonorLeaderboardSection({
     if (maleData?.topDonors?.length) mergeDonors(seasonMap, maleData.topDonors, 'male');
     if (femaleData?.topDonors?.length) mergeDonors(seasonMap, femaleData.topDonors, 'female');
 
-    // ── WEEK: per-tournament from sultanOfWeekly.allDonors ──
-    const weekMap = buildDonorMap();
+    // ── PER-WEEK: Build a map of weekNumber → donors ──
+    const weekDonorsMap = new Map<number, DivisionDonor[]>();
+    const weekSultansMap = new Map<number, SultanOfWeekly[]>();
+
+    // Group sultans by week
     for (const sultan of allSultans) {
-      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
-        mergeDonorList(weekMap, sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
-      }
+      const existing = weekSultansMap.get(sultan.weekNumber) || [];
+      existing.push(sultan);
+      weekSultansMap.set(sultan.weekNumber, existing);
     }
-    // Fallback: if no allDonors, use weeklyTopDonors
-    if (weekMap.size === 0) {
-      if (maleData?.weeklyTopDonors?.length) mergeDonors(weekMap, maleData.weeklyTopDonors, 'male');
-      if (femaleData?.weeklyTopDonors?.length) mergeDonors(weekMap, femaleData.weeklyTopDonors, 'female');
+
+    // Build per-week donor lists from sultanOfWeekly.allDonors
+    for (const sultan of allSultans) {
+      if (!sultan.allDonors?.length) continue;
+      const existingMap = weekDonorsMap.has(sultan.weekNumber)
+        ? (() => {
+            // Rebuild the map from the existing DivisionDonor array
+            const map = buildDonorMap();
+            const existingDonors = weekDonorsMap.get(sultan.weekNumber)!;
+            for (const d of existingDonors) {
+              map.set(d.donorName.toLowerCase().trim(), {
+                donorName: d.donorName,
+                totalAmount: d.totalAmount,
+                donationCount: d.donationCount,
+                maleAmount: d.maleAmount,
+                femaleAmount: d.femaleAmount,
+                player: d.player,
+              });
+            }
+            return map;
+          })()
+        : buildDonorMap();
+
+      mergeDonorList(existingMap, sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
+      weekDonorsMap.set(sultan.weekNumber, toDivisionDonors(existingMap));
+    }
+
+    // Fallback for weeks that have no allDonors but have weeklyTopDonors
+    if (!weekDonorsMap.has(latestWeekNumber)) {
+      const fallbackMap = buildDonorMap();
+      if (maleData?.weeklyTopDonors?.length) mergeDonors(fallbackMap, maleData.weeklyTopDonors, 'male');
+      if (femaleData?.weeklyTopDonors?.length) mergeDonors(fallbackMap, femaleData.weeklyTopDonors, 'female');
+      if (fallbackMap.size > 0) {
+        weekDonorsMap.set(latestWeekNumber, toDivisionDonors(fallbackMap));
+      }
     }
 
     return {
       seasonDonors: toDivisionDonors(seasonMap).slice(0, 8),
-      weekDonors: toDivisionDonors(weekMap).slice(0, 8),
-      weekNumber: latestWeekNum || (maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber || 0),
-      latestSultan: latest,
+      weekDonorsMap,
+      availableWeeks,
+      weekSultansMap,
+      latestWeekNumber,
     };
   }, [maleData, femaleData]);
+
+  // ── Selected week for per-week view ──
+  const selectedWeek = typeof timeRange === 'number' ? timeRange : latestWeekNumber;
+  const weekDonors = weekDonorsMap.get(selectedWeek) || [];
+  const weekSultans = weekSultansMap.get(selectedWeek) || [];
+  const hasWeekDonors = weekDonorsMap.size > 0;
 
   // ── Active donors based on time range ──
   const activeDonors = timeRange === 'season' ? seasonDonors : weekDonors;
@@ -388,7 +541,12 @@ export function DonorLeaderboardSection({
   const totalDonation = filteredDonors.reduce((s, d) => s + d.totalAmount, 0);
   const totalMale = filteredDonors.reduce((s, d) => s + d.maleAmount, 0);
   const totalFemale = filteredDonors.reduce((s, d) => s + d.femaleAmount, 0);
-  const hasWeekDonors = weekDonors.length > 0;
+
+  // ── Sultan to display ──
+  // Season view → latest week's sultan; Week view → selected week's sultans
+  const displaySultans = timeRange === 'season'
+    ? (weekSultansMap.get(latestWeekNumber) || [])
+    : weekSultans;
 
   // ── Loading skeleton ──
   if (isDataLoading) {
@@ -461,31 +619,36 @@ export function DonorLeaderboardSection({
         />
 
         <div className="max-w-2xl mx-auto">
-          {/* ── Week badge + Toggles ── */}
+          {/* ── Toggles Row ── */}
           <AnimatedSection variant="fadeUp" className="mb-6">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              {/* Time range toggle: Season vs Minggu Ini */}
-              <div className="flex items-center gap-1 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
-                {([
-                  { key: 'season' as TimeRange, label: '🏆 Season' },
-                  { key: 'week' as TimeRange, label: `📅 W${weekNumber || '?'}` },
-                ] as const).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setTimeRange(key)}
-                    disabled={key === 'week' && !hasWeekDonors}
-                    className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      timeRange === key
-                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
-                        : key === 'week' && !hasWeekDonors
-                        ? 'text-muted-foreground/30 cursor-not-allowed'
-                        : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
-                    }`}
-                    aria-pressed={timeRange === key}
-                  >
-                    {label}
-                  </button>
-                ))}
+              {/* Time range toggle: Season vs Week selector */}
+              <div className="flex items-center gap-1.5 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+                {/* Season button */}
+                <button
+                  onClick={() => setTimeRange('season')}
+                  className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    timeRange === 'season'
+                      ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
+                      : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
+                  }`}
+                  aria-pressed={timeRange === 'season'}
+                >
+                  🏆 Season
+                </button>
+
+                {/* Week selector — only shown when there are weeks available */}
+                {availableWeeks.length > 0 && (
+                  <>
+                    <div className="w-px h-4 bg-idm-gold-warm/15" />
+                    <WeekSelector
+                      availableWeeks={availableWeeks}
+                      selectedWeek={typeof timeRange === 'number' ? timeRange : latestWeekNumber}
+                      latestWeek={latestWeekNumber}
+                      onSelectWeek={(week) => setTimeRange(week)}
+                    />
+                  </>
+                )}
               </div>
 
               {/* Division toggle */}
@@ -513,11 +676,8 @@ export function DonorLeaderboardSection({
           </AnimatedSection>
 
           {/* ── Sultan of the Week Card ── */}
-          {latestSultan && (
-            <SultanOfWeeklyCard
-              sultan={latestSultan}
-              coSultans={latestSultan.coSultans}
-            />
+          {displaySultans.length > 0 && (
+            <SultanOfWeeklyCard sultans={displaySultans} />
           )}
 
           {/* ── Leaderboard List ── */}
@@ -532,14 +692,19 @@ export function DonorLeaderboardSection({
                   Top Saweran
                 </h3>
                 <Badge className="ml-auto bg-idm-gold-warm/10 text-idm-gold-warm border border-idm-gold-warm/20 text-[9px] font-bold">
-                  {timeRange === 'season' ? 'Season' : `Week ${weekNumber}`}
+                  {timeRange === 'season' ? 'Season' : `Week ${selectedWeek}`}
                 </Badge>
               </div>
 
               <CardContent className="p-3 sm:p-4">
                 {filteredDonors.length === 0 ? (
                   <div className="py-8 text-center">
-                    <p className="text-xs text-muted-foreground">Tidak ada penyawer untuk divisi ini</p>
+                    <p className="text-xs text-muted-foreground">
+                      {timeRange === 'season'
+                        ? 'Belum ada penyawer musim ini'
+                        : `Belum ada penyawer di Week ${selectedWeek}`
+                      }
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-1.5 sm:max-h-[480px] sm:overflow-y-auto custom-scrollbar">
@@ -659,7 +824,7 @@ export function DonorLeaderboardSection({
             <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  Total Saweran {timeRange === 'season' ? 'Season' : `Week ${weekNumber}`} → Prize Pool
+                  Total Saweran {timeRange === 'season' ? 'Season' : `Week ${selectedWeek}`} → Prize Pool
                 </p>
                 <p className="text-lg font-black bg-gradient-to-r from-idm-gold-warm to-amber-300 bg-clip-text text-transparent">
                   {formatCurrencyShort(totalDonation || 0)}
