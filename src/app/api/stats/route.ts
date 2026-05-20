@@ -1165,6 +1165,10 @@ export async function GET(request: Request) {
         })(),
       }));
 
+      // Exclude the primary sultan from coSultans — they're already shown as the main donorName/player
+      const primaryDonorName = sortedDonors[0][0];
+      const otherCoSultans = coSultanData.filter(cs => cs.donorName !== primaryDonorName);
+
       // Build full per-tournament donor list for leaderboard display
       const allDonorsList = sortedDonors.map(([name, data]) => ({
         donorName: name,
@@ -1179,14 +1183,14 @@ export async function GET(request: Request) {
         tournamentId: tId,
         tournamentDivision: tournament.division,
         // Primary donor: first after tie-break (earliest donation)
-        donorName: sortedDonors[0][0] || 'Anonymous',
+        donorName: primaryDonorName || 'Anonymous',
         totalAmount: topAmount,
         donationCount: sortedDonors[0][1].donationCount,
         player: coSultanData[0].player,
         isCrossDivision: coSultanData[0].isCrossDivision,
         isCoSultan: true,
         isOverride: false,
-        coSultans: coSultanData,
+        coSultans: otherCoSultans,
         allDonors: allDonorsList,
       });
       continue;
