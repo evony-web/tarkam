@@ -167,6 +167,7 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
 
           {/* ─── Right: Quick Links ─── */}
           <nav aria-label="Footer navigation" className="flex flex-wrap items-center gap-x-5 gap-y-2 sm:gap-y-1">
+            <QuickLink label="Hasil" view="hasil" />
             <QuickLink label="Bracket" view="bracket" />
             <QuickLink label="Juara" view="highlights" />
             <QuickLink label="Peringkat" view="peringkat" />

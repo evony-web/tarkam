@@ -66,6 +66,9 @@ const MarketplaceView = dynamic(() => import('./marketplace-view').then(m => ({ 
 const BracketPage = dynamic(() => import('./bracket-page').then(m => ({ default: m.BracketPage })), {
   loading: () => viewLoading,
 });
+const HasilPage = dynamic(() => import('./bracket-page').then(m => ({ default: m.HasilPage })), {
+  loading: () => viewLoading,
+});
 const PlayersPage = dynamic(() => import('./players-page').then(m => ({ default: m.PlayersPage })), {
   loading: () => viewLoading,
 });
@@ -525,7 +528,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'community', 'peringkat', 'bracket'];
+  const publicViews: AppView[] = ['players', 'highlights', 'community', 'peringkat', 'bracket', 'hasil'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -551,6 +554,7 @@ export function AppShell() {
         case 'highlights': return <HighlightsPage />;
         case 'peringkat': return <PeringkatPage />;
         case 'bracket': return <BracketPage />;
+        case 'hasil': return <HasilPage />;
         default: return <CommunityDashboard />;
       }
     };
@@ -587,6 +591,7 @@ export function AppShell() {
 
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
       case 'bracket': return <BracketPage />;
+      case 'hasil': return <HasilPage />;
       default: return <CommunityDashboard />;
     }
   };
@@ -615,6 +620,7 @@ export function AppShell() {
                 marketplace: 'Marketplace',
                 league: 'Peraturan',
                 bracket: 'Bracket',
+                hasil: 'Hasil',
                 register: 'Daftar',
                 admin: 'Admin',
                 players: 'Pemain',
@@ -684,7 +690,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
+            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'hasil' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile

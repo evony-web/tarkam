@@ -5,7 +5,7 @@ import { useAppStore, type AppView } from '@/lib/store';
 import { useCrossTabInvalidation } from '@/lib/cross-tab-sync';
 
 import Image from 'next/image';
-import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home, Target } from 'lucide-react';
+import { Crown, Trophy, Swords, Music, LogIn, UserCircle, LogOut, Shield, Sun, Moon, Award, Home, Target, GitBranch } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore } from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -433,6 +433,11 @@ export function LandingPage() {
     setCurrentView('bracket');
   };
 
+  const enterHasil = (division: 'male' | 'female') => {
+    setDivision(division);
+    setCurrentView('hasil');
+  };
+
   const enterCommunity = () => {
     setCurrentView('community');
   };
@@ -544,6 +549,9 @@ export function LandingPage() {
       case 'bracket':
         queueMicrotask(() => setCurrentView('bracket'));
         break;
+      case 'hasil':
+        queueMicrotask(() => setCurrentView('hasil'));
+        break;
       case 'peringkat':
         // Navigate to the Peringkat page
         queueMicrotask(() => setCurrentView('peringkat'));
@@ -626,6 +634,7 @@ export function LandingPage() {
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
               { view: 'landing' as AppView, label: 'Beranda', special: false },
+              { view: 'hasil' as AppView, label: 'Hasil', special: false },
               { view: 'bracket' as AppView, label: 'Bracket', special: false },
               { view: 'highlights' as AppView, label: 'Juara', special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', special: false },
@@ -685,7 +694,7 @@ export function LandingPage() {
           <div className="flex items-center justify-around h-16 px-1">
             {[
               { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
-              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
+              { view: 'hasil' as AppView, label: 'Hasil', icon: Swords, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
@@ -737,6 +746,17 @@ export function LandingPage() {
         </div>
       </nav>
 
+      {/* ========== BRACKET FAB (Mobile) ========== — hidden on Bracket view */}
+      {currentView === 'landing' && (
+        <button
+          onClick={() => setCurrentView('bracket')}
+          className={`md:hidden fixed right-4 bottom-24 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer bg-idm-gold-warm/90 shadow-idm-gold-warm/30`}
+          title="Bracket"
+        >
+          <GitBranch className="w-5 h-5 text-black" />
+        </button>
+      )}
+
       {/* ========== SECTION COMPONENTS ========== */}
       <HeroSection
         maleData={maleData}
@@ -783,7 +803,7 @@ export function LandingPage() {
           setDonationTournamentId(tid || null);
           setDonationModalOpen(true);
         }}
-        onViewBracket={enterBracket}
+        onViewBracket={enterHasil}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}

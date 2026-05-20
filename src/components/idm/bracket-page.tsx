@@ -2,8 +2,6 @@
 
 import { useAppStore } from '@/lib/store';
 import { Radio, Swords, Trophy } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState, useEffect } from 'react';
 import { BracketContent, ResultsContent } from './match-day-center';
 
 /* ─── Division filter chips (extracted to avoid creating component during render) ─── */
@@ -31,94 +29,103 @@ function DivisionChips({ division, setDivision }: { division: string; setDivisio
   );
 }
 
-export function BracketPage() {
-  const { division, setDivision, initialBracketTab, setInitialBracketTab } = useAppStore();
+/* ═══ Shared header component for both Hasil & Bracket views ═══ */
+function ViewHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  division,
+  setDivision,
+}: {
+  icon: typeof Radio;
+  title: string;
+  subtitle: string;
+  division: string;
+  setDivision: (d: 'semua' | 'male' | 'female') => void;
+}) {
+  return (
+    <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        {/* Row 1: Title */}
+        <div className="flex items-center gap-2.5 pt-3 sm:pt-4">
+          <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
+            <Icon className="w-4 h-4 text-idm-gold-warm" />
+          </div>
+          <div>
+            <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">{title}</h1>
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight hidden sm:block">{subtitle}</p>
+          </div>
+        </div>
 
-  // Primary tab: 'results' or 'bracket' — initialized from store for deep-linking
-  // The store value is set before navigation (by landing CTA), so the initializer
-  // captures it on mount. The effect below handles cleanup (scroll + clear store).
-  const [primaryTab, setPrimaryTab] = useState(() => initialBracketTab || 'results');
+        {/* Row 2: Division chips only */}
+        <div className="flex items-center justify-end gap-2 py-2.5 overflow-x-auto">
+          <DivisionChips division={division} setDivision={setDivision} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // Consume initialBracketTab — scroll to top and clear the store value
-  useEffect(() => {
-    if (initialBracketTab) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      const timer = setTimeout(() => setInitialBracketTab(null), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [initialBracketTab, setInitialBracketTab]);
-
-  // Resolve the effective division prop for content components
+/* ═══ Content renderer — shared logic for both views ═══ */
+function ViewContent({
+  mode,
+  division,
+}: {
+  mode: 'results' | 'bracket';
+  division: string;
+}) {
   const divisionProp = division === 'female' ? 'female' as const : 'male' as const;
   const showBoth = division === 'semua';
+  const ContentComponent = mode === 'results' ? ResultsContent : BracketContent;
+
+  return (
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+      <div className="mt-4 pb-6 space-y-4">
+        {showBoth ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <ContentComponent divisionProp="male" />
+            <ContentComponent divisionProp="female" />
+          </div>
+        ) : (
+          <ContentComponent divisionProp={divisionProp} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══ HASIL PAGE — Shows match results only (no tabs) ═══ */
+export function HasilPage() {
+  const { division, setDivision } = useAppStore();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ═══ Header: Title + All tabs in one row ═══ */}
-      <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          {/* Row 1: Title alone */}
-          <div className="flex items-center gap-2.5 pt-3 sm:pt-4">
-            <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-              <Radio className="w-4 h-4 text-idm-gold-warm" />
-            </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold text-foreground leading-tight">Bracket</h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight hidden sm:block">Hasil & bracket tarkam</p>
-            </div>
-          </div>
+      <ViewHeader
+        icon={Swords}
+        title="Hasil"
+        subtitle="Hasil pertandingan tarkam"
+        division={division}
+        setDivision={setDivision}
+      />
+      <ViewContent mode="results" division={division} />
+    </div>
+  );
+}
 
-          {/* Row 2: Primary tabs (left) + Division chips (right) in one line */}
-          <div className="flex items-center justify-between gap-2 py-2.5 overflow-x-auto">
-            <Tabs value={primaryTab} onValueChange={setPrimaryTab} className="w-auto shrink-0">
-              <TabsList className="bg-transparent h-auto p-0 gap-0 rounded-none">
-                {[
-                  { value: 'results', label: 'Hasil', icon: Swords },
-                  { value: 'bracket', label: 'Bracket', icon: Trophy },
-                ].map(tab => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="relative px-3 py-2 sm:px-4 text-[11px] sm:text-xs font-semibold rounded-none border-b-2 border-transparent data-[state=active]:border-idm-gold-warm data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-idm-gold-warm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 inline" />
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+/* ═══ BRACKET PAGE — Shows bracket tree only (no tabs) ═══ */
+export function BracketPage() {
+  const { division, setDivision } = useAppStore();
 
-            <DivisionChips division={division} setDivision={setDivision} />
-          </div>
-        </div>
-      </div>
-
-      {/* ═══ Tab Content ═══ */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        {primaryTab === 'results' ? (
-          <div className="mt-4 pb-6 space-y-4">
-            {showBoth ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <ResultsContent divisionProp="male" />
-                <ResultsContent divisionProp="female" />
-              </div>
-            ) : (
-              <ResultsContent divisionProp={divisionProp} />
-            )}
-          </div>
-        ) : (
-          <div className="mt-4 pb-6 space-y-4">
-            {showBoth ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <BracketContent divisionProp="male" />
-                <BracketContent divisionProp="female" />
-              </div>
-            ) : (
-              <BracketContent divisionProp={divisionProp} />
-            )}
-          </div>
-        )}
-      </div>
+  return (
+    <div className="min-h-screen bg-background">
+      <ViewHeader
+        icon={Trophy}
+        title="Bracket"
+        subtitle="Struktur bracket tarkam"
+        division={division}
+        setDivision={setDivision}
+      />
+      <ViewContent mode="bracket" division={division} />
     </div>
   );
 }

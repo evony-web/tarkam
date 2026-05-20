@@ -865,3 +865,27 @@ Stage Summary:
 - Files modified: `globals.css`, `players-section.tsx`, `clubs-section.tsx`
 - Pills/tabs on mobile will now render at their designed Tailwind size instead of being bloated by 6px padding
 - Touch targets remain accessible via invisible `::after` pseudo-element
+
+---
+Task ID: 1
+Agent: main
+Task: Separate Bracket and Hasil into independent menu items + FAB for mobile Bracket
+
+Work Log:
+- Added 'hasil' to AppView type in store.ts
+- Rewrote bracket-page.tsx: split into HasilPage (results only) and BracketPage (bracket only), no more tabs. Shared ViewHeader and ViewContent components for DRY
+- Updated app-shell.tsx: added HasilPage dynamic import, added 'hasil' to publicViews, added routing cases for 'hasil' in both public and dashboard render switches, added 'hasil' to isFullBleed, added 'hasil' to mobile header title map
+- Updated landing-page.tsx: top nav now shows "Hasil" + "Bracket" as separate items, bottom nav shows "Hasil" (Swords icon) replacing old "Bracket" (Trophy icon), added Bracket FAB on mobile (right-4 bottom-24, GitBranch icon, gold accent, hidden when not on landing view), added enterHasil function, deep link handler now handles ?view=hasil, TournamentHub onViewBracket prop now uses enterHasil (since it triggers "Lihat Hasil" button), HeroSection onViewBracket still uses enterBracket
+- Updated public-page-layout.tsx: same top nav changes (Hasil + Bracket), same bottom nav (Hasil replacing old Bracket), added Bracket FAB (hidden when already on Bracket view), added GitBranch import
+- Updated hasil-section.tsx: removed setInitialBracketTab import, "Lihat Semua Hasil" button now uses setCurrentView('hasil') instead of setInitialBracketTab('results') + setCurrentView('bracket')
+- Updated landing-footer.tsx: added "Hasil" quick link before "Bracket"
+
+Stage Summary:
+- Bracket and Hasil are now fully separate views with their own menu items
+- Desktop: Top nav has both "Hasil" and "Bracket" as separate links
+- Mobile: Bottom nav has "Hasil", Bracket accessible via FAB (right-4 bottom-24, GitBranch icon)
+- FAB only appears when not already on Bracket view (public-page-layout) or on landing (landing-page)
+- "Lihat Hasil" on TournamentHub navigates to Hasil page
+- "Lihat Bracket" on HeroSection navigates to Bracket page
+- "Lihat Semua Hasil" on hasil-section navigates to Hasil page
+- Deep links: ?view=hasil and ?view=bracket both work

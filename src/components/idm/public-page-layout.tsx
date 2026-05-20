@@ -3,7 +3,7 @@
 import { useAppStore, type AppView } from '@/lib/store';
 import Image from 'next/image';
 import {
-  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home, Award, Target,
+  Crown, Trophy, Swords, Music, Shield, LogIn, UserCircle, LogOut, Sun, Moon, Home, Award, Target, GitBranch,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useSyncExternalStore, useState, useEffect, useCallback, useRef } from 'react';
@@ -261,7 +261,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
           {/* Desktop Nav Links — same items & style as landing page */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
-              { view: 'landing' as AppView, label: 'Beranda', special: false },
+              { view: 'hasil' as AppView, label: 'Hasil', special: false },
               { view: 'bracket' as AppView, label: 'Bracket', special: false },
               { view: 'highlights' as AppView, label: 'Juara', special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', special: false },
@@ -314,8 +314,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
         <div className="bg-background/95 backdrop-blur-lg">
           <div className="flex items-center justify-around h-16 px-1 relative">
             {[
-              { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
-              { view: 'bracket' as AppView, label: 'Bracket', icon: Trophy, special: false },
+              { view: 'hasil' as AppView, label: 'Hasil', icon: Swords, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
               { view: 'players' as AppView, label: 'Pemain', icon: Music, special: false },
@@ -363,6 +362,17 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
           </div>
         </div>
       </nav>
+
+      {/* ══════ BRACKET FAB (Mobile) ══════ — hidden when already on Bracket view */}
+      {currentView !== 'bracket' && (
+        <button
+          onClick={() => setCurrentView('bracket')}
+          className={`md:hidden fixed right-4 bottom-24 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer bg-idm-gold-warm/90 shadow-idm-gold-warm/30`}
+          title="Bracket"
+        >
+          <GitBranch className="w-5 h-5 text-black" />
+        </button>
+      )}
 
       {/* ══════ PAGE CONTENT ══════ */}
       <main className="flex-1 pt-14">

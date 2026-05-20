@@ -415,7 +415,6 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
   isDataLoading: boolean;
 }) {
   const setCurrentView = useAppStore(s => s.setCurrentView);
-  const setInitialBracketTab = useAppStore(s => s.setInitialBracketTab);
 
   // Fetch season results for both divisions
   const { data: maleResults, isLoading: maleLoading } = useQuery({
@@ -534,8 +533,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
             <div className="flex justify-center mt-5">
               <button
                 onClick={() => {
-                  setInitialBracketTab('results');
-                  setCurrentView('bracket');
+                  setCurrentView('hasil');
                   setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
                 className="compact-pill flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/[0.06] text-sm font-bold text-idm-gold-warm transition-all duration-300 hover:bg-idm-gold-warm/[0.12] hover:shadow-[0_0_16px_rgba(249,203,37,0.12)] cursor-pointer active:scale-[0.97]"

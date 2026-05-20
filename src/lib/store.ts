@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type AppView = "landing" | "community" | "dashboard" | "league" | "admin" | "matchday" | "register" | "marketplace" | "bracket" | "players" | "highlights" | "champions" | "clubs" | "peringkat";
+export type AppView = "landing" | "community" | "dashboard" | "league" | "admin" | "matchday" | "register" | "marketplace" | "bracket" | "hasil" | "players" | "highlights" | "champions" | "clubs" | "peringkat";
 export type Division = "semua" | "male" | "female";
 export type NotifType = "donation" | "match" | "mvp" | "streak" | "victory";
 
