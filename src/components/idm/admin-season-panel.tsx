@@ -146,6 +146,12 @@ export function AdminSeasonPanel({ division, dt, setConfirmDialog, mode = 'liga'
     queryFn: async () => {
       if (!expandedSeason) return null;
       const res = await fetch(`/api/seasons/${expandedSeason}`, { credentials: 'include' });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        let errorMsg = `HTTP ${res.status}`;
+        try { const d = JSON.parse(text); errorMsg = d.error || errorMsg; } catch { if (text) errorMsg = text; }
+        throw new Error(errorMsg);
+      }
       const data = await res.json();
       // API returns { season: {...}, standings: [...], clubs: [...] }
       // Merge into a flat SeasonData object
