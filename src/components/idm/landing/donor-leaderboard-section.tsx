@@ -264,33 +264,27 @@ export function DonorLeaderboardSection({
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
 
   // ── Merged donor data ──
-  // Uses per-tournament allDonors from sultanOfWeekly (guaranteed same-week data)
-  // Falls back to weeklyTopDonors only if allDonors is not available
+  // Leaderboard = SEASON-ACCUMULATED (overall ranking by total saweran across all weeks)
+  // Sultan of the Week card = per-week (shows current week's top donor)
   const { donors, totalDonation, weekNumber, totalMale, totalFemale, latestSultan } = useMemo(() => {
-    // ── Step 1: Collect ALL sultan entries from both divisions ──
+    // ── Sultan of the Week: per-week, from sultanOfWeekly ──
     const allSultans: SultanOfWeekly[] = [
       ...(maleData?.sultanOfWeekly || []),
       ...(femaleData?.sultanOfWeekly || []),
     ];
-
-    // ── Step 2: Find the latest week number ──
     const latestWeekNum = allSultans.length > 0
       ? Math.max(...allSultans.map(s => s.weekNumber))
       : 0;
-
-    // ── Step 3: Pick the latest sultan for the Sultan card ──
     const latest = allSultans.length > 0
       ? allSultans.reduce((a, b) => (a.weekNumber >= b.weekNumber ? a : b))
       : undefined;
 
-    // ── Step 4: Build donor list from allDonors of the LATEST week only ──
-    // This ensures the leaderboard only shows donors for the displayed week,
-    // not donors from previous weeks that would mix in via weeklyTopDonors.
+    // ── Leaderboard: SEASON-ACCUMULATED from topDonors ──
+    // This shows overall ranking across ALL weeks, not just current week.
     const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
 
-    const mergeDonorList = (donorList: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
-      if (!donorList?.length) return;
-      for (const d of donorList) {
+    const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
+      for (const d of donors) {
         const key = d.donorName.toLowerCase().trim();
         const existing = donorMap.get(key);
         if (existing) {
@@ -313,45 +307,9 @@ export function DonorLeaderboardSection({
       }
     };
 
-    // Merge allDonors from ALL sultan entries matching the latest week
-    // (handles both male and female divisions for the same week)
-    let hasAllDonors = false;
-    for (const sultan of allSultans) {
-      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
-        mergeDonorList(sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
-        hasAllDonors = true;
-      }
-    }
-
-    // Fallback: if no allDonors available, use weeklyTopDonors (per-division, for the active tournament)
-    // This handles the transition period while data migrates
-    if (!hasAllDonors) {
-      const mergeFallbackDonors = (donors: TopDonor[], division: 'male' | 'female') => {
-        for (const d of donors) {
-          const key = d.donorName.toLowerCase().trim();
-          const existing = donorMap.get(key);
-          if (existing) {
-            donorMap.set(key, {
-              donorName: d.donorName,
-              totalAmount: existing.totalAmount + d.totalAmount,
-              donationCount: existing.donationCount + d.donationCount,
-              maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
-              femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
-            });
-          } else {
-            donorMap.set(key, {
-              donorName: d.donorName,
-              totalAmount: d.totalAmount,
-              donationCount: d.donationCount,
-              maleAmount: division === 'male' ? d.totalAmount : 0,
-              femaleAmount: division === 'female' ? d.totalAmount : 0,
-            });
-          }
-        }
-      };
-      if (maleData?.weeklyTopDonors?.length) mergeFallbackDonors(maleData.weeklyTopDonors, 'male');
-      if (femaleData?.weeklyTopDonors?.length) mergeFallbackDonors(femaleData.weeklyTopDonors, 'female');
-    }
+    // Use season-accumulated topDonors for the overall leaderboard
+    if (maleData?.topDonors?.length) mergeDonors(maleData.topDonors, 'male');
+    if (femaleData?.topDonors?.length) mergeDonors(femaleData.topDonors, 'female');
 
     const sorted: DivisionDonor[] = Array.from(donorMap.values())
       .sort((a, b) => b.totalAmount - a.totalAmount)
@@ -516,7 +474,7 @@ export function DonorLeaderboardSection({
                   Top Saweran
                 </h3>
                 <Badge className="ml-auto bg-idm-gold-warm/10 text-idm-gold-warm border border-idm-gold-warm/20 text-[9px] font-bold">
-                  {weekNumber > 0 ? `Week ${weekNumber}` : 'Season'}
+                  Season
                 </Badge>
               </div>
 
@@ -632,7 +590,7 @@ export function DonorLeaderboardSection({
             <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  Total Saweran {weekNumber > 0 ? `Week ${weekNumber}` : 'Season'} → Prize Pool
+                  Total Saweran Season → Prize Pool
                 </p>
                 <p className="text-lg font-black bg-gradient-to-r from-idm-gold-warm to-amber-300 bg-clip-text text-transparent">
                   {formatCurrencyShort(totalDonation || 0)}
