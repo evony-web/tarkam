@@ -326,9 +326,15 @@ export async function PUT(
       updateData.championClubSnapshot = null;
     }
 
-    const updated = await db.season.update({
+    // Neon HTTP workaround: update() with include triggers internal transaction
+    // Split into: update first (no include), then read with include separately
+    await db.season.update({
       where: { id },
       data: updateData,
+    });
+
+    const updated = await db.season.findUnique({
+      where: { id },
       include: {
         championClub: { select: { id: true, name: true, logo: true } },
         championPlayer: { select: { id: true, gamertag: true, division: true, avatar: true, points: true } },
@@ -338,7 +344,7 @@ export async function PUT(
     });
 
     // Parse JSON string fields
-    const updatedResponse = { ...updated } as Record<string, unknown>;
+    const updatedResponse = { ...(updated || {}) } as Record<string, unknown>;
     if (updatedResponse.championSquad && typeof updatedResponse.championSquad === 'string') {
       try {
         updatedResponse.championSquad = JSON.parse(updatedResponse.championSquad as string);
