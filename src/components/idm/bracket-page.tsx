@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Radio, Swords, Trophy } from 'lucide-react';
 import { BracketContent, ResultsContent } from './match-day-center';
@@ -26,6 +26,42 @@ function DivisionChips({ division, setDivision }: { division: string; setDivisio
           {div.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/* ─── Bracket sub-tabs — shown when "Semua" is selected in bracket mode ─── */
+function BracketSubTabs({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: 'male' | 'female';
+  onTabChange: (tab: 'male' | 'female') => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => onTabChange('male')}
+        className={`compact-pill flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+          activeTab === 'male'
+            ? 'bg-idm-male/15 text-idm-male border-idm-male/30 shadow-sm shadow-idm-male/10'
+            : 'text-muted-foreground/60 border-transparent hover:text-foreground hover:bg-muted/40'
+        }`}
+      >
+        <span className="text-sm">♂</span>
+        Cowo
+      </button>
+      <button
+        onClick={() => onTabChange('female')}
+        className={`compact-pill flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+          activeTab === 'female'
+            ? 'bg-idm-female/15 text-idm-female border-idm-female/30 shadow-sm shadow-idm-female/10'
+            : 'text-muted-foreground/60 border-transparent hover:text-foreground hover:bg-muted/40'
+        }`}
+      >
+        <span className="text-sm">♀</span>
+        Cewe
+      </button>
     </div>
   );
 }
@@ -78,22 +114,41 @@ function ViewContent({
   const divisionProp = division === 'female' ? 'female' as const : 'male' as const;
   const showBoth = division === 'semua';
   const ContentComponent = mode === 'results' ? ResultsContent : BracketContent;
-  /* Brackets need full width for horizontal scroll — always stack vertically.
-     Results can use side-by-side grid on large screens. */
-  const useGridLayout = showBoth && mode === 'results';
 
-  return (
-    <div className={mode === 'bracket' ? '' : 'max-w-7xl mx-auto px-3 sm:px-4 lg:px-6'}>
-      <div className="mt-4 pb-6 space-y-4">
-        {showBoth ? (
-          <div className={`grid gap-5 ${useGridLayout ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-            <ContentComponent divisionProp="male" />
-            <ContentComponent divisionProp="female" />
-          </div>
-        ) : (
-          <ContentComponent divisionProp={divisionProp} />
-        )}
+  /* Bracket "Semua" uses sub-tabs (Cowo|Cewe) instead of stacking —
+     both divisions get full width, no scrolling needed to find Cewe bracket */
+  const [bracketSubTab, setBracketSubTab] = useState<'male' | 'female'>('male');
+
+  // Results "Semua" uses side-by-side grid on desktop
+  if (mode === 'results') {
+    return (
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="mt-4 pb-6 space-y-4">
+          {showBoth ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <ResultsContent divisionProp="male" />
+              <ResultsContent divisionProp="female" />
+            </div>
+          ) : (
+            <ResultsContent divisionProp={divisionProp} />
+          )}
+        </div>
       </div>
+    );
+  }
+
+  /* ─── Bracket mode ─── */
+  return (
+    <div className="mt-4 pb-6">
+      {/* When "Semua" selected, show sub-tabs so user can switch between Cowo/Cewe without scrolling */}
+      {showBoth && (
+        <div className="px-3 sm:px-4 lg:px-6 mb-4">
+          <BracketSubTabs activeTab={bracketSubTab} onTabChange={setBracketSubTab} />
+        </div>
+      )}
+
+      {/* Render only the active division's bracket — full width, no stacking */}
+      <BracketContent divisionProp={showBoth ? bracketSubTab : divisionProp} />
     </div>
   );
 }
