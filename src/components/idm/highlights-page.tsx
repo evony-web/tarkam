@@ -393,13 +393,16 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
 }) {
   const ct = useCommunityTheme();
 
-  // Extract most recent completed season champion per division
-  const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-  const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+  // Extract most recent season champion per division (both active AND completed)
+  // Bug fix: Previously only showed champions from completed seasons,
+  // meaning no champion would appear until the entire season was done.
+  // Now we also show the current leader from active seasons.
+  const maleSeasonsWithChampion = maleData?.allSeasons?.filter(s => s.championPlayer) || [];
+  const femaleSeasonsWithChampion = femaleData?.allSeasons?.filter(s => s.championPlayer) || [];
 
   // Sort descending by season number, take first = most recent
-  const latestMale = completedMaleSeasons.sort((a, b) => b.number - a.number)[0];
-  const latestFemale = completedFemaleSeasons.sort((a, b) => b.number - a.number)[0];
+  const latestMale = maleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0];
+  const latestFemale = femaleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0];
 
   const hasMale = !!latestMale?.championPlayer;
   const hasFemale = !!latestFemale?.championPlayer;
@@ -2153,20 +2156,22 @@ export function HighlightsPage() {
   // ─── Summary data for collapsible headers ───
   const reigningChampionSummary = React.useMemo(() => {
     const parts: string[] = [];
-    const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-    const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-    const latestMale = completedMaleSeasons.sort((a, b) => b.number - a.number)[0];
-    const latestFemale = completedFemaleSeasons.sort((a, b) => b.number - a.number)[0];
+    // Bug fix: Include active seasons with championPlayer, not just completed
+    const maleSeasonsWithChampion = maleData?.allSeasons?.filter(s => s.championPlayer) || [];
+    const femaleSeasonsWithChampion = femaleData?.allSeasons?.filter(s => s.championPlayer) || [];
+    const latestMale = maleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0];
+    const latestFemale = femaleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0];
     if (latestMale?.championPlayer) parts.push(latestMale.championPlayer.gamertag);
     if (latestFemale?.championPlayer) parts.push(latestFemale.championPlayer.gamertag);
     return parts.length > 0 ? parts.join(' · ') : '';
   }, [maleData, femaleData]);
 
   const reigningSeasonNumber = React.useMemo(() => {
-    const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-    const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-    const m = completedMaleSeasons.sort((a, b) => b.number - a.number)[0]?.number || 0;
-    const f = completedFemaleSeasons.sort((a, b) => b.number - a.number)[0]?.number || 0;
+    // Bug fix: Include active seasons with championPlayer, not just completed
+    const maleSeasonsWithChampion = maleData?.allSeasons?.filter(s => s.championPlayer) || [];
+    const femaleSeasonsWithChampion = femaleData?.allSeasons?.filter(s => s.championPlayer) || [];
+    const m = maleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0]?.number || 0;
+    const f = femaleSeasonsWithChampion.sort((a, b) => b.number - a.number)[0]?.number || 0;
     return Math.max(m, f);
   }, [maleData, femaleData]);
 
@@ -2235,6 +2240,82 @@ export function HighlightsPage() {
           <div className="animate-fade-enter-sm">
             <MvpHallOfFame maleData={maleData} femaleData={femaleData} selectedDivision={selectedDivision} />
           </div>
+        </div>
+
+        {/* ═══ 2. Season Champions & Sultan Sections ═══ */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Reigning Season Champion — completed season's top player */}
+          <ChampionCollapsible
+            icon={Crown}
+            iconColor="#EFF923"
+            title="Reigning Champion"
+            summary={reigningChampionSummary || undefined}
+            defaultOpen={!!reigningChampionSummary}
+            badge={reigningSeasonNumber > 0 ? (
+              <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 text-[8px] font-bold">
+                <Crown className="w-2.5 h-2.5 mr-0.5" />S{reigningSeasonNumber}
+              </Badge>
+            ) : (
+              <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 text-[8px] font-bold">TBA</Badge>
+            )}
+          >
+            <ReigningChampionPlaque
+              maleData={maleData}
+              femaleData={femaleData}
+              selectedDivision={selectedDivision}
+              onPlayerClick={handlePlayerClick}
+              bare
+            />
+          </ChampionCollapsible>
+
+          {/* Sultan of Season — top penyawer */}
+          <ChampionCollapsible
+            icon={Gem}
+            iconColor="#43A047"
+            title="Sultan of Season"
+            summary={sultanSummary || undefined}
+            defaultOpen={!!sultanSummary}
+            badge={sultanSeasonNumber > 0 ? (
+              <Badge className="text-[8px] font-bold border" style={{
+                color: '#66BB6A', backgroundColor: 'rgba(67,160,71,0.1)',
+                borderColor: 'rgba(67,160,71,0.2)' }}>
+                💎 S{sultanSeasonNumber}
+              </Badge>
+            ) : (
+              <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 text-[8px] font-bold">TBA</Badge>
+            )}
+          >
+            <SultanOfSeasonCardPage
+              maleSultans={maleSeasonSultans}
+              femaleSultans={femaleSeasonSultans}
+              selectedDivision={selectedDivision}
+              onPlayerClick={handlePlayerClick}
+              bare
+            />
+          </ChampionCollapsible>
+
+          {/* Club Champion — winning club of completed seasons */}
+          {hasClubData && (
+            <ChampionCollapsible
+              icon={Trophy}
+              iconColor="#EFF923"
+              title="Club Champion"
+              summary={clubChampionSummary || undefined}
+              defaultOpen={false}
+              badge={(
+                <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 text-[8px] font-bold">
+                  <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
+                </Badge>
+              )}
+            >
+              <SeasonOneClubChampion
+                maleData={maleData}
+                femaleData={femaleData}
+                selectedDivision={selectedDivision}
+                bare
+              />
+            </ChampionCollapsible>
+          )}
         </div>
 
 

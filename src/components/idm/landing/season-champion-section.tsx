@@ -60,8 +60,8 @@ function buildSeasonChampions(
   const male: ChampionData[] = [];
   const female: ChampionData[] = [];
 
-  const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
-  const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+  const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.championPlayer) || [];
+  const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.championPlayer) || [];
 
   for (const season of completedMaleSeasons) {
     if (season.championPlayer) {

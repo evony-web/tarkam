@@ -1023,3 +1023,30 @@ Stage Summary:
 - Names and descriptions are BELOW the avatar in each card
 - Female Sultan replaces Female Champion (user correction)
 - File modified: `/home/z/my-project/src/components/idm/landing/hero-section.tsx`
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix bug: Juara Tarkam & MVP not appearing in Juara menu after admin finalization on Vercel
+
+Work Log:
+- Investigated the data flow: Admin finalizes tournament → sets isWinner on team, isMvp on participation → stats API queries teams { where: { isWinner: true } } and participations { where: { isMvp: true } } → Juara page renders WeeklyChampionCard + MvpSpotlight
+- Found Bug #1 (CRITICAL): In finalization route, `isMvp` flag on participation was ONLY set inside `if (isMvpPrize && mvpPlayerId)` — meaning if there was no TournamentPrize with "mvp" label or position 99, the MVP designation was never saved. Stats API queries `participations: { where: { isMvp: true } }` → returns empty → MVP doesn't appear.
+- Found Bug #2 (CRITICAL): Season `championPlayerId` was ONLY set when the season auto-closed (all 10 weeks completed). The ReigningChampionPlaque component only showed champions from `completed` seasons. After a single tournament finalization, the season was still `active` with no `championPlayerId`, so the Reigning Champion section always showed ghost/empty state.
+- Found Bug #3 (MINOR): Cache invalidation mismatch — finalization used `revalidateTag('landing-stats')` but stats API set `Surrogate-Key: stats-data`. Added `revalidateTag('stats-data')` to match.
+
+Fixes applied:
+1. **MVP designation decoupled from MVP prize**: Moved `isMvp` flag, `mvpPlayerId` on match, and `totalMvp` increment OUTSIDE the `isMvpPrize` condition. Now MVP is ALWAYS set when `mvpPlayerId` is provided. Prize point awarding remains conditional on `isMvpPrize`.
+2. **Season championPlayerId updated after every finalization**: Changed the auto-close-only logic to always compute and update the season's top player by per-season points after each tournament finalization. The season status is still only set to `completed` when all weeks are done, but `championPlayerId` is set immediately.
+3. **ReigningChampionPlaque shows active season champions**: Removed `s.status === 'completed'` filter from `ReigningChampionPlaque` and `reigningChampionSummary`/`reigningSeasonNumber` computations. Now shows the current leader from any season that has `championPlayer` set.
+4. **Hero section champion also fixed**: Same filter removal applied to hero-section.tsx and season-champion-section.tsx.
+5. **Cache tag fix**: Added `revalidateTag('stats-data')` to finalization route to match Surrogate-Key.
+
+Stage Summary:
+- Files modified:
+  - `src/app/api/tournaments/[id]/finalize/route.ts` — MVP designation decoupled from prize + season champion update after every finalization + cache tag fix
+  - `src/components/idm/highlights-page.tsx` — ReigningChampionPlaque + summary computations now include active seasons
+  - `src/components/idm/landing/hero-section.tsx` — Champion lookup includes active seasons
+  - `src/components/idm/landing/season-champion-section.tsx` — Champion lookup includes active seasons
+- MVP will now appear in Juara page after finalization regardless of MVP prize configuration
+- Reigning Champion section will show current leader in real-time, not just after season completion

@@ -273,20 +273,58 @@ export async function POST(
     3: rank3TeamIds[0] || null,
   };
 
+  // ===== MVP DESIGNATION — Always set when mvpPlayerId is provided =====
+  // Bug fix: Previously, isMvp flag was ONLY set when an MVP prize existed.
+  // This meant MVP never appeared in the Juara page if no MVP prize was configured.
+  // Now, MVP designation (isMvp flag, mvpPlayerId on match, totalMvp increment)
+  // is ALWAYS set when admin provides mvpPlayerId, regardless of prize existence.
+  // Prize point awarding is separate and still conditional on isMvpPrize.
+  let mvpPrizePointsAwarded = false;
+
+  // Map prize reason
+  const getPrizeReason = (position: number, label: string): string => {
+    const l = label.toLowerCase();
+    if (l.includes('mvp') || position === 99) return 'prize_mvp';
+    if (position === 1 || l.includes('juara 1') || l.includes('1st') || l.includes('champion')) return 'prize_juara1';
+    if (position === 2 || l.includes('juara 2') || l.includes('2nd') || l.includes('runner')) return 'prize_juara2';
+    if (position === 3 || l.includes('juara 3') || l.includes('3rd')) return 'prize_juara3';
+    return 'prize_other';
+  };
+
+  if (mvpPlayerId) {
+    const mvpPlayer = await db.player.findUnique({ where: { id: mvpPlayerId } });
+    if (mvpPlayer) {
+      // Always increment totalMvp and set isMvp flag on participation
+      await db.player.update({
+        where: { id: mvpPlayerId },
+        data: { totalMvp: mvpPlayer.totalMvp + 1 },
+      });
+
+      const mvpPart = await db.participation.findUnique({
+        where: { playerId_tournamentId: { playerId: mvpPlayerId, tournamentId: id } },
+      });
+      if (mvpPart) {
+        await db.participation.update({
+          where: { id: mvpPart.id },
+          data: { isMvp: true },
+        });
+      }
+
+      // Set MVP on the grand final / last match
+      const lastMatch = tournament.matches
+        .filter(m => m.status === 'completed')
+        .sort((a, b) => b.round - a.round)[0];
+      if (lastMatch) {
+        await db.match.update({ where: { id: lastMatch.id }, data: { mvpPlayerId } });
+      }
+    }
+  }
+
   for (const prize of tournament.prizes) {
     const isMvpPrize = prize.label.toLowerCase().includes('mvp') || prize.position === 99;
 
-    // Map prize reason
-    const getPrizeReason = (position: number, label: string): string => {
-      const l = label.toLowerCase();
-      if (l.includes('mvp') || position === 99) return 'prize_mvp';
-      if (position === 1 || l.includes('juara 1') || l.includes('1st') || l.includes('champion')) return 'prize_juara1';
-      if (position === 2 || l.includes('juara 2') || l.includes('2nd') || l.includes('runner')) return 'prize_juara2';
-      if (position === 3 || l.includes('juara 3') || l.includes('3rd')) return 'prize_juara3';
-      return 'prize_other';
-    };
-
-    if (isMvpPrize && mvpPlayerId) {
+    if (isMvpPrize && mvpPlayerId && !mvpPrizePointsAwarded) {
+      // Award MVP prize points (separate from MVP designation above)
       const player = await db.player.findUnique({ where: { id: mvpPlayerId } });
       if (player) {
         await awardPoints({
@@ -298,30 +336,17 @@ export async function POST(
           seasonId: tournament.seasonId,
         });
 
-        await db.player.update({
-          where: { id: mvpPlayerId },
-          data: { totalMvp: player.totalMvp + 1 },
-        });
-
         const part = await db.participation.findUnique({
           where: { playerId_tournamentId: { playerId: mvpPlayerId, tournamentId: id } },
         });
         if (part) {
           await db.participation.update({
             where: { id: part.id },
-            data: { pointsEarned: part.pointsEarned + prize.pointsPerPlayer, isMvp: true },
+            data: { pointsEarned: part.pointsEarned + prize.pointsPerPlayer },
           });
         }
 
-        // No automatic tier upgrade — admin controls tier manually
-      }
-
-      // Set MVP on the grand final / last match
-      const lastMatch = tournament.matches
-        .filter(m => m.status === 'completed')
-        .sort((a, b) => b.round - a.round)[0];
-      if (lastMatch) {
-        await db.match.update({ where: { id: lastMatch.id }, data: { mvpPlayerId } });
+        mvpPrizePointsAwarded = true; // Only award MVP prize points once
       }
     } else if (!isMvpPrize) {
       // Bug #6 fix: Use position field first, fall back to label matching
@@ -425,6 +450,7 @@ export async function POST(
   try {
     revalidateTag('landing-stats', 'max');
     revalidateTag('landing-league', 'max');
+    revalidateTag('stats-data', 'max'); // Match Surrogate-Key used by /api/stats
     revalidatePath('/');
     revalidatePath('/api/stats');
     revalidatePath('/api/league');
@@ -432,35 +458,42 @@ export async function POST(
     console.warn('[FINALIZE] Cache revalidation failed (non-critical):', cacheErr);
   }
 
-  // ===== AUTO-CLOSE SEASON if week 10 finalized =====
+  // ===== UPDATE SEASON CHAMPION after each tournament finalization =====
+  // Bug fix: Previously, championPlayerId was ONLY set when the season auto-closed
+  // (all weeks completed). This meant the "Reigning Champion" section in the Juara
+  // page never showed any data until the entire season was finished.
+  // Now we update championPlayerId after EVERY finalization so the current leader
+  // appears as "Reigning Champion" in real-time.
   try {
-    const completedCount = await db.tournament.count({
-      where: {
-        seasonId: tournament.seasonId,
-        status: 'completed',
-      },
+    const season = await db.season.findUnique({
+      where: { id: tournament.seasonId },
+      select: { id: true, division: true, status: true, number: true },
     });
 
-    if (completedCount >= SEASON_TOTAL_WEEKS) {
-      const season = await db.season.findUnique({
-        where: { id: tournament.seasonId },
-        select: { id: true, division: true },
+    if (season) {
+      const completedCount = await db.tournament.count({
+        where: { seasonId: tournament.seasonId, status: 'completed' },
       });
 
+      const isSeasonComplete = completedCount >= SEASON_TOTAL_WEEKS;
+
+      // Build update data
       const updateData: {
-        status: string;
-        endDate: Date;
+        status?: string;
+        endDate?: Date;
         championClubId?: string | null;
         championPlayerId?: string | null;
         championPlayerPoints?: number | null;
         championPlayerSnapshot?: string | null;
         championClubSnapshot?: string | null;
-      } = {
-        status: 'completed',
-        endDate: new Date(),
-      };
+      } = {};
 
-      if (season?.division === 'liga') {
+      if (isSeasonComplete) {
+        updateData.status = 'completed';
+        updateData.endDate = new Date();
+      }
+
+      if (season.division === 'liga') {
         // Liga mode: champion is the club with most points in this season
         const topClub = await db.club.findFirst({
           where: { seasonId: tournament.seasonId },
@@ -492,7 +525,7 @@ export async function POST(
         // Get player details for tiebreaking AND snapshot
         const playerIds = seasonPoints.map(sp => sp.playerId);
         const players = await db.player.findMany({
-          where: { id: { in: playerIds }, division: season?.division || 'male', isActive: true },
+          where: { id: { in: playerIds }, division: season.division || 'male', isActive: true },
           include: {
             clubMembers: {
               where: { leftAt: null },
@@ -517,7 +550,7 @@ export async function POST(
         updateData.championPlayerId = championId || null;
         updateData.championPlayerPoints = seasonPoints[0]?._sum.amount || null;
 
-        // Snapshot the champion player data at time of season closure
+        // Snapshot the champion player data (at time of this finalization)
         if (championId) {
           const champion = playerMap.get(championId);
           if (champion) {
@@ -545,8 +578,8 @@ export async function POST(
       });
     }
   } catch (e) {
-    console.error('Auto-close season error (non-fatal):', e);
-    // Don't fail finalization if season auto-close fails
+    console.error('Update season champion error (non-fatal):', e);
+    // Don't fail finalization if season champion update fails
   }
 
   // ===== CHECK AND AWARD ACHIEVEMENTS =====

@@ -291,7 +291,7 @@ export async function PUT(
           streak: player.streak,
           maxStreak: player.maxStreak,
           matches: player.matches,
-          club: activeClub,
+          club: activeClub ? { id: player.clubMembers[0]?.profile?.id, name: activeClub, logo: player.clubMembers[0]?.profile?.logo || null } : null,
           division: player.division,
         });
       }

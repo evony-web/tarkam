@@ -95,9 +95,9 @@ export function HeroSection({
   const totalClubs = maleClubs + femaleClubs;
   const totalMatches = maleMatches + femaleMatches;
 
-  /* ─── Season Champions (latest completed season) ─── */
-  const maleChampionSeason = !isSeasonDataPlaceholder ? maleData?.allSeasons?.find(s => s.status === 'completed' && s.championPlayer) : undefined;
-  const femaleChampionSeason = !isSeasonDataPlaceholder ? femaleData?.allSeasons?.find(s => s.status === 'completed' && s.championPlayer) : undefined;
+  /* ─── Season Champions (latest season with champion, including active) ─── */
+  const maleChampionSeason = !isSeasonDataPlaceholder ? maleData?.allSeasons?.filter(s => s.championPlayer).sort((a, b) => b.number - a.number)[0] : undefined;
+  const femaleChampionSeason = !isSeasonDataPlaceholder ? femaleData?.allSeasons?.filter(s => s.championPlayer).sort((a, b) => b.number - a.number)[0] : undefined;
   // Club champion — prefer male season, fallback to female
   const championClub = maleChampionSeason?.championClub ?? femaleChampionSeason?.championClub ?? null;
   // Show skeleton when data is placeholder (season switch) OR when still loading
