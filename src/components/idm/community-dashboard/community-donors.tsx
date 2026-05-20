@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, HandCoins, Sparkles } from 'lucide-react';
 import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { formatCurrencyShort } from '@/lib/utils';
 import { getSawerTier } from '@/lib/skin-utils';
-import type { StatsData, TopDonor } from '@/types/stats';
+import type { StatsData, TopDonor, SultanOfWeekly } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════
    COMMUNITY DONORS — Top donor/supporter community leaderboard
@@ -62,9 +62,10 @@ function DivisionBadge({ division }: { division: 'male' | 'female' }) {
 
 export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDonorsProps) {
   const dt = useCommunityTheme();
+  const [timeRange, setTimeRange] = useState<'season' | 'week'>('season');
 
-  // Leaderboard = SEASON-ACCUMULATED (overall ranking across all weeks)
-  const { donors, totalDonation, weekLabel, totalMale, totalFemale } = useMemo(() => {
+  // Pre-compute both datasets
+  const { seasonDonors, weekDonors, weekNumber, weekLabel } = useMemo(() => {
     const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
 
     const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
@@ -91,36 +92,71 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
       }
     };
 
-    // Use season-accumulated topDonors for the overall leaderboard
+    // Season accumulated
+    const seasonMap = new Map(donorMap);
     if (maleData?.topDonors?.length) mergeDonors(maleData.topDonors, 'male');
     if (femaleData?.topDonors?.length) mergeDonors(femaleData.topDonors, 'female');
-
-    const sorted = Array.from(donorMap.values())
+    const seasonSorted = Array.from(seasonMap.values())
       .sort((a, b) => b.totalAmount - a.totalAmount)
       .map(d => ({
-        donorName: d.donorName,
-        totalAmount: d.totalAmount,
-        donationCount: d.donationCount,
-        maleAmount: d.maleAmount,
-        femaleAmount: d.femaleAmount,
-        divisions: [
-          ...(d.maleAmount > 0 ? ['male' as const] : []),
-          ...(d.femaleAmount > 0 ? ['female' as const] : []),
-        ],
-      }));
+        donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount,
+        maleAmount: d.maleAmount, femaleAmount: d.femaleAmount,
+        divisions: [...(d.maleAmount > 0 ? ['male' as const] : []), ...(d.femaleAmount > 0 ? ['female' as const] : [])],
+      })).slice(0, 8);
 
-    const top8 = sorted.slice(0, 8);
-    const total = top8.reduce((s, d) => s + d.totalAmount, 0);
-    const tMale = top8.reduce((s, d) => s + d.maleAmount, 0);
-    const tFemale = top8.reduce((s, d) => s + d.femaleAmount, 0);
+    // Week: from sultanOfWeekly.allDonors
+    const allSultans = [...(maleData?.sultanOfWeekly || []), ...(femaleData?.sultanOfWeekly || [])];
+    const latestWeekNum = allSultans.length > 0 ? Math.max(...allSultans.map(s => s.weekNumber)) : 0;
+    const weekMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
+    const mergeDonorList = (list: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
+      if (!list?.length) return;
+      for (const d of list) {
+        const key = d.donorName.toLowerCase().trim();
+        const existing = weekMap.get(key);
+        if (existing) {
+          weekMap.set(key, { donorName: d.donorName, totalAmount: existing.totalAmount + d.totalAmount, donationCount: existing.donationCount + d.donationCount, maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0), femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0) });
+        } else {
+          weekMap.set(key, { donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount, maleAmount: division === 'male' ? d.totalAmount : 0, femaleAmount: division === 'female' ? d.totalAmount : 0 });
+        }
+      }
+    };
+    for (const sultan of allSultans) {
+      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
+        mergeDonorList(sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
+      }
+    }
+    if (weekMap.size === 0) {
+      if (maleData?.weeklyTopDonors?.length) mergeDonors(maleData.weeklyTopDonors, 'male');
+      if (femaleData?.weeklyTopDonors?.length) mergeDonors(femaleData.weeklyTopDonors, 'female');
+    }
+    const weekSorted = Array.from(weekMap.values())
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+      .map(d => ({
+        donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount,
+        maleAmount: d.maleAmount, femaleAmount: d.femaleAmount,
+        divisions: [...(d.maleAmount > 0 ? ['male' as const] : []), ...(d.femaleAmount > 0 ? ['female' as const] : [])],
+      })).slice(0, 8);
 
-    return { donors: top8, totalDonation: total, weekLabel: 'Season', totalMale: tMale, totalFemale: tFemale };
+    return {
+      seasonDonors: seasonSorted,
+      weekDonors: weekSorted,
+      weekNumber: latestWeekNum || (maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber || 0),
+      weekLabel: latestWeekNum > 0 ? `Week ${latestWeekNum}` : 'Season',
+    };
   }, [maleData, femaleData]);
 
-  const maxAmount = donors[0]?.totalAmount || 1;
+  const activeDonors = timeRange === 'season' ? seasonDonors : weekDonors;
+  const hasWeekDonors = weekDonors.length > 0;
+  const currentLabel = timeRange === 'season' ? 'Season' : `Week ${weekNumber}`;
+
+  const totalDonation = activeDonors.reduce((s, d) => s + d.totalAmount, 0);
+  const totalMale = activeDonors.reduce((s, d) => s + d.maleAmount, 0);
+  const totalFemale = activeDonors.reduce((s, d) => s + d.femaleAmount, 0);
+
+  const maxAmount = activeDonors[0]?.totalAmount || 1;
 
   // Empty state
-  if (donors.length === 0) {
+  if (seasonDonors.length === 0 && weekDonors.length === 0) {
     return (
       <Card className={`${dt.casinoCard} overflow-hidden`}>
         <div className={dt.casinoBar} />
@@ -145,15 +181,30 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
           <HandCoins className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${dt.neonText}`} />
         </div>
         <h3 className="text-xs lg:text-sm font-semibold uppercase tracking-wider">Top Saweran</h3>
-        <Badge className={`hidden sm:inline-flex ${dt.casinoBadge} text-[9px]`}>{weekLabel}</Badge>
-        <Badge className={`hidden sm:inline-flex ${dt.casinoBadge} ml-auto text-[9px]`}>KOMUNITAS</Badge>
+        <Badge className={`hidden sm:inline-flex ${dt.casinoBadge} text-[9px]`}>{currentLabel}</Badge>
+        {/* Time range toggle */}
+        <div className="flex items-center gap-0.5 ml-auto p-0.5 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+          <button
+            onClick={() => setTimeRange('season')}
+            className={`px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
+              timeRange === 'season' ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
+            }`}
+          >🏆 Season</button>
+          <button
+            onClick={() => setTimeRange('week')}
+            disabled={!hasWeekDonors}
+            className={`px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
+              timeRange === 'week' ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : !hasWeekDonors ? 'text-muted-foreground/30 cursor-not-allowed' : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
+            }`}
+          >📅 W{weekNumber || '?'}</button>
+        </div>
       </div>
 
       <CardContent className="p-4 sm:p-6">
         {/* Total donation header with per-division breakdown */}
         <div className={`flex items-center justify-between mb-4 p-4 sm:p-5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Total Saweran {weekLabel} → Prize Pool</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Total Saweran {currentLabel} → Prize Pool</p>
             <p className={`text-lg font-black ${dt.neonGradient}`}>
               {formatCurrencyShort(totalDonation || 0)}
             </p>
@@ -191,7 +242,7 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
 
         {/* Donor rows — Mobile: no inner scroll. Desktop: max-height with scroll */}
         <div className="space-y-2 sm:max-h-96 sm:overflow-y-auto custom-scrollbar">
-          {donors.map((donor, i) => {
+          {activeDonors.map((donor, i) => {
             const progress = Math.max(5, (donor.totalAmount / maxAmount) * 100);
             const medal = RANK_MEDALS[i] || null;
 

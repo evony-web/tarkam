@@ -28,6 +28,7 @@ const MAROON_LIGHT = '#d4576a';
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
 
 type DivisionFilter = 'all' | 'male' | 'female';
+type TimeRange = 'season' | 'week';
 
 /* ─── Enriched donor with per-division breakdown ─── */
 interface DivisionDonor extends TopDonor {
@@ -262,11 +263,10 @@ export function DonorLeaderboardSection({
   onSawer,
 }: DonorLeaderboardSectionProps) {
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
+  const [timeRange, setTimeRange] = useState<TimeRange>('season');
 
-  // ── Merged donor data ──
-  // Leaderboard = SEASON-ACCUMULATED (overall ranking by total saweran across all weeks)
-  // Sultan of the Week card = per-week (shows current week's top donor)
-  const { donors, totalDonation, weekNumber, totalMale, totalFemale, latestSultan } = useMemo(() => {
+  // ── Pre-compute both datasets ──
+  const { seasonDonors, weekDonors, weekNumber, latestSultan } = useMemo(() => {
     // ── Sultan of the Week: per-week, from sultanOfWeekly ──
     const allSultans: SultanOfWeekly[] = [
       ...(maleData?.sultanOfWeekly || []),
@@ -279,11 +279,9 @@ export function DonorLeaderboardSection({
       ? allSultans.reduce((a, b) => (a.weekNumber >= b.weekNumber ? a : b))
       : undefined;
 
-    // ── Leaderboard: SEASON-ACCUMULATED from topDonors ──
-    // This shows overall ranking across ALL weeks, not just current week.
-    const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
-
-    const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
+    // Helper: merge donors into donorMap
+    const buildDonorMap = () => new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
+    const mergeDonors = (donorMap: ReturnType<typeof buildDonorMap>, donors: TopDonor[], division: 'male' | 'female') => {
       for (const d of donors) {
         const key = d.donorName.toLowerCase().trim();
         const existing = donorMap.get(key);
@@ -306,47 +304,85 @@ export function DonorLeaderboardSection({
         }
       }
     };
+    const mergeDonorList = (donorMap: ReturnType<typeof buildDonorMap>, donorList: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
+      if (!donorList?.length) return;
+      for (const d of donorList) {
+        const key = d.donorName.toLowerCase().trim();
+        const existing = donorMap.get(key);
+        if (existing) {
+          donorMap.set(key, {
+            donorName: d.donorName,
+            totalAmount: existing.totalAmount + d.totalAmount,
+            donationCount: existing.donationCount + d.donationCount,
+            maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
+            femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+          });
+        } else {
+          donorMap.set(key, {
+            donorName: d.donorName,
+            totalAmount: d.totalAmount,
+            donationCount: d.donationCount,
+            maleAmount: division === 'male' ? d.totalAmount : 0,
+            femaleAmount: division === 'female' ? d.totalAmount : 0,
+          });
+        }
+      }
+    };
+    const toDivisionDonors = (donorMap: ReturnType<typeof buildDonorMap>): DivisionDonor[] =>
+      Array.from(donorMap.values())
+        .sort((a, b) => b.totalAmount - a.totalAmount)
+        .map((d) => ({
+          donorName: d.donorName,
+          totalAmount: d.totalAmount,
+          donationCount: d.donationCount,
+          maleAmount: d.maleAmount,
+          femaleAmount: d.femaleAmount,
+          divisions: [
+            ...(d.maleAmount > 0 ? ['male' as const] : []),
+            ...(d.femaleAmount > 0 ? ['female' as const] : []),
+          ],
+        }));
 
-    // Use season-accumulated topDonors for the overall leaderboard
-    if (maleData?.topDonors?.length) mergeDonors(maleData.topDonors, 'male');
-    if (femaleData?.topDonors?.length) mergeDonors(femaleData.topDonors, 'female');
+    // ── SEASON: accumulated from topDonors ──
+    const seasonMap = buildDonorMap();
+    if (maleData?.topDonors?.length) mergeDonors(seasonMap, maleData.topDonors, 'male');
+    if (femaleData?.topDonors?.length) mergeDonors(seasonMap, femaleData.topDonors, 'female');
 
-    const sorted: DivisionDonor[] = Array.from(donorMap.values())
-      .sort((a, b) => b.totalAmount - a.totalAmount)
-      .map((d) => ({
-        donorName: d.donorName,
-        totalAmount: d.totalAmount,
-        donationCount: d.donationCount,
-        maleAmount: d.maleAmount,
-        femaleAmount: d.femaleAmount,
-        divisions: [
-          ...(d.maleAmount > 0 ? ['male' as const] : []),
-          ...(d.femaleAmount > 0 ? ['female' as const] : []),
-        ],
-      }));
-
-    const top8 = sorted.slice(0, 8);
-    const total = top8.reduce((s, d) => s + d.totalAmount, 0);
-    const tMale = top8.reduce((s, d) => s + d.maleAmount, 0);
-    const tFemale = top8.reduce((s, d) => s + d.femaleAmount, 0);
+    // ── WEEK: per-tournament from sultanOfWeekly.allDonors ──
+    const weekMap = buildDonorMap();
+    for (const sultan of allSultans) {
+      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
+        mergeDonorList(weekMap, sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
+      }
+    }
+    // Fallback: if no allDonors, use weeklyTopDonors
+    if (weekMap.size === 0) {
+      if (maleData?.weeklyTopDonors?.length) mergeDonors(weekMap, maleData.weeklyTopDonors, 'male');
+      if (femaleData?.weeklyTopDonors?.length) mergeDonors(weekMap, femaleData.weeklyTopDonors, 'female');
+    }
 
     return {
-      donors: top8,
-      totalDonation: total,
+      seasonDonors: toDivisionDonors(seasonMap).slice(0, 8),
+      weekDonors: toDivisionDonors(weekMap).slice(0, 8),
       weekNumber: latestWeekNum || (maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber || 0),
-      totalMale: tMale,
-      totalFemale: tFemale,
       latestSultan: latest,
     };
   }, [maleData, femaleData]);
 
+  // ── Active donors based on time range ──
+  const activeDonors = timeRange === 'season' ? seasonDonors : weekDonors;
+
   // ── Filtered donors based on division toggle ──
   const filteredDonors = useMemo(() => {
-    if (divisionFilter === 'all') return donors;
-    return donors.filter((d) => d.divisions.includes(divisionFilter));
-  }, [donors, divisionFilter]);
+    if (divisionFilter === 'all') return activeDonors;
+    return activeDonors.filter((d) => d.divisions.includes(divisionFilter));
+  }, [activeDonors, divisionFilter]);
 
   const maxAmount = filteredDonors[0]?.totalAmount || 1;
+  const totalDonation = filteredDonors.reduce((s, d) => s + d.totalAmount, 0);
+  const totalMale = filteredDonors.reduce((s, d) => s + d.maleAmount, 0);
+  const totalFemale = filteredDonors.reduce((s, d) => s + d.femaleAmount, 0);
+  const hasWeekDonors = weekDonors.length > 0;
 
   // ── Loading skeleton ──
   if (isDataLoading) {
@@ -372,7 +408,7 @@ export function DonorLeaderboardSection({
   }
 
   // ── Empty state ──
-  if (donors.length === 0) {
+  if (seasonDonors.length === 0 && weekDonors.length === 0) {
     return (
       <section className="relative py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
@@ -419,16 +455,32 @@ export function DonorLeaderboardSection({
         />
 
         <div className="max-w-2xl mx-auto">
-          {/* ── Week badge + Division toggle tabs ── */}
+          {/* ── Week badge + Toggles ── */}
           <AnimatedSection variant="fadeUp" className="mb-6">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              {/* Week badge */}
-              {weekNumber > 0 && (
-                <Badge className="bg-idm-gold-warm/10 text-idm-gold-warm border border-idm-gold-warm/20 text-[10px] font-bold px-2.5 py-1">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Week {weekNumber}
-                </Badge>
-              )}
+              {/* Time range toggle: Season vs Minggu Ini */}
+              <div className="flex items-center gap-1 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+                {([
+                  { key: 'season' as TimeRange, label: '🏆 Season' },
+                  { key: 'week' as TimeRange, label: `📅 W${weekNumber || '?'}` },
+                ] as const).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setTimeRange(key)}
+                    disabled={key === 'week' && !hasWeekDonors}
+                    className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      timeRange === key
+                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
+                        : key === 'week' && !hasWeekDonors
+                        ? 'text-muted-foreground/30 cursor-not-allowed'
+                        : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
+                    }`}
+                    aria-pressed={timeRange === key}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
               {/* Division toggle */}
               <div className="flex items-center gap-1 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
@@ -474,7 +526,7 @@ export function DonorLeaderboardSection({
                   Top Saweran
                 </h3>
                 <Badge className="ml-auto bg-idm-gold-warm/10 text-idm-gold-warm border border-idm-gold-warm/20 text-[9px] font-bold">
-                  Season
+                  {timeRange === 'season' ? 'Season' : `Week ${weekNumber}`}
                 </Badge>
               </div>
 
@@ -590,7 +642,7 @@ export function DonorLeaderboardSection({
             <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10">
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  Total Saweran Season → Prize Pool
+                  Total Saweran {timeRange === 'season' ? 'Season' : `Week ${weekNumber}`} → Prize Pool
                 </p>
                 <p className="text-lg font-black bg-gradient-to-r from-idm-gold-warm to-amber-300 bg-clip-text text-transparent">
                   {formatCurrencyShort(totalDonation || 0)}
