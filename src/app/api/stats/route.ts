@@ -7,19 +7,19 @@ import { buildSkinMap } from '@/lib/build-skin-map';
 export const dynamic = 'force-dynamic';
 
 // ── Smart Caching Strategy for /api/stats ──
-// CDN caches 60s, stale-while-revalidate=300 for background refresh.
+// CDN caches 30s, stale-while-revalidate=60 for background refresh.
 // Surrogate-Key: stats-data for targeted purge.
 // Admin mutations that affect standings/scores call revalidateTag('stats-data').
 
 const STATS_CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
   'Surrogate-Key': 'stats-data',
   'Vary': 'Accept-Encoding',
 };
 
 export async function GET(request: Request) {
   const headers = new Headers();
-  headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+  headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
 
   try {
   const { searchParams } = new URL(request.url);
