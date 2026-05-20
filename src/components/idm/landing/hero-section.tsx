@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { Zap, Star, Eye, ArrowRight, Flame, Users, Trophy, Swords, PenLine } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/utils';
@@ -64,17 +64,23 @@ export function HeroSection({
 
   /* ─── YouTube iframe facade — defer loading until after LCP ─── */
   // ★ OPTIMIZED: Disable YouTube on mobile entirely — heavy JS (500KB+) blocks main thread causing high INP
+  const isMobile = useSyncExternalStore(
+    (callback) => {
+      const mql = window.matchMedia('(max-width: 767px)');
+      mql.addEventListener('change', callback);
+      return () => mql.removeEventListener('change', callback);
+    },
+    () => window.innerWidth < 768,
+    () => false // SSR fallback
+  );
   const [ytIframeReady, setYtIframeReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const mobile = window.innerWidth < 768;
-    setIsMobile(mobile);
     // Defer YouTube iframe load — 5s on desktop (was 3s), skip on mobile
-    if (!mobile) {
+    if (!isMobile) {
       const timer = setTimeout(() => setYtIframeReady(true), 5000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isMobile]);
 
   /* ─── Compute stats ─── */
   const malePlayers = maleData?.totalPlayers || 0;

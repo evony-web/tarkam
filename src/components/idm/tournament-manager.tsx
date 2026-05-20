@@ -583,15 +583,15 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
 
   // Derived data
   const currentStepIdx = STEPS.findIndex(s => s.key === selected?.status);
-  const registeredIds = useMemo(() => new Set((Array.isArray(selected?.participations) ? selected.participations : []).map((p: { playerId: string }) => p.playerId)), [selected?.participations]);
-  const unregistered = useMemo(() => (Array.isArray(players) ? players : []).filter((p: { id: string; registrationStatus?: string }) => !registeredIds.has(p.id) && p.registrationStatus === 'approved'), [players, registeredIds]);
-  const filteredUnregistered = useMemo(() =>
+  const registeredIds = new Set((Array.isArray(selected?.participations) ? selected.participations : []).map((p: { playerId: string }) => p.playerId));
+  const unregistered = (Array.isArray(players) ? players : []).filter((p: { id: string; registrationStatus?: string }) => !registeredIds.has(p.id) && p.registrationStatus === 'approved');
+  const filteredUnregistered =
     unregistered.filter((p: { gamertag: string; name: string }) =>
       p.gamertag.toLowerCase().includes(searchPlayer.toLowerCase()) || p.name.toLowerCase().includes(searchPlayer.toLowerCase())
-    ), [unregistered, searchPlayer]);
+    );
 
-  const pendingApprovals = useMemo(() => (Array.isArray(selected?.participations) ? selected.participations : []).filter((p: { status: string }) => p.status === 'registered'), [selected?.participations]);
-  const approvedParticipations = useMemo(() => (Array.isArray(selected?.participations) ? selected.participations : []).filter((p: { status: string }) => ['approved', 'assigned'].includes(p.status)), [selected?.participations]);
+  const pendingApprovals = (Array.isArray(selected?.participations) ? selected.participations : []).filter((p: { status: string }) => p.status === 'registered');
+  const approvedParticipations = (Array.isArray(selected?.participations) ? selected.participations : []).filter((p: { status: string }) => ['approved', 'assigned'].includes(p.status));
 
   // Tier distribution — counts from BOTH pending (with tierOverride preview) AND already approved
   const tierDist = useMemo(() => {

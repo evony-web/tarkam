@@ -417,10 +417,15 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
   // Bracket sub-tab state — reads initialBracketTab from store (set by landing "Lihat Semua Hasil" button)
   const [activeBracketTab, setActiveBracketTab] = useState(() => initialBracketTab || 'bracket');
 
-  // Consume initialBracketTab once — also scroll to top so user sees header, not footer
+  // Consume initialBracketTab once — adjust state during rendering (React pattern)
+  const [prevBracketTab, setPrevBracketTab] = useState(initialBracketTab);
+  if (initialBracketTab !== prevBracketTab && initialBracketTab) {
+    setPrevBracketTab(initialBracketTab);
+    setActiveBracketTab(initialBracketTab);
+  }
+  // Side effects: scroll to top & clear store value
   useEffect(() => {
     if (initialBracketTab) {
-      setActiveBracketTab(initialBracketTab);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       const timer = setTimeout(() => setInitialBracketTab(null), 100);
       return () => clearTimeout(timer);
@@ -994,9 +999,14 @@ export function ResultsContent({ divisionProp }: { divisionProp: 'male' | 'femal
   const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
 
   // Reset match selection when hero data changes (e.g., active → fallback)
-  useEffect(() => {
+  // Using render-time state adjustment (React pattern) instead of useEffect
+  const [prevHeroWeek, setPrevHeroWeek] = useState(heroData?.weekNumber);
+  const [prevHeroFallback, setPrevHeroFallback] = useState(heroData?.isFallback);
+  if (heroData?.weekNumber !== prevHeroWeek || heroData?.isFallback !== prevHeroFallback) {
+    setPrevHeroWeek(heroData?.weekNumber);
+    setPrevHeroFallback(heroData?.isFallback);
     setSelectedMatchIdx(0);
-  }, [heroData?.weekNumber, heroData?.isFallback]);
+  }
 
   if (isLoading || seasonLoading) {
     return (

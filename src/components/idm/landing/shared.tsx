@@ -68,7 +68,7 @@ export function useParallax(layers: ParallaxLayer[]) {
       // Cleanup visibility observer on unmount
       const originalCleanup = () => visibilityIO.disconnect();
       // We'll call this in the return cleanup
-      var _cleanupVis = originalCleanup;
+      let _cleanupVis = originalCleanup;
     }
 
     // ── Step 2: Single rAF loop — reads scrollY, writes transforms ──
