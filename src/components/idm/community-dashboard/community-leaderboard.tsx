@@ -500,7 +500,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
             className={`compact-pill flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'players' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Users className="w-3 h-3" /> Pemain
-            <span className={`text-[10px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
+            <span className={`hidden sm:inline text-[10px] tabular-nums ${leaderboardSort === 'players' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
               {playerCount}
             </span>
           </button>
@@ -509,7 +509,7 @@ export const PeringkatHeader = React.memo(function PeringkatHeader({
             className={`compact-pill flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${leaderboardSort === 'clubs' ? `${ct.bg} ${ct.text} shadow-sm` : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Shield className="w-3 h-3" /> Klub
-            <span className={`text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
+            <span className={`hidden sm:inline text-[9px] tabular-nums ${leaderboardSort === 'clubs' ? 'text-idm-gold-warm' : 'text-muted-foreground/50'}`}>
               {clubCount}
             </span>
           </button>
