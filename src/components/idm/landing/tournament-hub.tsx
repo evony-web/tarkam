@@ -538,7 +538,7 @@ function TournamentCard({
               <span>Pembayaran</span>
             </button>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-1.5">
             <button
               onClick={() => onViewBracket?.(division.key)}
               className="compact-pill py-1 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 hover:opacity-80 active:scale-[0.98]"
