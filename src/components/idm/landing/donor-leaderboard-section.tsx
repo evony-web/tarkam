@@ -910,7 +910,7 @@ export function DonorLeaderboardSection({
               </div>
               {/* Sawer CTA — inside summary card */}
               {onSawer && (
-                <div className="mt-3 pt-3 flex justify-center" style={{ borderTop: '1px solid rgba(249,203,37,0.1)' }}>
+                <div className="mt-3 flex justify-center">
                   <button
                     onClick={onSawer}
                     className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-h-[36px]"
