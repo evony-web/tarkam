@@ -782,10 +782,13 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* Scrollable/pannable container — overflow-visible allows zoomed/panned content to extend beyond bounds */}
+      {/* Scrollable/pannable container
+          - overflow-hidden: clips zoomed content to container bounds (no half-black issue)
+          - touch-none only when zoomed: at scale=1 native scroll works via inner overflow-x-auto;
+            when zoomed, custom pan takes over and touch-none prevents browser scroll conflict */}
       <div
         ref={containerRef}
-        className="overflow-visible rounded-lg relative touch-none select-none"
+        className={`overflow-hidden rounded-lg relative select-none ${displayState.scale > 1 || isInteracting ? 'touch-none' : ''}`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
