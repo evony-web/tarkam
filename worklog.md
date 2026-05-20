@@ -432,3 +432,23 @@ Stage Summary:
 - API now returns proper JSON error on 500 (e.g. `{ error: "actual message" }`)
 - Frontend shows actual error message in toast instead of "Unexpected end of JSON input"
 - Next step: user needs to test on Vercel — if error persists, the actual Prisma error message will now be visible in Vercel function logs and toast
+
+---
+Task ID: 2
+Agent: main
+Task: Fix "Transactions are not supported in HTTP mode" error on Vercel when setting Sultan of Season
+
+Work Log:
+- Error message revealed root cause: PrismaNeonHttp adapter doesn't support transactions
+- Tested locally: `db.season.update()` with `include` triggers Prisma internal transaction
+- Fix: Split `db.season.update({ include: {...} })` into two separate operations:
+  1. `db.season.update()` without include (no transaction needed)
+  2. `db.season.findUnique()` with include (read-only, no transaction)
+- Applied to both `/api/seasons/[id]/route.ts` (PUT) and `/api/seasons/[id]/close/route.ts`
+- Verified fix works on Neon HTTP by testing actual Sultan assignment + read
+- Pushed to GitHub (commit a260a85)
+
+Stage Summary:
+- Root cause: Prisma internally wraps `update + include` in a transaction
+- Fix: Split update and read into separate calls (both are non-transactional)
+- Tested and confirmed working on actual Neon database
