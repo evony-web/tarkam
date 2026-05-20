@@ -531,18 +531,18 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
             </div>
 
             {/* CTA — Lihat Semua Hasil → Bracket > Hasil tab */}
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-5">
               <button
                 onClick={() => {
                   setInitialBracketTab('results');
                   setCurrentView('bracket');
                   setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
                 }}
-                className="compact-pill flex items-center gap-1.5 text-sm font-semibold text-idm-gold-warm transition-all duration-200 hover:text-idm-gold-warm/80 cursor-pointer"
+                className="compact-pill flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/[0.06] text-sm font-bold text-idm-gold-warm transition-all duration-300 hover:bg-idm-gold-warm/[0.12] hover:shadow-[0_0_16px_rgba(249,203,37,0.12)] cursor-pointer active:scale-[0.97]"
               >
                 <span>⚔️</span>
                 <span>Lihat Semua Hasil</span>
-                <span className="text-idm-gold-warm/60">&gt;</span>
+                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
             </div>
           </div>
