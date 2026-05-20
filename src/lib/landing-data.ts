@@ -357,6 +357,15 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
   const femalePrizePool = baseFemalePrizePool + femaleDonationTotal;
   const seasonDonationTotal = seasonDonations.reduce((sum, d) => sum + d.amount, 0);
 
+  // ── Build cross-division player lookup for donor matching ──
+  // Defined early so it's available for both topDonors and sultanOfWeekly enrichment
+  const playerByGamertag = new Map(
+    (allPlayersForDonorMatching as any[]).map((p: any) => {
+      const activeClub = p.clubMembers?.[0]?.profile;
+      return [p.gamertag?.toLowerCase(), { ...p, club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : null }];
+    })
+  );
+
   // ── Top donors ──
   const donorAccum = new Map<string, { totalAmount: number; donationCount: number }>();
   for (const d of seasonDonations) {
@@ -367,13 +376,29 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
     });
   }
   const topDonors = Array.from(donorAccum.entries())
-    .map(([donorName, data]) => ({
-      donorName,
-      _sum: { amount: data.totalAmount },
-      _count: { id: data.donationCount },
-    }))
-    .sort((a, b) => b._sum.amount - a._sum.amount)
-    .slice(0, 5);
+    .map(([donorName, data]) => {
+      const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
+      return {
+        donorName,
+        totalAmount: data.totalAmount,
+        donationCount: data.donationCount,
+        player: matchedPlayer ? {
+          id: matchedPlayer.id,
+          gamertag: matchedPlayer.gamertag,
+          avatar: matchedPlayer.avatar,
+          tier: matchedPlayer.tier,
+          points: matchedPlayer.points,
+          totalWins: matchedPlayer.totalWins,
+          totalMvp: matchedPlayer.totalMvp,
+          streak: matchedPlayer.streak,
+          division: matchedPlayer.division,
+          city: matchedPlayer.city || null,
+          club: matchedPlayer.club || null,
+        } : null,
+      };
+    })
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 10);
 
   // ── Season progress ──
   const completedWeeks = tournaments.filter(t => t.status === 'completed').length;
@@ -398,7 +423,8 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
   const tournamentMap = new Map(tournaments.map((t: any) => [t.id, t]));
 
   // Group donations by tournamentId, then by donorName
-  const tournamentDonors = new Map<string, Map<string, { totalAmount: number; donationCount: number }>>();
+  // Includes earliestDonationAt for automatic tie-breaking when amounts are equal
+  const tournamentDonors = new Map<string, Map<string, { totalAmount: number; donationCount: number; earliestDonationAt: Date }>>();
   for (const d of seasonDonations as any[]) {
     if (!d.tournamentId) continue;
     const tId = d.tournamentId as string;
@@ -409,50 +435,100 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       donorMap = new Map();
       tournamentDonors.set(tId, donorMap);
     }
-    const entry = donorMap.get(d.donorName) ?? { totalAmount: 0, donationCount: 0 };
+    const donationDate = d.createdAt instanceof Date ? d.createdAt : new Date(d.createdAt as string | number);
+    const existing = donorMap.get(d.donorName);
     donorMap.set(d.donorName, {
-      totalAmount: entry.totalAmount + d.amount,
-      donationCount: entry.donationCount + 1,
+      totalAmount: (existing?.totalAmount || 0) + d.amount,
+      donationCount: (existing?.donationCount || 0) + 1,
+      earliestDonationAt: existing ? (existing.earliestDonationAt < donationDate ? existing.earliestDonationAt : donationDate) : donationDate,
     });
   }
 
-  // Build cross-division player lookup for donor matching
-  const playerByGamertag = new Map(
-    (allPlayersForDonorMatching as any[]).map((p: any) => {
-      const activeClub = p.clubMembers?.[0]?.profile;
-      return [p.gamertag?.toLowerCase(), { ...p, club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : null }];
-    })
-  );
+  // ═══ playerByGamertag map already built above (before topDonors) ═══
 
-  // For each tournament with donations, find the top donor
+  // ═══ For each tournament with donations, determine Sultan of the Week ═══
+  // Tie-breaking rules (automatic, no admin intervention needed):
+  //   1. Highest totalAmount wins
+  //   2. If amounts are equal → earliest donation wins (first to donate)
+  //   3. If still tied → most donation count wins (more active supporter)
+  //   4. If still fully tied → Co-Sultan (both get the title)
+  // Admin can still override via tournament.sultanPlayerId
   const sultanOfWeekly: any[] = [];
+
+  // Build player info helper
+  const buildPlayerInfo = (donorName: string) => {
+    const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
+    if (!matchedPlayer) return null;
+    return {
+      id: matchedPlayer.id,
+      gamertag: matchedPlayer.gamertag,
+      avatar: matchedPlayer.avatar,
+      tier: matchedPlayer.tier,
+      points: matchedPlayer.points,
+      totalWins: matchedPlayer.totalWins,
+      totalMvp: matchedPlayer.totalMvp,
+      streak: matchedPlayer.streak,
+      division: matchedPlayer.division,
+      city: matchedPlayer.city || null,
+      club: matchedPlayer.club || null,
+    };
+  };
+
   for (const [tId, donorMap] of tournamentDonors) {
     const tournament = tournamentMap.get(tId);
     if (!tournament) continue;
 
+    // Sort donors by: totalAmount DESC → earliestDonationAt ASC → donationCount DESC
     const sortedDonors = Array.from(donorMap.entries())
-      .sort((a, b) => b[1].totalAmount - a[1].totalAmount);
+      .sort((a, b) => {
+        if (b[1].totalAmount !== a[1].totalAmount) return b[1].totalAmount - a[1].totalAmount;
+        // Tie-break 1: earliest donation wins
+        const timeDiff = +a[1].earliestDonationAt - +b[1].earliestDonationAt;
+        if (timeDiff !== 0) return timeDiff;
+        // Tie-break 2: more donations wins
+        return b[1].donationCount - a[1].donationCount;
+      });
     if (sortedDonors.length === 0) continue;
 
-    const [topDonorName, topDonorData] = sortedDonors[0];
+    // ─── Check for Co-Sultan (amounts truly equal after tie-breaks) ───
+    const topAmount = sortedDonors[0][1].totalAmount;
+    const coSultans = sortedDonors.filter(([_, data]) => data.totalAmount === topAmount);
+    const isCoSultan = coSultans.length > 1;
 
-    // Match donorName to a player (cross-division)
-    const matchedPlayer = playerByGamertag.get(topDonorName?.toLowerCase());
-    let playerInfo: any = null;
-    if (matchedPlayer) {
-      playerInfo = {
-        id: matchedPlayer.id,
-        gamertag: matchedPlayer.gamertag,
-        avatar: matchedPlayer.avatar,
-        tier: matchedPlayer.tier,
-        points: matchedPlayer.points,
-        totalWins: matchedPlayer.totalWins,
-        totalMvp: matchedPlayer.totalMvp,
-        streak: matchedPlayer.streak,
-        division: matchedPlayer.division,
-        city: matchedPlayer.city || null,
-        club: matchedPlayer.club || null,
-      };
+    // Sultan override: if admin manually set sultanPlayerId
+    if ((tournament as any).sultanPlayerId) {
+      const overridePlayer = playerByGamertag.get(
+        (allPlayersForDonorMatching as any[]).find((p: any) => p.id === (tournament as any).sultanPlayerId)?.gamertag?.toLowerCase() || ''
+      );
+
+      let playerInfo: any = null;
+      if (overridePlayer) {
+        playerInfo = {
+          id: overridePlayer.id, gamertag: overridePlayer.gamertag, avatar: overridePlayer.avatar,
+          tier: overridePlayer.tier, points: overridePlayer.points,
+          totalWins: overridePlayer.totalWins, totalMvp: overridePlayer.totalMvp,
+          streak: overridePlayer.streak, division: overridePlayer.division,
+          city: overridePlayer.city || null, club: overridePlayer.club || null,
+        };
+      }
+
+      const allDonorsList = sortedDonors.map(([name, data]: [string, any]) => ({
+        donorName: name, totalAmount: data.totalAmount, donationCount: data.donationCount,
+        player: buildPlayerInfo(name),
+      }));
+
+      sultanOfWeekly.push({
+        weekNumber: tournament.weekNumber, tournamentName: tournament.name, tournamentId: tId,
+        tournamentDivision: tournament.division,
+        donorName: overridePlayer?.gamertag || sortedDonors[0]?.[0] || 'Anonymous',
+        totalAmount: sortedDonors[0]?.[1]?.totalAmount || 0,
+        donationCount: sortedDonors[0]?.[1]?.donationCount || 0,
+        player: playerInfo,
+        isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
+        isOverride: true, isCoSultan: false, coSultans: [],
+        allDonors: allDonorsList,
+      });
+      continue;
     }
 
     // Build full per-tournament donor list for leaderboard display
@@ -460,24 +536,37 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       donorName: name,
       totalAmount: data.totalAmount,
       donationCount: data.donationCount,
-      player: (() => {
-        const p = playerByGamertag.get(name?.toLowerCase());
-        if (!p) return null;
-        return {
-          id: p.id,
-          gamertag: p.gamertag,
-          avatar: p.avatar,
-          tier: p.tier,
-          points: p.points,
-          totalWins: p.totalWins,
-          totalMvp: p.totalMvp,
-          streak: p.streak,
-          division: p.division,
-          city: p.city || null,
-          club: p.club || null,
-        };
-      })(),
+      player: buildPlayerInfo(name),
     }));
+
+    // Co-Sultan: multiple donors with the same top amount
+    if (isCoSultan) {
+      const coSultanData = coSultans.map(([name, data]: [string, any]) => ({
+        donorName: name, totalAmount: data.totalAmount, donationCount: data.donationCount,
+        player: buildPlayerInfo(name),
+        isCrossDivision: (() => {
+          const p = playerByGamertag.get(name?.toLowerCase());
+          return p ? p.division !== tournament.division : false;
+        })(),
+      }));
+
+      sultanOfWeekly.push({
+        weekNumber: tournament.weekNumber, tournamentName: tournament.name, tournamentId: tId,
+        tournamentDivision: tournament.division,
+        donorName: sortedDonors[0][0] || 'Anonymous',
+        totalAmount: topAmount,
+        donationCount: sortedDonors[0][1].donationCount,
+        player: coSultanData[0].player,
+        isCrossDivision: coSultanData[0].isCrossDivision,
+        isCoSultan: true, isOverride: false, coSultans: coSultanData,
+        allDonors: allDonorsList,
+      });
+      continue;
+    }
+
+    // Single Sultan (default case)
+    const [topDonorName, topDonorData] = sortedDonors[0];
+    const playerInfo = buildPlayerInfo(topDonorName);
 
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
@@ -489,6 +578,7 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       donationCount: topDonorData.donationCount,
       player: playerInfo,
       isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
+      isCoSultan: false, isOverride: false, coSultans: [],
       allDonors: allDonorsList,
     });
   }

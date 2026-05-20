@@ -23,6 +23,7 @@ interface DivisionDonor extends TopDonor {
   maleAmount: number;
   femaleAmount: number;
   divisions: ('male' | 'female')[];
+  player?: TopDonor['player'];
 }
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
@@ -66,7 +67,7 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
 
   // Pre-compute both datasets
   const { seasonDonors, weekDonors, weekNumber, weekLabel } = useMemo(() => {
-    const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
+    const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number; player?: TopDonor['player'] }>();
 
     const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
       for (const d of donors) {
@@ -79,6 +80,7 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
             donationCount: existing.donationCount + d.donationCount,
             maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
             femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+            player: existing.player || d.player,
           });
         } else {
           donorMap.set(key, {
@@ -87,6 +89,7 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
             donationCount: d.donationCount,
             maleAmount: division === 'male' ? d.totalAmount : 0,
             femaleAmount: division === 'female' ? d.totalAmount : 0,
+            player: d.player,
           });
         }
       }
@@ -102,21 +105,22 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
         donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount,
         maleAmount: d.maleAmount, femaleAmount: d.femaleAmount,
         divisions: [...(d.maleAmount > 0 ? ['male' as const] : []), ...(d.femaleAmount > 0 ? ['female' as const] : [])],
+        player: d.player,
       })).slice(0, 8);
 
     // Week: from sultanOfWeekly.allDonors
     const allSultans = [...(maleData?.sultanOfWeekly || []), ...(femaleData?.sultanOfWeekly || [])];
     const latestWeekNum = allSultans.length > 0 ? Math.max(...allSultans.map(s => s.weekNumber)) : 0;
-    const weekMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
+    const weekMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number; player?: TopDonor['player'] }>();
     const mergeDonorList = (list: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
       if (!list?.length) return;
       for (const d of list) {
         const key = d.donorName.toLowerCase().trim();
         const existing = weekMap.get(key);
         if (existing) {
-          weekMap.set(key, { donorName: d.donorName, totalAmount: existing.totalAmount + d.totalAmount, donationCount: existing.donationCount + d.donationCount, maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0), femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0) });
+          weekMap.set(key, { donorName: d.donorName, totalAmount: existing.totalAmount + d.totalAmount, donationCount: existing.donationCount + d.donationCount, maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0), femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0), player: existing.player || d.player });
         } else {
-          weekMap.set(key, { donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount, maleAmount: division === 'male' ? d.totalAmount : 0, femaleAmount: division === 'female' ? d.totalAmount : 0 });
+          weekMap.set(key, { donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount, maleAmount: division === 'male' ? d.totalAmount : 0, femaleAmount: division === 'female' ? d.totalAmount : 0, player: d.player });
         }
       }
     };
@@ -135,6 +139,7 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
         donorName: d.donorName, totalAmount: d.totalAmount, donationCount: d.donationCount,
         maleAmount: d.maleAmount, femaleAmount: d.femaleAmount,
         divisions: [...(d.maleAmount > 0 ? ['male' as const] : []), ...(d.femaleAmount > 0 ? ['female' as const] : [])],
+        player: d.player,
       })).slice(0, 8);
 
     return {
@@ -259,9 +264,20 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
                     {medal || <span className="text-xs text-muted-foreground font-bold">{i + 1}</span>}
                   </span>
 
-                  {/* Initials avatar */}
-                  <div className={`w-8 h-8 rounded-lg ${dt.iconBg} flex items-center justify-center shrink-0`}>
-                    <span className={`text-[10px] font-bold ${dt.text}`}>{getInitials(donor.donorName)}</span>
+                  {/* Avatar */}
+                  <div className={`w-8 h-8 rounded-lg overflow-hidden shrink-0 ${!donor.player?.avatar ? dt.iconBg : ''}`} style={donor.player?.avatar ? { border: '1.5px solid rgba(249,203,37,0.3)' } : {}}>
+                    {donor.player?.avatar ? (
+                      <img
+                        src={donor.player.avatar}
+                        alt={donor.donorName}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className={`text-[10px] font-bold ${dt.text}`}>{getInitials(donor.donorName)}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}

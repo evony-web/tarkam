@@ -120,6 +120,20 @@ export interface TopDonor {
   donorName: string;
   totalAmount: number;
   donationCount: number;
+  /** Matched player info (if donorName matches a player gamertag — searches BOTH divisions) */
+  player?: {
+    id: string;
+    gamertag: string;
+    avatar?: string | null;
+    tier: string;
+    points: number;
+    totalWins: number;
+    totalMvp: number;
+    streak: number;
+    division: string;
+    city?: string;
+    club?: string | { id: string; name: string; logo?: string | null } | null;
+  } | null;
 }
 
 export interface TopDonorEnriched extends TopDonor {

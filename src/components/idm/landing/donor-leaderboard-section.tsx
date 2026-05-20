@@ -35,6 +35,7 @@ interface DivisionDonor extends TopDonor {
   maleAmount: number;
   femaleAmount: number;
   divisions: ('male' | 'female')[];
+  player?: TopDonor['player'];
 }
 
 /* ─── Helpers ─── */
@@ -280,7 +281,7 @@ export function DonorLeaderboardSection({
       : undefined;
 
     // Helper: merge donors into donorMap
-    const buildDonorMap = () => new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
+    const buildDonorMap = () => new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number; player?: TopDonor['player'] }>();
     const mergeDonors = (donorMap: ReturnType<typeof buildDonorMap>, donors: TopDonor[], division: 'male' | 'female') => {
       for (const d of donors) {
         const key = d.donorName.toLowerCase().trim();
@@ -292,6 +293,7 @@ export function DonorLeaderboardSection({
             donationCount: existing.donationCount + d.donationCount,
             maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
             femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+            player: existing.player || d.player,
           });
         } else {
           donorMap.set(key, {
@@ -300,6 +302,7 @@ export function DonorLeaderboardSection({
             donationCount: d.donationCount,
             maleAmount: division === 'male' ? d.totalAmount : 0,
             femaleAmount: division === 'female' ? d.totalAmount : 0,
+            player: d.player,
           });
         }
       }
@@ -316,6 +319,7 @@ export function DonorLeaderboardSection({
             donationCount: existing.donationCount + d.donationCount,
             maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
             femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+            player: existing.player || d.player,
           });
         } else {
           donorMap.set(key, {
@@ -324,6 +328,7 @@ export function DonorLeaderboardSection({
             donationCount: d.donationCount,
             maleAmount: division === 'male' ? d.totalAmount : 0,
             femaleAmount: division === 'female' ? d.totalAmount : 0,
+            player: d.player,
           });
         }
       }
@@ -341,6 +346,7 @@ export function DonorLeaderboardSection({
             ...(d.maleAmount > 0 ? ['male' as const] : []),
             ...(d.femaleAmount > 0 ? ['female' as const] : []),
           ],
+          player: d.player,
         }));
 
     // ── SEASON: accumulated from topDonors ──
@@ -554,9 +560,20 @@ export function DonorLeaderboardSection({
                               {medal || <span className="text-xs text-muted-foreground font-bold">{i + 1}</span>}
                             </span>
 
-                            {/* Initials avatar */}
-                            <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/10 flex items-center justify-center shrink-0">
-                              <span className="text-[10px] font-bold text-idm-gold-warm">{getInitials(donor.donorName)}</span>
+                            {/* Avatar */}
+                            <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0" style={donor.player?.avatar ? { border: '1.5px solid rgba(249,203,37,0.3)' } : {}}>
+                              {donor.player?.avatar ? (
+                                <img
+                                  src={donor.player.avatar}
+                                  alt={donor.donorName}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-idm-gold-warm/10 flex items-center justify-center">
+                                  <span className="text-[10px] font-bold text-idm-gold-warm">{getInitials(donor.donorName)}</span>
+                                </div>
+                              )}
                             </div>
 
                             {/* Info */}

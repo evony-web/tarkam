@@ -457,6 +457,16 @@ export async function GET(request: Request) {
   // Season donation total
   const seasonDonationTotal = seasonDonations.reduce((sum, d) => sum + d.amount, 0);
 
+  // ═══ Build cross-division player map for donor matching ═══
+  // Uses allPlayersForDonorMatching (already fetched in main Promise.all)
+  // Defined early so it's available for both topDonors and sultanOfWeekly enrichment
+  const playerByGamertag = new Map(
+    (allPlayersForDonorMatching as any[]).map((p: any) => {
+      const activeClub = p.clubMembers?.[0]?.profile;
+      return [p.gamertag?.toLowerCase(), { ...p, club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : null }];
+    })
+  );
+
   // Top donors — computed in-memory from seasonDonations instead of groupBy query
   const donorAccum = new Map<string, { totalAmount: number; donationCount: number }>();
   for (const d of seasonDonations) {
@@ -467,13 +477,29 @@ export async function GET(request: Request) {
     });
   }
   const topDonors = Array.from(donorAccum.entries())
-    .map(([donorName, data]) => ({
-      donorName,
-      _sum: { amount: data.totalAmount },
-      _count: { id: data.donationCount },
-    }))
-    .sort((a, b) => b._sum.amount - a._sum.amount)
-    .slice(0, 5);
+    .map(([donorName, data]) => {
+      const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
+      return {
+        donorName,
+        totalAmount: data.totalAmount,
+        donationCount: data.donationCount,
+        player: matchedPlayer ? {
+          id: matchedPlayer.id,
+          gamertag: matchedPlayer.gamertag,
+          avatar: matchedPlayer.avatar,
+          tier: matchedPlayer.tier,
+          points: matchedPlayer.points,
+          totalWins: matchedPlayer.totalWins,
+          totalMvp: matchedPlayer.totalMvp,
+          streak: matchedPlayer.streak,
+          division: matchedPlayer.division,
+          city: matchedPlayer.city || null,
+          club: matchedPlayer.club || null,
+        } : null,
+      };
+    })
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, 10);
 
   // ═══ Weekly Top Donors — per active/latest tournament (for display in Top Saweran section) ═══
   // This shows donors for the CURRENT week only, so the list stays clean and relevant.
@@ -1013,14 +1039,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // ═══ Build cross-division player map for Sultan of the Week donor matching ═══
-  // Uses allPlayersForDonorMatching (already fetched in main Promise.all)
-  const playerByGamertag = new Map(
-    (allPlayersForDonorMatching as any[]).map((p: any) => {
-      const activeClub = p.clubMembers?.[0]?.profile;
-      return [p.gamertag?.toLowerCase(), { ...p, club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : null }];
-    })
-  );
+  // ═══ playerByGamertag map already built above (before topDonors) ═══
 
   // ═══ For each tournament with donations, determine Sultan of the Week ═══
   // Tie-breaking rules (automatic, no admin intervention needed):
@@ -1051,6 +1070,25 @@ export async function GET(request: Request) {
     const topAmount = sortedDonors[0][1].totalAmount;
     const coSultans = sortedDonors.filter(([_, data]) => data.totalAmount === topAmount);
     const isCoSultan = coSultans.length > 1;
+
+    // ═══ Build player info helper (used by override, co-sultan, and single sultan paths) ═══
+    const buildPlayerInfo = (donorName: string) => {
+      const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
+      if (!matchedPlayer) return null;
+      return {
+        id: matchedPlayer.id,
+        gamertag: matchedPlayer.gamertag,
+        avatar: matchedPlayer.avatar,
+        tier: matchedPlayer.tier,
+        points: matchedPlayer.points,
+        totalWins: matchedPlayer.totalWins,
+        totalMvp: matchedPlayer.totalMvp,
+        streak: matchedPlayer.streak,
+        division: matchedPlayer.division,
+        city: matchedPlayer.city,
+        club: matchedPlayer.club || null,
+      };
+    };
 
     // ═══ Sultan override: if admin manually set sultanPlayerId, use that instead ═══
     if (tournament.sultanPlayerId) {
@@ -1113,25 +1151,6 @@ export async function GET(request: Request) {
       });
       continue;
     }
-
-    // ═══ Build player info helper ═══
-    const buildPlayerInfo = (donorName: string) => {
-      const matchedPlayer = playerByGamertag.get(donorName?.toLowerCase());
-      if (!matchedPlayer) return null;
-      return {
-        id: matchedPlayer.id,
-        gamertag: matchedPlayer.gamertag,
-        avatar: matchedPlayer.avatar,
-        tier: matchedPlayer.tier,
-        points: matchedPlayer.points,
-        totalWins: matchedPlayer.totalWins,
-        totalMvp: matchedPlayer.totalMvp,
-        streak: matchedPlayer.streak,
-        division: matchedPlayer.division,
-        city: matchedPlayer.city,
-        club: matchedPlayer.club || null,
-      };
-    };
 
     // ═══ Co-Sultan: multiple donors with the same top amount ═══
     if (isCoSultan) {
