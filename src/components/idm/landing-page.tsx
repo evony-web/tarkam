@@ -433,6 +433,10 @@ export function LandingPage() {
     setCurrentView('bracket');
   };
 
+  const enterBracketDirect = () => {
+    setCurrentView('bracket');
+  };
+
   const enterHasil = (division: 'male' | 'female') => {
     setDivision(division);
     setCurrentView('hasil');
@@ -768,6 +772,7 @@ export function LandingPage() {
         onEnterCommunity={enterCommunity}
         onRegister={() => { setRegistrationDefaultDivision(null); setRegistrationModalOpen(true); }}
         onViewBracket={enterBracket}
+        onViewBracketDirect={enterBracketDirect}
         onVideoPlay={openVideoModal}
         isSeasonDataPlaceholder={isSeasonDataPlaceholder}
       />

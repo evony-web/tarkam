@@ -1,10 +1,9 @@
 'use client';
 
-import { useMemo, useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import { Zap, Star, Eye, ArrowRight, Flame, Users, Trophy, Swords, PenLine } from 'lucide-react';
+import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/utils';
-import { AvatarMedia } from '@/components/ui/avatar-media';
 import type { StatsData } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -24,6 +23,7 @@ interface HeroSectionProps {
   onEnterCommunity: () => void;
   onRegister: (division: 'male' | 'female') => void;
   onViewBracket: (division: 'male' | 'female') => void;
+  onViewBracketDirect?: () => void;
   onVideoPlay?: (url: string, title: string) => void;
   /** True when showing stale data from a previous season during a season switch.
    *  Used to show skeleton instead of old champion avatar. */
@@ -44,6 +44,7 @@ export function HeroSection({
   onEnterCommunity,
   onRegister,
   onViewBracket,
+  onViewBracketDirect,
   onVideoPlay,
   isSeasonDataPlaceholder = false,
 }: HeroSectionProps) {
@@ -58,9 +59,6 @@ export function HeroSection({
   const heroBgDesktop = cmsSettings.hero_bg_desktop || '';
   const heroBgMobile = cmsSettings.hero_bg_mobile || '';
   const heroBgVideo = cmsSettings.hero_bg_video || '';
-
-  /* ─── Bracket picker state ─── */
-  const [showBracketPicker, setShowBracketPicker] = useState(false);
 
   /* ─── YouTube iframe facade — defer loading until after LCP ─── */
   // ★ OPTIMIZED: Disable YouTube on mobile entirely — heavy JS (500KB+) blocks main thread causing high INP
@@ -365,9 +363,9 @@ export function HeroSection({
               </div>
             </button>
 
-            {/* Lihat Bracket — Secondary CTA → Bracket Picker */}
+            {/* Lihat Bracket — Secondary CTA → Navigate directly to Bracket */}
             <button
-              onClick={() => setShowBracketPicker(true)}
+              onClick={() => onViewBracketDirect?.()}
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Glow on hover */}
@@ -410,58 +408,7 @@ export function HeroSection({
             </div>
           </div>
 
-          {/* ═══════════════ BRACKET DIVISION PICKER ═══════════════ */}
-          <div className="relative w-full max-w-sm mx-auto" style={{ minHeight: 0 }}>
-            <div
-              className={`${showBracketPicker ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden transition-all duration-300 ease-out`}
-              aria-hidden={!showBracketPicker}
-            >
-            <div className="mb-8 sm:mb-10" style={{ animation: 'reveal-fade-up 0.25s cubic-bezier(0.16,1,0.3,1) both' }}>
-              <div className="relative rounded-2xl border border-idm-gold-warm/20 bg-background/95 dark:bg-mid/95 p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
-                  {/* Close hint */}
-                  <button
-                    onClick={() => setShowBracketPicker(false)}
-                    className="absolute top-2 right-2 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10 transition-colors cursor-pointer"
-                    aria-label="Close picker"
-                  >
-                    ✕
-                  </button>
 
-                  <p className="text-xs text-idm-gold-warm/70 uppercase tracking-wider font-bold text-center mb-3">Pilih Divisi</p>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Male — CSS transitions instead of JS style manipulation */}
-                    <button
-                      onClick={() => { setShowBracketPicker(false); onViewBracket('male'); }}
-                      className="btn-press bracket-picker-male group relative flex flex-col items-center gap-2 p-4 rounded-2xl border cursor-pointer transition-all duration-300"
-                    >
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(46,159,255,0.15)' }}>
-                        <Zap className="w-5 h-5 text-idm-male" />
-                      </div>
-                      <div className="text-center">
-                        <span className="text-sm font-bold text-idm-male">Cowo</span>
-                        <p className="text-[10px] text-muted-foreground/60 mt-0.5">{malePlayers} Players</p>
-                      </div>
-                    </button>
-
-                    {/* Female — CSS transitions instead of JS style manipulation */}
-                    <button
-                      onClick={() => { setShowBracketPicker(false); onViewBracket('female'); }}
-                      className="btn-press bracket-picker-female group relative flex flex-col items-center gap-2 p-4 rounded-2xl border cursor-pointer transition-all duration-300"
-                    >
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,45,120,0.15)' }}>
-                        <Star className="w-5 h-5 text-idm-female" />
-                      </div>
-                      <div className="text-center">
-                        <span className="text-sm font-bold text-idm-female">Cewe</span>
-                        <p className="text-[10px] text-muted-foreground/60 mt-0.5">{femalePlayers} Players</p>
-                      </div>
-                    </button>
-                  </div>
-              </div>
-            </div>
-            </div>
-          </div>
 
 
         </div>
