@@ -1088,6 +1088,14 @@ export async function GET(request: Request) {
         };
       }
 
+      // Build full per-tournament donor list for leaderboard display
+      const allDonorsList = sortedDonors.map(([name, data]) => ({
+        donorName: name,
+        totalAmount: data.totalAmount,
+        donationCount: data.donationCount,
+        player: buildPlayerInfo(name),
+      }));
+
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
         tournamentName: tournament.name,
@@ -1101,6 +1109,7 @@ export async function GET(request: Request) {
         isOverride: true,
         isCoSultan: false,
         coSultans: [],
+        allDonors: allDonorsList,
       });
       continue;
     }
@@ -1137,6 +1146,14 @@ export async function GET(request: Request) {
         })(),
       }));
 
+      // Build full per-tournament donor list for leaderboard display
+      const allDonorsList = sortedDonors.map(([name, data]) => ({
+        donorName: name,
+        totalAmount: data.totalAmount,
+        donationCount: data.donationCount,
+        player: buildPlayerInfo(name),
+      }));
+
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
         tournamentName: tournament.name,
@@ -1151,6 +1168,7 @@ export async function GET(request: Request) {
         isCoSultan: true,
         isOverride: false,
         coSultans: coSultanData,
+        allDonors: allDonorsList,
       });
       continue;
     }
@@ -1158,6 +1176,14 @@ export async function GET(request: Request) {
     // ═══ Single Sultan (default case) ═══
     const [topDonorName, topDonorData] = sortedDonors[0];
     const playerInfo = buildPlayerInfo(topDonorName);
+
+    // Build full per-tournament donor list for leaderboard display
+    const allDonorsList = sortedDonors.map(([name, data]) => ({
+      donorName: name,
+      totalAmount: data.totalAmount,
+      donationCount: data.donationCount,
+      player: buildPlayerInfo(name),
+    }));
 
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
@@ -1172,6 +1198,7 @@ export async function GET(request: Request) {
       isCoSultan: false,
       isOverride: false,
       coSultans: [],
+      allDonors: allDonorsList,
     });
   }
 

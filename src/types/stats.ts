@@ -337,6 +337,26 @@ export interface SultanOfWeekly {
     } | null;
     isCrossDivision: boolean;
   }[];
+  /** Full per-tournament donor list (sorted by totalAmount DESC) for leaderboard display.
+   *  Guaranteed to contain only donors for THIS specific tournament/week. */
+  allDonors?: {
+    donorName: string;
+    totalAmount: number;
+    donationCount: number;
+    player?: {
+      id: string;
+      gamertag: string;
+      avatar?: string | null;
+      tier: string;
+      points: number;
+      totalWins: number;
+      totalMvp: number;
+      streak: number;
+      division: string;
+      city?: string;
+      club?: string | { id: string; name: string; logo?: string | null } | null;
+    } | null;
+  }[];
 }
 
 /** Weekly top performer — "Bintang Minggu Ini" composite score */

@@ -264,11 +264,33 @@ export function DonorLeaderboardSection({
   const [divisionFilter, setDivisionFilter] = useState<DivisionFilter>('all');
 
   // ── Merged donor data ──
+  // Uses per-tournament allDonors from sultanOfWeekly (guaranteed same-week data)
+  // Falls back to weeklyTopDonors only if allDonors is not available
   const { donors, totalDonation, weekNumber, totalMale, totalFemale, latestSultan } = useMemo(() => {
+    // ── Step 1: Collect ALL sultan entries from both divisions ──
+    const allSultans: SultanOfWeekly[] = [
+      ...(maleData?.sultanOfWeekly || []),
+      ...(femaleData?.sultanOfWeekly || []),
+    ];
+
+    // ── Step 2: Find the latest week number ──
+    const latestWeekNum = allSultans.length > 0
+      ? Math.max(...allSultans.map(s => s.weekNumber))
+      : 0;
+
+    // ── Step 3: Pick the latest sultan for the Sultan card ──
+    const latest = allSultans.length > 0
+      ? allSultans.reduce((a, b) => (a.weekNumber >= b.weekNumber ? a : b))
+      : undefined;
+
+    // ── Step 4: Build donor list from allDonors of the LATEST week only ──
+    // This ensures the leaderboard only shows donors for the displayed week,
+    // not donors from previous weeks that would mix in via weeklyTopDonors.
     const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
 
-    const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
-      for (const d of donors) {
+    const mergeDonorList = (donorList: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
+      if (!donorList?.length) return;
+      for (const d of donorList) {
         const key = d.donorName.toLowerCase().trim();
         const existing = donorMap.get(key);
         if (existing) {
@@ -291,17 +313,44 @@ export function DonorLeaderboardSection({
       }
     };
 
-    // Use weeklyTopDonors if available, fallback to topDonors
-    const maleWeekly = maleData?.weeklyTopDonors;
-    const femaleWeekly = femaleData?.weeklyTopDonors;
-    const hasWeekly = (maleWeekly && maleWeekly.length > 0) || (femaleWeekly && femaleWeekly.length > 0);
+    // Merge allDonors from ALL sultan entries matching the latest week
+    // (handles both male and female divisions for the same week)
+    let hasAllDonors = false;
+    for (const sultan of allSultans) {
+      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
+        mergeDonorList(sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
+        hasAllDonors = true;
+      }
+    }
 
-    if (hasWeekly) {
-      if (maleWeekly?.length) mergeDonors(maleWeekly, 'male');
-      if (femaleWeekly?.length) mergeDonors(femaleWeekly, 'female');
-    } else {
-      if (maleData?.topDonors) mergeDonors(maleData.topDonors, 'male');
-      if (femaleData?.topDonors) mergeDonors(femaleData.topDonors, 'female');
+    // Fallback: if no allDonors available, use weeklyTopDonors (per-division, for the active tournament)
+    // This handles the transition period while data migrates
+    if (!hasAllDonors) {
+      const mergeFallbackDonors = (donors: TopDonor[], division: 'male' | 'female') => {
+        for (const d of donors) {
+          const key = d.donorName.toLowerCase().trim();
+          const existing = donorMap.get(key);
+          if (existing) {
+            donorMap.set(key, {
+              donorName: d.donorName,
+              totalAmount: existing.totalAmount + d.totalAmount,
+              donationCount: existing.donationCount + d.donationCount,
+              maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
+              femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+            });
+          } else {
+            donorMap.set(key, {
+              donorName: d.donorName,
+              totalAmount: d.totalAmount,
+              donationCount: d.donationCount,
+              maleAmount: division === 'male' ? d.totalAmount : 0,
+              femaleAmount: division === 'female' ? d.totalAmount : 0,
+            });
+          }
+        }
+      };
+      if (maleData?.weeklyTopDonors?.length) mergeFallbackDonors(maleData.weeklyTopDonors, 'male');
+      if (femaleData?.weeklyTopDonors?.length) mergeFallbackDonors(femaleData.weeklyTopDonors, 'female');
     }
 
     const sorted: DivisionDonor[] = Array.from(donorMap.values())
@@ -323,22 +372,10 @@ export function DonorLeaderboardSection({
     const tMale = top8.reduce((s, d) => s + d.maleAmount, 0);
     const tFemale = top8.reduce((s, d) => s + d.femaleAmount, 0);
 
-    // Week number from active tournament
-    const weekNum = maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber || 0;
-
-    // Sultan of the Weekly — pick the one from the latest week
-    const allSultans: SultanOfWeekly[] = [
-      ...(maleData?.sultanOfWeekly || []),
-      ...(femaleData?.sultanOfWeekly || []),
-    ];
-    const latest = allSultans.length > 0
-      ? allSultans.reduce((a, b) => (a.weekNumber >= b.weekNumber ? a : b))
-      : undefined;
-
     return {
       donors: top8,
       totalDonation: total,
-      weekNumber: weekNum,
+      weekNumber: latestWeekNum || (maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber || 0),
       totalMale: tMale,
       totalFemale: tFemale,
       latestSultan: latest,

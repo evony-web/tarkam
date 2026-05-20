@@ -7,7 +7,7 @@ import { Heart, HandCoins, Sparkles } from 'lucide-react';
 import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { formatCurrencyShort } from '@/lib/utils';
 import { getSawerTier } from '@/lib/skin-utils';
-import type { StatsData, TopDonor } from '@/types/stats';
+import type { StatsData, TopDonor, SultanOfWeekly } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════
    COMMUNITY DONORS — Top donor/supporter community leaderboard
@@ -63,13 +63,26 @@ function DivisionBadge({ division }: { division: 'male' | 'female' }) {
 export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDonorsProps) {
   const dt = useCommunityTheme();
 
-  // Merge weeklyTopDonors from both divisions (per active tournament/week)
-  // Falls back to topDonors (season) if weeklyTopDonors is empty
+  // Uses per-tournament allDonors from sultanOfWeekly (guaranteed same-week data)
+  // Falls back to weeklyTopDonors only if allDonors is not available
   const { donors, totalDonation, weekLabel, totalMale, totalFemale } = useMemo(() => {
+    // ── Step 1: Collect ALL sultan entries from both divisions ──
+    const allSultans = [
+      ...(maleData?.sultanOfWeekly || []),
+      ...(femaleData?.sultanOfWeekly || []),
+    ];
+
+    // ── Step 2: Find the latest week number ──
+    const latestWeekNum = allSultans.length > 0
+      ? Math.max(...allSultans.map(s => s.weekNumber))
+      : 0;
+
+    // ── Step 3: Build donor list from allDonors of the LATEST week only ──
     const donorMap = new Map<string, { donorName: string; totalAmount: number; donationCount: number; maleAmount: number; femaleAmount: number }>();
 
-    const mergeDonors = (donors: TopDonor[], division: 'male' | 'female') => {
-      for (const d of donors) {
+    const mergeDonorList = (donorList: SultanOfWeekly['allDonors'], division: 'male' | 'female') => {
+      if (!donorList?.length) return;
+      for (const d of donorList) {
         const key = d.donorName.toLowerCase().trim();
         const existing = donorMap.get(key);
         if (existing) {
@@ -92,18 +105,41 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
       }
     };
 
-    // Use weeklyTopDonors (per active tournament) if available
-    const maleWeekly = maleData?.weeklyTopDonors;
-    const femaleWeekly = femaleData?.weeklyTopDonors;
-    const hasWeekly = (maleWeekly && maleWeekly.length > 0) || (femaleWeekly && femaleWeekly.length > 0);
+    let hasAllDonors = false;
+    for (const sultan of allSultans) {
+      if (sultan.weekNumber === latestWeekNum && sultan.allDonors?.length) {
+        mergeDonorList(sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
+        hasAllDonors = true;
+      }
+    }
 
-    if (hasWeekly) {
-      if (maleWeekly?.length) mergeDonors(maleWeekly, 'male');
-      if (femaleWeekly?.length) mergeDonors(femaleWeekly, 'female');
-    } else {
-      // Fallback to season-accumulated donors
-      if (maleData?.topDonors) mergeDonors(maleData.topDonors, 'male');
-      if (femaleData?.topDonors) mergeDonors(femaleData.topDonors, 'female');
+    // Fallback: if no allDonors available, use weeklyTopDonors
+    if (!hasAllDonors) {
+      const mergeFallbackDonors = (donors: TopDonor[], division: 'male' | 'female') => {
+        for (const d of donors) {
+          const key = d.donorName.toLowerCase().trim();
+          const existing = donorMap.get(key);
+          if (existing) {
+            donorMap.set(key, {
+              donorName: d.donorName,
+              totalAmount: existing.totalAmount + d.totalAmount,
+              donationCount: existing.donationCount + d.donationCount,
+              maleAmount: existing.maleAmount + (division === 'male' ? d.totalAmount : 0),
+              femaleAmount: existing.femaleAmount + (division === 'female' ? d.totalAmount : 0),
+            });
+          } else {
+            donorMap.set(key, {
+              donorName: d.donorName,
+              totalAmount: d.totalAmount,
+              donationCount: d.donationCount,
+              maleAmount: division === 'male' ? d.totalAmount : 0,
+              femaleAmount: division === 'female' ? d.totalAmount : 0,
+            });
+          }
+        }
+      };
+      if (maleData?.weeklyTopDonors?.length) mergeFallbackDonors(maleData.weeklyTopDonors, 'male');
+      if (femaleData?.weeklyTopDonors?.length) mergeFallbackDonors(femaleData.weeklyTopDonors, 'female');
     }
 
     const sorted = Array.from(donorMap.values())
@@ -125,9 +161,8 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
     const tMale = top8.reduce((s, d) => s + d.maleAmount, 0);
     const tFemale = top8.reduce((s, d) => s + d.femaleAmount, 0);
 
-    // Determine week label
-    const weekNum = maleData?.activeTournament?.weekNumber || femaleData?.activeTournament?.weekNumber;
-    const weekLabelText = hasWeekly && weekNum ? `Week ${weekNum}` : 'Season';
+    // Determine week label from sultanOfWeekly data (consistent with donor list)
+    const weekLabelText = latestWeekNum > 0 ? `Week ${latestWeekNum}` : 'Season';
 
     return { donors: top8, totalDonation: total, weekLabel: weekLabelText, totalMale: tMale, totalFemale: tFemale };
   }, [maleData, femaleData]);

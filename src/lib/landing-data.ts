@@ -455,6 +455,30 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       };
     }
 
+    // Build full per-tournament donor list for leaderboard display
+    const allDonorsList = sortedDonors.map(([name, data]: [string, any]) => ({
+      donorName: name,
+      totalAmount: data.totalAmount,
+      donationCount: data.donationCount,
+      player: (() => {
+        const p = playerByGamertag.get(name?.toLowerCase());
+        if (!p) return null;
+        return {
+          id: p.id,
+          gamertag: p.gamertag,
+          avatar: p.avatar,
+          tier: p.tier,
+          points: p.points,
+          totalWins: p.totalWins,
+          totalMvp: p.totalMvp,
+          streak: p.streak,
+          division: p.division,
+          city: p.city || null,
+          club: p.club || null,
+        };
+      })(),
+    }));
+
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
       tournamentName: tournament.name,
@@ -465,6 +489,7 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       donationCount: topDonorData.donationCount,
       player: playerInfo,
       isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
+      allDonors: allDonorsList,
     });
   }
 
