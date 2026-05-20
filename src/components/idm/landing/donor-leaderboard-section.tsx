@@ -339,21 +339,19 @@ function WeekSelector({
 
   return (
     <div className="flex items-center gap-1">
-      {/* Left arrow — only when scrollable */}
-      {needScroll && (
-        <button
-          onClick={() => setWindowStart(s => Math.max(0, s - 1))}
-          disabled={!canScrollLeft}
-          className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
-            canScrollLeft
-              ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
-              : 'text-muted-foreground/20 cursor-not-allowed'
-          }`}
-          aria-label="Previous weeks"
-        >
-          <ChevronLeft className="w-3 h-3" />
-        </button>
-      )}
+      {/* Left arrow — always visible, disabled when can't scroll */}
+      <button
+        onClick={() => needScroll && setWindowStart(s => Math.max(0, s - 1))}
+        disabled={!canScrollLeft}
+        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+          canScrollLeft
+            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+            : 'text-muted-foreground/20 cursor-not-allowed'
+        }`}
+        aria-label="Previous weeks"
+      >
+        <ChevronLeft className="w-3 h-3" />
+      </button>
 
       {/* Leading ellipsis — indicates more weeks before visible range */}
       {needScroll && effectiveStart > 0 && (
@@ -388,21 +386,19 @@ function WeekSelector({
         <span className="text-[8px] text-muted-foreground/40 px-0.5 shrink-0">…</span>
       )}
 
-      {/* Right arrow — only when scrollable */}
-      {needScroll && (
-        <button
-          onClick={() => setWindowStart(s => Math.min(totalWeeks - MAX_VISIBLE, s + 1))}
-          disabled={!canScrollRight}
-          className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
-            canScrollRight
-              ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
-              : 'text-muted-foreground/20 cursor-not-allowed'
-          }`}
-          aria-label="Next weeks"
-        >
-          <ChevronRight className="w-3 h-3" />
-        </button>
-      )}
+      {/* Right arrow — always visible, disabled when can't scroll */}
+      <button
+        onClick={() => needScroll && setWindowStart(s => Math.min(totalWeeks - MAX_VISIBLE, s + 1))}
+        disabled={!canScrollRight}
+        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+          canScrollRight
+            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+            : 'text-muted-foreground/20 cursor-not-allowed'
+        }`}
+        aria-label="Next weeks"
+      >
+        <ChevronRight className="w-3 h-3" />
+      </button>
     </div>
   );
 }
