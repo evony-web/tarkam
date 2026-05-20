@@ -370,8 +370,8 @@ export async function PUT(
     // Invalidate Next.js server cache so landing page shows updated champion data
     revalidatePath('/');
     revalidatePath('/api/league');
-    revalidateTag('landing-stats');
-    revalidateTag('landing-league');
+    revalidateTag('landing-stats', 'max');
+    revalidateTag('landing-league', 'max');
 
     await createAuditLog({
       adminId: authResult.id,

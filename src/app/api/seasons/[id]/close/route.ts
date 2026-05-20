@@ -204,8 +204,8 @@ export async function POST(
     // Invalidate caches
     revalidatePath('/');
     revalidatePath('/api/league');
-    revalidateTag('landing-stats');
-    revalidateTag('landing-league');
+    revalidateTag('landing-stats', 'max');
+    revalidateTag('landing-league', 'max');
 
     // Pusher: Notify real-time clients about season closure
     try {

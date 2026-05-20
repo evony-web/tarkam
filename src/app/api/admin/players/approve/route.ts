@@ -111,8 +111,8 @@ export async function POST(request: Request) {
 
     // Invalidate cached data
     try {
-      revalidateTag('landing-stats');
-      revalidateTag('landing-league');
+      revalidateTag('landing-stats', 'max');
+      revalidateTag('landing-league', 'max');
     } catch (cacheErr) {
       console.warn('[ADMIN_APPROVE] revalidateTag failed:', cacheErr);
     }
