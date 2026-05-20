@@ -50,9 +50,10 @@ model Player {
   pointRecords     PlayerPoint[]
   achievements     PlayerAchievement[]
   account          Account?
-  championSeasons  Season[]      @relation("SeasonPlayerChampion")
-  sultanSeasons    Season[]      @relation("SeasonSultan")
-  marketplaceItems MarketplaceItem[]
+  championSeasons   Season[]      @relation("SeasonPlayerChampion")
+  sultanSeasons     Season[]      @relation("SeasonSultan")
+  sultanTournaments Tournament[]  @relation("TournamentSultan")
+  marketplaceItems  MarketplaceItem[]
   seasonStats      PlayerSeasonStats[]
   donations        Donation[]
 
@@ -136,10 +137,12 @@ model Tournament {
   scheduledAt        DateTime?
   finalizedAt        DateTime?
   completedAt        DateTime?
+  sultanPlayerId     String?   // Manual override: Sultan of the Week (top penyawer per tournament)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   season              Season              @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  sultanPlayer        Player?             @relation("TournamentSultan", fields: [sultanPlayerId], references: [id], onDelete: SetNull)
   teams               Team[]
   matches             Match[]
   participations      Participation[]

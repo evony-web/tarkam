@@ -1023,7 +1023,63 @@ export async function GET(request: Request) {
     const tournament = tournamentMap.get(tId) || activeTournament;
     if (!tournament) continue;
 
-    // Find top donor for this tournament
+    // ═══ Sultan override: if admin manually set sultanPlayerId, use that instead of computed ═══
+    // This allows admin to override the Sultan when multiple donors have the same amount.
+    if (tournament.sultanPlayerId) {
+      const overridePlayer = playerByGamertag.get(
+        // Find the player by ID in allPlayersForDonorMatching
+        (allPlayersForDonorMatching as any[]).find((p: any) => p.id === tournament.sultanPlayerId)?.gamertag?.toLowerCase() || ''
+      );
+      // Also compute top donor data for display
+      const sortedDonors = Array.from(donorMap.entries())
+        .sort((a, b) => b[1].totalAmount - a[1].totalAmount);
+
+      let playerInfo: {
+        id: string;
+        gamertag: string;
+        avatar: string | null;
+        tier: string;
+        points: number;
+        totalWins: number;
+        totalMvp: number;
+        streak: number;
+        division: string;
+        city?: string;
+        club: string | { id: string; name: string; logo?: string | null } | null;
+      } | null = null;
+
+      if (overridePlayer) {
+        playerInfo = {
+          id: overridePlayer.id,
+          gamertag: overridePlayer.gamertag,
+          avatar: overridePlayer.avatar,
+          tier: overridePlayer.tier,
+          points: overridePlayer.points,
+          totalWins: overridePlayer.totalWins,
+          totalMvp: overridePlayer.totalMvp,
+          streak: overridePlayer.streak,
+          division: overridePlayer.division,
+          city: overridePlayer.city,
+          club: overridePlayer.club || null,
+        };
+      }
+
+      sultanOfWeekly.push({
+        weekNumber: tournament.weekNumber,
+        tournamentName: tournament.name,
+        tournamentId: tId,
+        tournamentDivision: tournament.division,
+        donorName: overridePlayer?.gamertag || sortedDonors[0]?.[0] || 'Anonymous',
+        totalAmount: sortedDonors[0]?.[1]?.totalAmount || 0,
+        donationCount: sortedDonors[0]?.[1]?.donationCount || 0,
+        player: playerInfo,
+        isCrossDivision: playerInfo ? playerInfo.division !== tournament.division : false,
+        isOverride: true, // Flag for UI: this Sultan was manually set by admin
+      });
+      continue;
+    }
+
+    // Find top donor for this tournament (default: computed from donations)
     const sortedDonors = Array.from(donorMap.entries())
       .sort((a, b) => b[1].totalAmount - a[1].totalAmount);
     if (sortedDonors.length === 0) continue;
