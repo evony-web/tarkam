@@ -866,60 +866,61 @@ export function DonorLeaderboardSection({
             </Card>
           </AnimatedSection>
 
-          {/* ── Summary Bar ── */}
+          {/* ── Summary Bar + CTA ── */}
           <AnimatedSection variant="fadeUp" className="mt-4">
-            <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10">
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                  Total Saweran {timeRange === 'season' ? 'Season' : `Week ${selectedWeek}`} → Prize Pool
-                </p>
-                <p className="text-lg font-black bg-gradient-to-r from-idm-gold-warm to-amber-300 bg-clip-text text-transparent">
-                  {formatCurrencyShort(totalDonation || 0)}
-                </p>
-                {/* Mobile: per-division breakdown under total */}
-                <div className="flex sm:hidden items-center gap-3 mt-1">
-                  {totalMale > 0 && (
-                    <span className="text-[10px] text-idm-male-light/80">
-                      ♂ Cowo {formatRupiahShort(totalMale)}
-                    </span>
-                  )}
-                  {totalFemale > 0 && (
-                    <span className="text-[10px] text-idm-female-light/80">
-                      ♀ Cewe {formatRupiahShort(totalFemale)}
-                    </span>
-                  )}
+            <div className="p-4 sm:p-5 rounded-2xl bg-idm-gold-warm/[0.04] border border-idm-gold-warm/10">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                    Total Saweran {timeRange === 'season' ? 'Season' : `Week ${selectedWeek}`} → Prize Pool
+                  </p>
+                  <p className="text-lg font-black bg-gradient-to-r from-idm-gold-warm to-amber-300 bg-clip-text text-transparent">
+                    {formatCurrencyShort(totalDonation || 0)}
+                  </p>
+                  {/* Mobile: per-division breakdown under total */}
+                  <div className="flex sm:hidden items-center gap-3 mt-1">
+                    {totalMale > 0 && (
+                      <span className="text-[10px] text-idm-male-light/80">
+                        ♂ Cowo {formatRupiahShort(totalMale)}
+                      </span>
+                    )}
+                    {totalFemale > 0 && (
+                      <span className="text-[10px] text-idm-female-light/80">
+                        ♀ Cewe {formatRupiahShort(totalFemale)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <Sparkles className="w-5 h-5 text-idm-gold-warm/30" />
+                  {/* Desktop: per-division breakdown on the right */}
+                  <div className="hidden sm:flex items-center gap-2 mt-1">
+                    {totalMale > 0 && (
+                      <span className="text-[10px] text-idm-male-light/80">
+                        ♂ {formatRupiahShort(totalMale)}
+                      </span>
+                    )}
+                    {totalFemale > 0 && (
+                      <span className="text-[10px] text-idm-female-light/80">
+                        ♀ {formatRupiahShort(totalFemale)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end">
-                <Sparkles className="w-5 h-5 text-idm-gold-warm/30" />
-                {/* Desktop: per-division breakdown on the right */}
-                <div className="hidden sm:flex items-center gap-2 mt-1">
-                  {totalMale > 0 && (
-                    <span className="text-[10px] text-idm-male-light/80">
-                      ♂ {formatRupiahShort(totalMale)}
-                    </span>
-                  )}
-                  {totalFemale > 0 && (
-                    <span className="text-[10px] text-idm-female-light/80">
-                      ♀ {formatRupiahShort(totalFemale)}
-                    </span>
-                  )}
+              {/* Sawer CTA — inside summary card */}
+              {onSawer && (
+                <div className="mt-3 pt-3 flex justify-center" style={{ borderTop: '1px solid rgba(249,203,37,0.1)' }}>
+                  <button
+                    onClick={onSawer}
+                    className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-h-[36px]"
+                  >
+                    💰 Sawer Sekarang
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
           </AnimatedSection>
-
-          {/* ── CTA Button ── */}
-          {onSawer && (
-            <AnimatedSection variant="fadeUp" className="mt-4 flex justify-center">
-              <button
-                onClick={onSawer}
-                className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-h-[36px]"
-              >
-                💰 Sawer Sekarang
-              </button>
-            </AnimatedSection>
-          )}
         </div>
       </div>
     </section>
