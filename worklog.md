@@ -911,3 +911,22 @@ Stage Summary:
 - Scroll-to-top now works for ALL view transitions: landing→hasil, landing→bracket, landing→community, etc.
 - Double coverage: both landing-page.tsx (on navigation action) and public-page-layout.tsx (on currentView change via useEffect) handle scroll reset
 - Files modified: `public-page-layout.tsx`, `landing-page.tsx`
+
+---
+Task ID: 2
+Agent: Main
+Task: Remove donor list from Sawer (donation) modal
+
+Work Log:
+- User requested: "pada modal sawer tolong hilangkan list penyawer disana ya"
+- Identified the donor list section in donation-modal.tsx (lines 375-424): "List Penyawer" with scrollable list of approved donors
+- Removed the entire donor list section (label, loading state, empty state, donor rows)
+- Removed the useQuery hook for fetching approved donors (no longer needed)
+- Removed unused imports: HandHeart, MessageCircle (only used in donor list), useQuery, formatWIBDateShort
+- Kept effectiveDivision variable (still used for modal container CSS class)
+- Lint passes clean
+
+Stage Summary:
+- Donation modal now shows only: Type toggle → Custom Amount → Name → Message → Submit
+- Donor list completely removed — cleaner, more focused on the donation form itself
+- File modified: `/home/z/my-project/src/components/idm/donation-modal.tsx`

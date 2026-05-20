@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 // motion removed — replaced with CSS animations
 import {
-  Gift, Heart, Sparkles, Wallet, HandHeart, MessageCircle,
+  Gift, Heart, Sparkles, Wallet,
   Loader2, CheckCircle2, X, Copy, Check, Phone,
   Zap, Star
 } from 'lucide-react';
@@ -16,9 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useDivisionTheme } from '@/hooks/use-division-theme';
 import { useAppStore } from '@/lib/store';
-import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { formatCurrency, formatWIBDateShort } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 
 type DonationType = 'weekly' | 'season';
@@ -125,23 +124,7 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
 
   const isFormValid = donorName.trim().length > 0 && finalAmount >= 1000;
 
-  /* ─── Fetch approved donors for the selected division ─── */
   const effectiveDivision = divisionProp || selectedDivision;
-  const { data: donorData, isLoading: isDonorLoading } = useQuery({
-    queryKey: ['donors-approved', effectiveDivision, tournamentId],
-    queryFn: async () => {
-      const params = new URLSearchParams({ type: 'weekly', division: effectiveDivision, status: 'approved', limit: '50' });
-      if (tournamentId) params.set('tournamentId', tournamentId);
-      const res = await fetch(`/api/donations?${params}`);
-      if (!res.ok) throw new Error('Gagal memuat data');
-      return res.json();
-    },
-    enabled: open && step === 'form',
-    staleTime: 30000,
-  });
-  const approvedDonors: { id: string; donorName: string; amount: number; message: string | null; createdAt: string }[] = donorData?.donations || [];
-  const totalDonorAmount = donorData?.total?.amount || 0;
-  const totalDonorCount = donorData?.total?.count || 0;
 
   // Determine which payment methods are available
   // QRIS: available if donation_qris_image has a value
@@ -371,57 +354,6 @@ export function DonationModal({ open, onOpenChange, defaultType = 'season', defa
                   </div>
                 </div>
               )}
-
-              {/* ═══ Donor List — replaces preset amounts ═══ */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <HandHeart className="w-3.5 h-3.5 text-idm-gold-warm" />
-                    List Penyawer {effectiveDivision === 'female' ? '💃 Cewe' : '🕺 Cowo'}
-                  </label>
-                  {totalDonorCount > 0 && (
-                    <span className="text-[9px] font-semibold text-idm-gold-warm">
-                      Total {formatCurrency(totalDonorAmount)}
-                    </span>
-                  )}
-                </div>
-                <div className="modal-scroll max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.02]">
-                  {isDonorLoading ? (
-                    <div className="py-6 text-center">
-                      <Loader2 className="w-5 h-5 text-idm-gold-warm animate-spin mx-auto mb-1.5" />
-                      <p className="text-[10px] text-muted-foreground">Memuat penyawer...</p>
-                    </div>
-                  ) : approvedDonors.length === 0 ? (
-                    <div className="py-5 text-center">
-                      <HandHeart className="w-6 h-6 text-muted-foreground/20 mx-auto mb-1.5" />
-                      <p className="text-[10px] text-muted-foreground/60">Belum ada penyawer</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-idm-gold-warm/5">
-                      {approvedDonors.map((d, idx) => (
-                        <div key={d.id} className="flex items-center gap-2 px-3 py-1.5">
-                          <span className="text-[9px] font-bold text-muted-foreground/40 w-4 text-right tabular-nums">{idx + 1}</span>
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold bg-idm-gold-warm/10 text-idm-gold-warm shrink-0">
-                            {d.donorName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-semibold truncate">{d.donorName}</p>
-                            {d.message && (
-                              <p className="text-[8px] text-muted-foreground/60 truncate flex items-center gap-0.5">
-                                <MessageCircle className="w-2 h-2" />{d.message}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-[9px] font-bold text-idm-gold-warm">{formatCurrency(d.amount)}</p>
-                            <p className="text-[7px] text-muted-foreground/40">{formatWIBDateShort(new Date(d.createdAt))}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Custom Amount */}
               <div>
