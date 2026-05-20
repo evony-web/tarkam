@@ -540,7 +540,7 @@ export function HasilSection({ maleData, femaleData, isDataLoading }: {
                 }}
                 className="compact-pill flex items-center gap-2 px-4 py-2 rounded-full bg-idm-gold-warm/[0.06] text-sm font-bold text-idm-gold-warm transition-all duration-300 hover:bg-idm-gold-warm/[0.12] hover:shadow-[0_0_16px_rgba(249,203,37,0.12)] cursor-pointer active:scale-[0.97]"
               >
-                <span>🏅</span>
+                <span>VS</span>
                 <span>Lihat Semua Hasil</span>
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </button>
