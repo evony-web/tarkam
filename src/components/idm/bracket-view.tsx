@@ -783,12 +783,16 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Scrollable/pannable container
-          - overflow-hidden: clips zoomed content to container bounds (no half-black issue)
-          - touch-none only when zoomed: at scale=1 native scroll works via inner overflow-x-auto;
-            when zoomed, custom pan takes over and touch-none prevents browser scroll conflict */}
+          - At scale=1: overflow-x-auto allows native horizontal scroll (bracket wider than screen)
+          - At scale>1 or interacting: overflow-hidden + touch-none for custom zoom/pan
+          - custom-scrollbar: thin gold scrollbar on desktop, hidden on mobile (touch scroll) */}
       <div
         ref={containerRef}
-        className={`overflow-hidden rounded-lg relative select-none ${displayState.scale > 1 || isInteracting ? 'touch-none' : ''}`}
+        className={`rounded-lg relative select-none ${
+          displayState.scale > 1 || isInteracting
+            ? 'overflow-hidden touch-none'
+            : 'overflow-x-auto overflow-y-hidden custom-scrollbar'
+        }`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
