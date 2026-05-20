@@ -166,15 +166,19 @@ function SultanOfWeeklyCard({
           <div className={`grid ${isMultiDivision ? 'grid-cols-1 sm:grid-cols-2 gap-4' : 'grid-cols-1'}`}>
             {displaySultans.map((sultan, idx) => {
               const isCoSultan = sultan.isCoSultan && sultan.coSultans && sultan.coSultans.length > 0;
+              // Build list: primary sultan + co-sultans, deduplicating by donorName
+              // (coSultans from API should already exclude the primary, but guard against stale cache)
               const allSultansForDiv = isCoSultan
                 ? [
                     { donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player },
-                    ...sultan.coSultans.map((cs) => ({
-                      donorName: cs.donorName,
-                      totalAmount: cs.totalAmount,
-                      donationCount: cs.donationCount,
-                      player: cs.player,
-                    })),
+                    ...sultan.coSultans
+                      .filter(cs => cs.donorName !== sultan.donorName)
+                      .map((cs) => ({
+                        donorName: cs.donorName,
+                        totalAmount: cs.totalAmount,
+                        donationCount: cs.donationCount,
+                        player: cs.player,
+                      })),
                   ]
                 : [{ donorName: sultan.donorName, totalAmount: sultan.totalAmount, donationCount: sultan.donationCount, player: sultan.player }];
 
