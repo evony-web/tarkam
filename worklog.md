@@ -889,3 +889,25 @@ Stage Summary:
 - "Lihat Bracket" on HeroSection navigates to Bracket page
 - "Lihat Semua Hasil" on hasil-section navigates to Hasil page
 - Deep links: ?view=hasil and ?view=bracket both work
+
+---
+Task ID: 1
+Agent: Main
+Task: Fix scroll-to-top bug when navigating to Hasil/Bracket/other pages from landing page
+
+Work Log:
+- User reported: clicking "Lihat Hasil" from competition section lands on bottom of Hasil page, not top
+- Root cause: No scrollTo(0,0) when currentView changes — scroll position persists across view switches in SPA
+- Added `useEffect` in `public-page-layout.tsx` that scrolls to top whenever `currentView` changes
+- Added `window.scrollTo({ top: 0, behavior: 'instant' })` to all navigation helpers in `landing-page.tsx`:
+  - enterApp(), enterBracket(), enterHasil(), enterCommunity()
+  - Desktop nav buttons (skip for 'landing' view)
+  - Mobile bottom nav buttons (skip for 'landing' view)
+  - Bracket FAB button
+- Used 'instant' behavior (not 'smooth') so the scroll is immediate without visible animation
+- Lint passes clean
+
+Stage Summary:
+- Scroll-to-top now works for ALL view transitions: landing→hasil, landing→bracket, landing→community, etc.
+- Double coverage: both landing-page.tsx (on navigation action) and public-page-layout.tsx (on currentView change via useEffect) handle scroll reset
+- Files modified: `public-page-layout.tsx`, `landing-page.tsx`

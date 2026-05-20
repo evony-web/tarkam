@@ -426,20 +426,24 @@ export function LandingPage() {
   const enterApp = (division: 'male' | 'female') => {
     setDivision(division);
     setCurrentView('dashboard');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
   const enterBracket = (division: 'male' | 'female') => {
     setDivision(division);
     setCurrentView('bracket');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
   const enterHasil = (division: 'male' | 'female') => {
     setDivision(division);
     setCurrentView('hasil');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
   const enterCommunity = () => {
     setCurrentView('community');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
   /* Nav scroll state — optimized for INP:
@@ -644,6 +648,7 @@ export function LandingPage() {
                 key={item.view}
                 onClick={() => {
                   setCurrentView(item.view);
+                  if (item.view !== 'landing') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
                 }}
                 className={`relative px-2 md:px-3 py-1.5 text-xs md:text-sm transition-all duration-300 cursor-pointer rounded-md ${
                   currentView === item.view
@@ -706,7 +711,7 @@ export function LandingPage() {
                 return (
                   <button
                     key={item.view}
-                    onClick={() => setCurrentView(item.view)}
+                    onClick={() => { setCurrentView(item.view); if (item.view !== 'landing') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }}
                     className="relative -mt-5 z-20 cursor-pointer"
                   >
                     {/* Button body */}
@@ -727,6 +732,7 @@ export function LandingPage() {
                   key={item.view}
                   onClick={() => {
                     setCurrentView(item.view);
+                    if (item.view !== 'landing') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
                   }}
                   className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[44px] py-1.5 px-2 rounded-xl transition-all duration-200 active:scale-90 ${
                     isActive
@@ -749,7 +755,7 @@ export function LandingPage() {
       {/* ========== BRACKET FAB (Mobile) ========== — hidden on Bracket view */}
       {currentView === 'landing' && (
         <button
-          onClick={() => setCurrentView('bracket')}
+          onClick={() => { setCurrentView('bracket'); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }}
           className={`md:hidden fixed right-4 bottom-24 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer bg-idm-gold-warm/90 shadow-idm-gold-warm/30`}
           title="Bracket"
         >

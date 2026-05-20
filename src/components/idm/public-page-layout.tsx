@@ -220,6 +220,11 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
   const scrolledRef = useRef(false);
   const scrollTickingRef = useRef(false);
 
+  /* Scroll to top when view changes — prevents showing bottom of page */
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [currentView]);
+
   useEffect(() => {
     const onScroll = () => {
       if (scrollTickingRef.current) return;
