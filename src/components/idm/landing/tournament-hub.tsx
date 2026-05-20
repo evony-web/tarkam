@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X, Zap, Flag, Target } from 'lucide-react';
+import { Swords, Music, Shield, Crown, Users, Building2, Gamepad2, ArrowRight, Play, UserPlus, CreditCard, Calendar, Clock, MapPin, Heart, UserCheck, X, Zap, Flag, Target, Trophy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -537,15 +537,18 @@ function TournamentCard({
           </div>
           <div className="flex justify-center">
             <button
-              onClick={() => onDonate(division.key)}
+              onClick={() => {
+                const el = document.getElementById('hasil');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
               className="px-6 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-white hover:opacity-90 active:scale-[0.98]"
               style={{
                 background: `linear-gradient(135deg, ${division.color} 0%, ${division.colorLight} 100%)`,
                 boxShadow: `0 4px 15px rgba(${division.colorRgb},0.25)`,
               }}
             >
-              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span>Sawer</span>
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Lihat Hasil</span>
             </button>
           </div>
         </div>
