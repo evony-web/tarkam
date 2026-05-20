@@ -412,3 +412,23 @@ Stage Summary:
 - Files created: `/home/z/my-project/scripts/switch-provider.mjs`
 - Files modified: `package.json` (scripts), `prisma/schema.prisma` (comments + provider swap)
 - Push blocked: GitHub token expired — waiting for user to provide new token
+
+---
+Task ID: 1
+Agent: main
+Task: Fix Vercel 500 error on /api/seasons/[id] — empty JSON body causing "Unexpected end of JSON input"
+
+Work Log:
+- Investigated the error: user reported 500 on GET /api/seasons/cmosebw81000oqmfechq2hbj9 when trying to set Sultan of Season
+- Confirmed Neon database is in sync (prisma db push showed no changes needed)
+- Tested direct Prisma query against Neon — works fine, returns valid data
+- Root cause: API routes had NO try-catch wrapper, so when Prisma throws an error on Vercel, the response is 500 with empty body (not JSON)
+- Frontend calls `res.json()` without checking `res.ok`, causing "Unexpected end of JSON input" crash
+- Fix 1: Wrapped GET, PUT, DELETE handlers in `/api/seasons/[id]/route.ts` with try-catch that returns proper JSON error messages + console.error for Vercel logs
+- Fix 2: Updated `admin-season-panel.tsx` seasonDetail queryFn to check `res.ok` before calling `res.json()`, with safe text fallback parsing
+- Pushed to GitHub (commit 4c62ff1)
+
+Stage Summary:
+- API now returns proper JSON error on 500 (e.g. `{ error: "actual message" }`)
+- Frontend shows actual error message in toast instead of "Unexpected end of JSON input"
+- Next step: user needs to test on Vercel — if error persists, the actual Prisma error message will now be visible in Vercel function logs and toast
