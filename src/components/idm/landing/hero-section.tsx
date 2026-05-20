@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine, X, Music } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/utils';
 import type { StatsData } from '@/types/stats';
 
@@ -23,7 +24,6 @@ interface HeroSectionProps {
   onEnterCommunity: () => void;
   onRegister: (division: 'male' | 'female') => void;
   onViewBracket: (division: 'male' | 'female') => void;
-  onViewBracketDirect?: () => void;
   onVideoPlay?: (url: string, title: string) => void;
   /** True when showing stale data from a previous season during a season switch.
    *  Used to show skeleton instead of old champion avatar. */
@@ -44,7 +44,6 @@ export function HeroSection({
   onEnterCommunity,
   onRegister,
   onViewBracket,
-  onViewBracketDirect,
   onVideoPlay,
   isSeasonDataPlaceholder = false,
 }: HeroSectionProps) {
@@ -59,6 +58,9 @@ export function HeroSection({
   const heroBgDesktop = cmsSettings.hero_bg_desktop || '';
   const heroBgMobile = cmsSettings.hero_bg_mobile || '';
   const heroBgVideo = cmsSettings.hero_bg_video || '';
+
+  /* ─── Bracket division picker modal state ─── */
+  const [showBracketPicker, setShowBracketPicker] = useState(false);
 
   /* ─── YouTube iframe facade — defer loading until after LCP ─── */
   // ★ OPTIMIZED: Disable YouTube on mobile entirely — heavy JS (500KB+) blocks main thread causing high INP
@@ -363,9 +365,9 @@ export function HeroSection({
               </div>
             </button>
 
-            {/* Lihat Bracket — Secondary CTA → Navigate directly to Bracket */}
+            {/* Lihat Bracket — Secondary CTA → Show division picker modal */}
             <button
-              onClick={() => onViewBracketDirect?.()}
+              onClick={() => setShowBracketPicker(true)}
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Glow on hover */}
@@ -432,7 +434,81 @@ export function HeroSection({
         />
       </section>
 
+      {/* ══════ BRACKET DIVISION PICKER MODAL ══════ */}
+      {showBracketPicker && typeof document !== 'undefined' && createPortal(
+        <div
+          className="modal-backdrop modal-backdrop-enter z-[9999] p-3 sm:p-4"
+          onClick={() => setShowBracketPicker(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pilih Divisi Bracket"
+        >
+          <div
+            className="modal-container modal-container-md modal-enter-slide"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="modal-header justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-idm-gold-warm/10">
+                  <Eye className="w-5 h-5 text-idm-gold-warm" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="modal-header-title text-gradient-fury">Lihat Bracket</h2>
+                  <p className="modal-header-subtitle">Pilih divisi untuk melihat bracket</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowBracketPicker(false)}
+                aria-label="Tutup"
+                className="modal-close"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
 
+            {/* Division Cards */}
+            <div className="modal-body">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Cowo Division Card */}
+                <button
+                  onClick={() => { setShowBracketPicker(false); onViewBracket('male'); }}
+                  className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-male/20 bg-idm-male/5 hover:border-idm-male/50 hover:bg-idm-male/10 transition-all duration-300 cursor-pointer active:scale-95"
+                >
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-male/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Music className="w-7 h-7 sm:w-8 sm:h-8 text-idm-male" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base sm:text-lg font-black text-idm-male uppercase tracking-wider">Cowo</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Divisi Laki-laki</p>
+                  </div>
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ boxShadow: '0 0 24px rgba(46,159,255,0.15)' }} />
+                </button>
+
+                {/* Cewe Division Card */}
+                <button
+                  onClick={() => { setShowBracketPicker(false); onViewBracket('female'); }}
+                  className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-female/20 bg-idm-female/5 hover:border-idm-female/50 hover:bg-idm-female/10 transition-all duration-300 cursor-pointer active:scale-95"
+                >
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-female/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-7 h-7 sm:w-8 sm:h-8 text-idm-female" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base sm:text-lg font-black text-idm-female uppercase tracking-wider">Cewe</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Divisi Perempuan</p>
+                  </div>
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ boxShadow: '0 0 24px rgba(255,45,120,0.15)' }} />
+                </button>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground/50 text-center mt-1">
+                Pilih divisi untuk melihat bracket pertandingan
+              </p>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }
