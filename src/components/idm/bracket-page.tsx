@@ -1,19 +1,43 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Radio, Swords, Trophy } from 'lucide-react';
 import { BracketContent, ResultsContent } from './match-day-center';
 
-/* ─── Division filter chips (extracted to avoid creating component during render) ─── */
-function DivisionChips({ division, setDivision }: { division: string; setDivision: (d: 'semua' | 'male' | 'female') => void }) {
+/* ─── Mobile detection (SSR-safe) ─── */
+const emptySubscribe = () => () => {};
+function useIsMobile() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mql = window.matchMedia('(max-width: 767px)');
+      mql.addEventListener('change', cb);
+      return () => mql.removeEventListener('change', cb);
+    },
+    () => window.innerWidth < 768,
+    () => false,
+  );
+}
+
+/* ─── Division filter chips ─── */
+function DivisionChips({
+  division,
+  setDivision,
+  hideSemua = false,
+}: {
+  division: string;
+  setDivision: (d: 'semua' | 'male' | 'female') => void;
+  hideSemua?: boolean;
+}) {
+  const options = [
+    { key: 'semua' as const, label: 'Semua' },
+    { key: 'male' as const, label: '♂ Cowo' },
+    { key: 'female' as const, label: '♀ Cewe' },
+  ].filter(opt => !hideSemua || opt.key !== 'semua');
+
   return (
     <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10 shrink-0">
-      {([
-        { key: 'semua' as const, label: 'Semua' },
-        { key: 'male' as const, label: 'Cowo' },
-        { key: 'female' as const, label: 'Cewe' },
-      ]).map(div => (
+      {options.map(div => (
         <button
           key={div.key}
           onClick={() => setDivision(div.key)}
@@ -37,12 +61,14 @@ function ViewHeader({
   subtitle,
   division,
   setDivision,
+  hideSemua = false,
 }: {
   icon: typeof Radio;
   title: string;
   subtitle: string;
   division: string;
   setDivision: (d: 'semua' | 'male' | 'female') => void;
+  hideSemua?: boolean;
 }) {
   return (
     <div className="border-b border-idm-gold-warm/10 bg-gradient-to-b from-idm-gold-warm/[0.03] to-transparent">
@@ -58,9 +84,9 @@ function ViewHeader({
           </div>
         </div>
 
-        {/* Row 2: Division chips only */}
+        {/* Row 2: Division chips */}
         <div className="flex items-center justify-end gap-2 py-2.5 overflow-x-auto">
-          <DivisionChips division={division} setDivision={setDivision} />
+          <DivisionChips division={division} setDivision={setDivision} hideSemua={hideSemua} />
         </div>
       </div>
     </div>
@@ -116,6 +142,10 @@ export function HasilPage() {
 /* ═══ BRACKET PAGE — Shows bracket tree only (no tabs) ═══ */
 export function BracketPage() {
   const { division, setDivision } = useAppStore();
+  const isMobile = useIsMobile();
+
+  /* On mobile: default to 'male' if division is 'semua' — no "Semua" tab on mobile bracket */
+  const effectiveDivision = isMobile && division === 'semua' ? 'male' : division;
 
   /* Allow body overflow for bracket zoom/pan — prevents clipping */
   useEffect(() => {
@@ -129,10 +159,11 @@ export function BracketPage() {
         icon={Trophy}
         title="Bracket"
         subtitle="Struktur bracket tarkam"
-        division={division}
+        division={effectiveDivision}
         setDivision={setDivision}
+        hideSemua={isMobile}
       />
-      <ViewContent mode="bracket" division={division} />
+      <ViewContent mode="bracket" division={effectiveDivision} />
     </div>
   );
 }
