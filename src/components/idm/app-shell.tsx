@@ -561,7 +561,7 @@ export function AppShell() {
 
     return (
       <PublicPageLayout currentView={currentView}>
-        <div className="max-w-7xl mx-auto px-0">
+        <div className={currentView === 'bracket' ? '' : 'max-w-7xl mx-auto px-0'}>
           {renderPublicView()}
         </div>
       </PublicPageLayout>

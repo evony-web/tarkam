@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Radio, Swords, Trophy } from 'lucide-react';
 import { BracketContent, ResultsContent } from './match-day-center';
@@ -77,12 +78,15 @@ function ViewContent({
   const divisionProp = division === 'female' ? 'female' as const : 'male' as const;
   const showBoth = division === 'semua';
   const ContentComponent = mode === 'results' ? ResultsContent : BracketContent;
+  /* Brackets need full width for horizontal scroll — always stack vertically.
+     Results can use side-by-side grid on large screens. */
+  const useGridLayout = showBoth && mode === 'results';
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+    <div className={mode === 'bracket' ? '' : 'max-w-7xl mx-auto px-3 sm:px-4 lg:px-6'}>
       <div className="mt-4 pb-6 space-y-4">
         {showBoth ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className={`grid gap-5 ${useGridLayout ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
             <ContentComponent divisionProp="male" />
             <ContentComponent divisionProp="female" />
           </div>
@@ -115,6 +119,12 @@ export function HasilPage() {
 /* ═══ BRACKET PAGE — Shows bracket tree only (no tabs) ═══ */
 export function BracketPage() {
   const { division, setDivision } = useAppStore();
+
+  /* Allow body overflow for bracket zoom/pan — prevents clipping */
+  useEffect(() => {
+    document.body.classList.add('bracket-overflow-active');
+    return () => document.body.classList.remove('bracket-overflow-active');
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">

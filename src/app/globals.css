@@ -9888,12 +9888,17 @@ html {
    which clips horizontal overflow without creating a new block
    formatting context that kills vertical scrolling.
    Fallback: body gets clip too for browsers that don't support it on html.
+   EXCEPTION: When .bracket-overflow-active is on body, allow overflow
+   so bracket zoom/pan content is not clipped.
 */
 html {
   overflow-x: clip;
 }
 body {
   overflow-x: clip;
+}
+body.bracket-overflow-active {
+  overflow-x: visible;
 }
 
 /* ─── Custom Scrollbar — Night Gold Theme ─── */
