@@ -668,57 +668,55 @@ export function DonorLeaderboardSection({
         <div className="max-w-2xl mx-auto">
           {/* ── Toggles Row ── */}
           <AnimatedSection variant="fadeUp" className="mb-6">
-            <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
-              {/* Time range toggle: Season vs Week selector */}
-              <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
-                {/* Season button */}
+            <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10 w-full sm:w-auto sm:inline-flex">
+              {/* Season button */}
+              <button
+                onClick={() => setTimeRange('season')}
+                className={`compact-pill px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                  timeRange === 'season'
+                    ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
+                    : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
+                }`}
+                aria-pressed={timeRange === 'season'}
+              >
+                <span className="hidden sm:inline">🏆 </span>Season
+              </button>
+
+              {/* Week selector — only shown when there are weeks available */}
+              {availableWeeks.length > 0 && (
+                <>
+                  <div className="w-px h-3 sm:h-4 bg-idm-gold-warm/15" />
+                  <WeekSelector
+                    availableWeeks={availableWeeks}
+                    selectedWeek={typeof timeRange === 'number' ? timeRange : latestWeekNumber}
+                    latestWeek={latestWeekNumber}
+                    onSelectWeek={(week) => setTimeRange(week)}
+                  />
+                </>
+              )}
+
+              {/* Divider between time range and division */}
+              <div className="w-px h-3 sm:h-4 bg-idm-gold-warm/15" />
+
+              {/* Division toggle */}
+              {([
+                { key: 'all' as DivisionFilter, label: 'Semua' },
+                { key: 'male' as DivisionFilter, label: <><span className="sm:hidden">Cowo</span><span className="hidden sm:inline">♂ Cowo</span></> },
+                { key: 'female' as DivisionFilter, label: <><span className="sm:hidden">Cewe</span><span className="hidden sm:inline">♀ Cewe</span></> },
+              ] as const).map(({ key, label }) => (
                 <button
-                  onClick={() => setTimeRange('season')}
-                  className={`compact-pill px-2.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                    timeRange === 'season'
+                  key={key}
+                  onClick={() => setDivisionFilter(key)}
+                  className={`compact-pill px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    divisionFilter === key
                       ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
                       : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
                   }`}
-                  aria-pressed={timeRange === 'season'}
+                  aria-pressed={divisionFilter === key}
                 >
-                  🏆 Season
+                  {label}
                 </button>
-
-                {/* Week selector — only shown when there are weeks available */}
-                {availableWeeks.length > 0 && (
-                  <>
-                    <div className="w-px h-3 sm:h-4 bg-idm-gold-warm/15" />
-                    <WeekSelector
-                      availableWeeks={availableWeeks}
-                      selectedWeek={typeof timeRange === 'number' ? timeRange : latestWeekNumber}
-                      latestWeek={latestWeekNumber}
-                      onSelectWeek={(week) => setTimeRange(week)}
-                    />
-                  </>
-                )}
-              </div>
-
-              {/* Division toggle */}
-              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
-                {([
-                  { key: 'all' as DivisionFilter, label: 'Semua' },
-                  { key: 'male' as DivisionFilter, label: '♂ Cowo' },
-                  { key: 'female' as DivisionFilter, label: '♀ Cewe' },
-                ] as const).map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setDivisionFilter(key)}
-                    className={`compact-pill px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      divisionFilter === key
-                        ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
-                        : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
-                    }`}
-                    aria-pressed={divisionFilter === key}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </AnimatedSection>
 
