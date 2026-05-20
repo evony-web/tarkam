@@ -510,40 +510,44 @@ function TournamentCard({
           );
         })()}
 
-        {/* CTA buttons — row on all screens */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onDonate(division.key)}
-            className="flex-1 py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-white hover:opacity-90 active:scale-[0.98]"
-            style={{
-              background: `linear-gradient(135deg, ${division.color} 0%, ${division.colorLight} 100%)`,
-              boxShadow: `0 4px 15px rgba(${division.colorRgb},0.25)`,
-            }}
-          >
-            <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Sawer</span>
-          </button>
-          <button
-            onClick={() => isRegistrationOpen && onRegister(division.key)}
-            disabled={!isRegistrationOpen}
-            className={`flex-1 py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl sm:rounded-2xl border text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 relative overflow-hidden ${
-              isRegistrationOpen
-                ? `tournament-cta-secondary cursor-pointer ${division.ctaBg}`
-                : 'bg-gray-500/10 border-gray-500/20 text-gray-500 cursor-not-allowed opacity-60'
-            }`}
-            title={isRegistrationOpen ? 'Daftar sekarang' : 'Pendaftaran belum dibuka'}
-          >
-            <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>{isRegistrationOpen ? 'Daftar' : 'Belum Buka'}</span>
-          </button>
-          <button
-            onClick={() => onPayment(division.key)}
-            className="flex-1 py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl sm:rounded-2xl border text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer bg-idm-gold-warm/5 border-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/15 hover:border-idm-gold-warm/35 active:scale-[0.98]"
-            title="Info pembayaran registrasi"
-          >
-            <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Bayar</span>
-          </button>
+        {/* CTA buttons — Sawer+Daftar in one row, Bayar below centered */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onDonate(division.key)}
+              className="flex-1 py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-white hover:opacity-90 active:scale-[0.98]"
+              style={{
+                background: `linear-gradient(135deg, ${division.color} 0%, ${division.colorLight} 100%)`,
+                boxShadow: `0 4px 15px rgba(${division.colorRgb},0.25)`,
+              }}
+            >
+              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Sawer</span>
+            </button>
+            <button
+              onClick={() => isRegistrationOpen && onRegister(division.key)}
+              disabled={!isRegistrationOpen}
+              className={`flex-1 py-2.5 min-h-[40px] sm:min-h-[44px] rounded-xl sm:rounded-2xl border text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 relative overflow-hidden ${
+                isRegistrationOpen
+                  ? `tournament-cta-secondary cursor-pointer ${division.ctaBg}`
+                  : 'bg-gray-500/10 border-gray-500/20 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
+              title={isRegistrationOpen ? 'Daftar sekarang' : 'Pendaftaran belum dibuka'}
+            >
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>{isRegistrationOpen ? 'Daftar' : 'Belum Buka'}</span>
+            </button>
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={() => onPayment(division.key)}
+              className="px-6 py-2 rounded-xl sm:rounded-2xl border text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer bg-idm-gold-warm/5 border-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/15 hover:border-idm-gold-warm/35 active:scale-[0.98]"
+              title="Info pembayaran registrasi"
+            >
+              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Pembayaran</span>
+            </button>
+          </div>
         </div>
       </div>
 
