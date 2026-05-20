@@ -261,6 +261,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
           {/* Desktop Nav Links — same items & style as landing page */}
           <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
             {[
+              { view: 'landing' as AppView, label: 'Beranda', special: false },
               { view: 'hasil' as AppView, label: 'Hasil', special: false },
               { view: 'bracket' as AppView, label: 'Bracket', special: false },
               { view: 'highlights' as AppView, label: 'Juara', special: true },
@@ -314,6 +315,7 @@ export function PublicPageLayout({ children, currentView }: { children: React.Re
         <div className="bg-background/95 backdrop-blur-lg">
           <div className="flex items-center justify-around h-16 px-1 relative">
             {[
+              { view: 'landing' as AppView, label: 'Beranda', icon: Home, special: false },
               { view: 'hasil' as AppView, label: 'Hasil', icon: Swords, special: false },
               { view: 'highlights' as AppView, label: 'Juara', icon: Crown, special: true },
               { view: 'peringkat' as AppView, label: 'Peringkat', icon: Award, special: false },
