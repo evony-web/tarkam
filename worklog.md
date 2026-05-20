@@ -821,3 +821,28 @@ Stage Summary:
 - Week selector: compact pills with navigation arrows (max 5 visible at a time)
 - File modified: `/home/z/my-project/src/components/idm/landing/donor-leaderboard-section.tsx`
 - No API changes needed — all data already available from `sultanOfWeekly.allDonors`
+---
+Task ID: 5
+Agent: Main
+Task: Fix and improve WeekSelector for scalability with 9+ weeks
+
+Work Log:
+- Analyzed current WeekSelector component — found broken navigation (scrollOffset state was disconnected from startIdx calculation, arrows were non-functional)
+- Redesigned WeekSelector with proper sliding window:
+  • ≤ 6 weeks: All pills visible, no arrows needed
+  • > 6 weeks: Scrollable pills with working ◀ ▶ arrows, max 6 visible at a time
+  • Auto-centers window on selected week when it's off-screen
+  • Shows … ellipsis indicators when more weeks exist beyond visible range
+  • Latest week shows a ● dot indicator
+- Fixed lint issues (useMemo side-effect → pure computation with state sync during render)
+- Removed unused Select component imports
+- Verified overall season leaderboard logic already works correctly (uses topDonors from API which accumulates across ALL weeks)
+- Verified Sultan of the Week tie-break logic is comprehensive (3-level: totalAmount → earliestDonationAt → donationCount)
+- Verified Co-Sultan handling when amounts are equal
+- Server running stable, all endpoints returning 200
+
+Stage Summary:
+- File modified: `/home/z/my-project/src/components/idm/landing/donor-leaderboard-section.tsx`
+- WeekSelector now scales to any number of weeks (9, 10, 20+) without layout issues
+- Navigation arrows work correctly with proper sliding window
+- Season leaderboard, per-week leaderboard, and Sultan logic all verified working

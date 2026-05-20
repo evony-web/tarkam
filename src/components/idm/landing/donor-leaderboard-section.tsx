@@ -278,7 +278,17 @@ function SultanOfWeeklyCard({
 }
 
 /* ═══════════════════════════════════════════════════════
-   WEEK SELECTOR — Compact week pill navigation
+   WEEK SELECTOR — Scalable week navigation
+   
+   Strategy:
+   • ≤ 6 weeks  → All pills visible (no scroll needed)
+   • > 6 weeks  → Scrollable pills with ◀ ▶ arrows
+                   (shows max 6 at a time, sliding window)
+   
+   Window auto-centers on selected week — no separate
+   scroll state needed. Arrows shift the window by 1.
+   
+   Handles any season length: 2 weeks, 9 weeks, even 20+.
    ═══════════════════════════════════════════════════════ */
 function WeekSelector({
   availableWeeks,
@@ -291,42 +301,72 @@ function WeekSelector({
   latestWeek: number;
   onSelectWeek: (week: number) => void;
 }) {
-  // Show max 5 weeks at a time with navigation
-  const MAX_VISIBLE = 5;
-  const selectedIndex = availableWeeks.indexOf(selectedWeek);
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const totalWeeks = availableWeeks.length;
+  const MAX_VISIBLE = 6;
+  const needScroll = totalWeeks > MAX_VISIBLE;
 
-  // Calculate visible window
-  const startIdx = Math.max(0, Math.min(selectedIndex - Math.floor(MAX_VISIBLE / 2), availableWeeks.length - MAX_VISIBLE));
-  const endIdx = Math.min(startIdx + MAX_VISIBLE, availableWeeks.length);
-  const visibleWeeks = availableWeeks.slice(startIdx, endIdx);
+  // ── Sliding window state (only used when needScroll) ──
+  const [windowStart, setWindowStart] = useState(0);
 
-  const canScrollLeft = startIdx > 0;
-  const canScrollRight = endIdx < availableWeeks.length;
+  // Clamp windowStart to valid range (guards against stale state after data changes)
+  const clampedStart = needScroll
+    ? Math.max(0, Math.min(windowStart, totalWeeks - MAX_VISIBLE))
+    : 0;
+
+  // If selected week is outside the current window, auto-center it
+  const selectedIdx = availableWeeks.indexOf(selectedWeek);
+  const effectiveStart = useMemo(() => {
+    if (!needScroll) return 0;
+    if (selectedIdx < 0) return clampedStart;
+    if (selectedIdx < clampedStart || selectedIdx >= clampedStart + MAX_VISIBLE) {
+      // Selected week is off-screen → center the window on it
+      return Math.max(0, Math.min(selectedIdx - Math.floor(MAX_VISIBLE / 2), totalWeeks - MAX_VISIBLE));
+    }
+    return clampedStart;
+  }, [needScroll, selectedIdx, clampedStart, totalWeeks]);
+
+  // Sync state when auto-centering kicks in
+  if (effectiveStart !== clampedStart && effectiveStart !== windowStart) {
+    setWindowStart(effectiveStart);
+  }
+
+  const visibleWeeks = needScroll
+    ? availableWeeks.slice(effectiveStart, effectiveStart + MAX_VISIBLE)
+    : availableWeeks;
+
+  const canScrollLeft = effectiveStart > 0;
+  const canScrollRight = effectiveStart + MAX_VISIBLE < totalWeeks;
 
   return (
     <div className="flex items-center gap-1">
-      {/* Left arrow */}
-      <button
-        onClick={() => setScrollOffset(prev => Math.max(0, prev - 1))}
-        disabled={!canScrollLeft}
-        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all ${
-          canScrollLeft
-            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
-            : 'text-muted-foreground/20 cursor-not-allowed'
-        }`}
-        aria-label="Previous weeks"
-      >
-        <ChevronLeft className="w-3 h-3" />
-      </button>
+      {/* Left arrow — only when scrollable */}
+      {needScroll && (
+        <button
+          onClick={() => setWindowStart(s => Math.max(0, s - 1))}
+          disabled={!canScrollLeft}
+          className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+            canScrollLeft
+              ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+              : 'text-muted-foreground/20 cursor-not-allowed'
+          }`}
+          aria-label="Previous weeks"
+        >
+          <ChevronLeft className="w-3 h-3" />
+        </button>
+      )}
+
+      {/* Leading ellipsis — indicates more weeks before visible range */}
+      {needScroll && effectiveStart > 0 && (
+        <span className="text-[8px] text-muted-foreground/40 px-0.5 shrink-0">…</span>
+      )}
 
       {/* Week pills */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1">
         {visibleWeeks.map((week) => (
           <button
             key={week}
             onClick={() => onSelectWeek(week)}
-            className={`px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            className={`px-1.5 sm:px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               selectedWeek === week
                 ? week === latestWeek
                   ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
@@ -343,19 +383,26 @@ function WeekSelector({
         ))}
       </div>
 
-      {/* Right arrow */}
-      <button
-        onClick={() => setScrollOffset(prev => prev + 1)}
-        disabled={!canScrollRight}
-        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all ${
-          canScrollRight
-            ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
-            : 'text-muted-foreground/20 cursor-not-allowed'
-        }`}
-        aria-label="Next weeks"
-      >
-        <ChevronRight className="w-3 h-3" />
-      </button>
+      {/* Trailing ellipsis — indicates more weeks after visible range */}
+      {needScroll && effectiveStart + MAX_VISIBLE < totalWeeks && (
+        <span className="text-[8px] text-muted-foreground/40 px-0.5 shrink-0">…</span>
+      )}
+
+      {/* Right arrow — only when scrollable */}
+      {needScroll && (
+        <button
+          onClick={() => setWindowStart(s => Math.min(totalWeeks - MAX_VISIBLE, s + 1))}
+          disabled={!canScrollRight}
+          className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+            canScrollRight
+              ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
+              : 'text-muted-foreground/20 cursor-not-allowed'
+          }`}
+          aria-label="Next weeks"
+        >
+          <ChevronRight className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 }
