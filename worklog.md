@@ -480,3 +480,45 @@ Stage Summary:
   - `src/app/api/tournaments/[id]/score/route.ts` — Dynamic group label references
   - `src/lib/tournament/bracket-generator.ts` — Same balanced distribution logic
 - Playoff seeding logic unchanged (A1 vs B2, B1 vs A2 already works with 2 groups)
+
+---
+Task ID: 3
+Agent: Main
+Task: Enhance admin panel bracket visualization — admin sees bracket + standings + score inputs (not just flat match list)
+
+Work Log:
+- Analyzed current admin panel: single_elimination and upper_semi already used `<BracketView mode="admin" />` with full visual bracket, but group_stage and swiss used inline `AdminMatchCard` grid — NO bracket visualization, NO standings, NO tournament path
+- User request: "inputan skor admin sama dengan visual bracket agar admin tidak cuma input skor tapi tau jalur2nya sudah sampai mana dan bisa lihat poin dan alur turnamenya hingga GF"
+- Enhanced `GroupStageView` in bracket-view.tsx:
+  - Added `mode` and `adminProps` props
+  - Group match cards now have admin header bar (Start/LIVE/✅ indicators)
+  - Score inputs appear when match is live and tournament is in main_event
+  - Submit button when both scores entered, Undo button for completed matches
+  - Playoff matches use `BracketMatchCard` in admin mode (consistent with single_elimination)
+  - Public mode rendering unchanged
+- Enhanced `SwissView` in bracket-view.tsx:
+  - Same admin mode pattern as GroupStageView
+  - Swiss round match cards with Start/Score Input/Submit/Undo
+  - Playoff section uses BracketMatchCard in admin mode
+  - W/L/D badges hidden in admin mode to avoid clutter alongside inputs
+  - Public mode rendering unchanged
+- Updated BracketView render sections:
+  - group_stage → passes `mode={mode} adminProps={adminProps}` to GroupStageView
+  - round_robin → same
+  - swiss → passes `mode={mode} adminProps={adminProps}` to SwissView
+- Refactored tournament-manager.tsx:
+  - Replaced ~430 lines of inline AdminMatchCard code for swiss and group_stage
+  - Now uses `<BracketView mode="admin" />` for ALL formats (single_elimination, upper_semi, group_stage, swiss)
+  - Same match mapping pattern across all formats
+  - Much cleaner and consistent — admin experience is now the same premium bracket visual for every format
+- Verified: no new lint errors, dev server 200 OK, API endpoints responding correctly
+
+Stage Summary:
+- **Admin panel now shows FULL bracket visualization** for all tournament formats
+- Group Stage admin sees: Group Standings tables (W/D/L/Pts) → Group match schedule with score inputs → Playoff bracket path (SF1, SF2 → GF, 3rd) with visual flow connections
+- Swiss admin sees: Swiss Standings table (W/D/L/Pts/Buchholz) → Round-by-round match cards with score inputs → Playoff bracket with visual flow connections
+- Score input integrated INTO the bracket visual — admin sees the tournament path AND can input scores in the same view
+- Files modified:
+  - `src/components/idm/bracket-view.tsx` — GroupStageView + SwissView enhanced with admin mode
+  - `src/components/idm/tournament-manager.tsx` — Replaced inline rendering with BracketView for all formats
+- Key architectural improvement: All 4 tournament formats now use the SAME BracketView component with mode="admin", eliminating ~430 lines of duplicate inline code

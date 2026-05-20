@@ -2061,244 +2061,8 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   return null;
                 })()}
 
-                {/* ── Swiss format: Bracket visual for playoff ── */}
-                {selected.format === 'swiss' ? (() => {
-                  const swissBracket = matchesByBracket['swiss'] || [];
-                  const upperBracket = matchesByBracket['upper'] || [];
-                  const lowerBracket = matchesByBracket['lower'] || [];
-                  const playoffAll = [...upperBracket, ...lowerBracket];
-
-                  // Categorize playoff matches by groupLabel
-                  const sf1 = playoffAll.find((m: any) => m.groupLabel === 'SF1');
-                  const sf2 = playoffAll.find((m: any) => m.groupLabel === 'SF2');
-                  const grandFinal = playoffAll.find((m: any) => m.groupLabel === 'Final');
-                  const thirdPlace = playoffAll.find((m: any) => m.groupLabel === '3rd');
-
-                  // Swiss match type
-                  type SwissMatch = {
-                    id: string; round: number; matchNumber: number; bracket: string; format: string;
-                    team1Id: string | null; team2Id: string | null; score1: number | null; score2: number | null;
-                    status: string; winnerId: string | null; loserId: string | null; mvpPlayerId: string | null;
-                    groupLabel?: string;
-                    team1: { name: string; teamPlayers: { player: { gamertag: string; tier: string } }[] } | null;
-                    team2: { name: string; teamPlayers: { player: { gamertag: string; tier: string } }[] } | null;
-                    winner: { name: string } | null; mvpPlayer: { gamertag: string } | null;
-                  };
-
-                  // Helper to render a match card with admin controls
-                  const renderAdminMatchCard = (m: SwissMatch, labelOverride?: string) => {
-                    const hasScore = m.score1 !== null && m.score2 !== null;
-                    const isLive = m.status === 'live' || m.status === 'main_event';
-                    const isCompleted = m.status === 'completed';
-                    const isReady = m.status === 'ready';
-                    const isPending = m.status === 'pending';
-                    const label = labelOverride || m.groupLabel || '';
-                    const isGrandFinal = label === 'Final';
-                    const is3rd = label === '3rd';
-                    const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? '🏆 Grand Final' : label === '3rd' ? '🥉 3rd Place' : label;
-
-                    return (
-                      <div key={m.id} className={`p-2.5 rounded-lg border text-xs transition-all ${
-                        isLive ? 'bg-red-500/5 border-red-500/20' :
-                        isCompleted ? 'bg-muted/30 border-border/20' :
-                        isReady ? 'bg-green-500/5 border-green-500/20' :
-                        isGrandFinal ? 'bg-idm-gold-warm/5 border-idm-gold-warm/25' :
-                        is3rd ? 'bg-orange-500/5 border-orange-500/15' :
-                        'bg-muted/20 border-border/10'
-                      }`}>
-
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            {matchLabel && <Badge className={`text-xs border-0 ${
-                              isGrandFinal ? 'bg-idm-gold-warm/15 text-idm-gold-warm' :
-                              is3rd ? 'bg-orange-500/10 text-orange-400' :
-                              'bg-idm-gold-warm/10 text-idm-gold-warm'
-                            }`}>{matchLabel}</Badge>}
-                            <Badge className="text-xs border-0 bg-muted/50">{m.format}</Badge>
-                            {isLive && <Badge className="text-xs border-0 bg-red-500/10 text-red-500">🔴 LIVE</Badge>}
-                            {isCompleted && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">✅ Selesai</Badge>}
-                            {isReady && <Badge className="text-xs border-0 bg-green-500/10 text-green-500">Siap</Badge>}
-                            {isPending && <Badge className="text-xs border-0 bg-muted/50 text-muted-foreground">Menunggu</Badge>}
-                          </div>
-                          {m.winner && <span className="text-idm-gold-warm font-semibold">👑 {m.winner.name}</span>}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <div className={`flex-1 ${m.winnerId === m.team1Id ? 'font-bold text-idm-gold-warm' : ''}`}>
-                            {getTeamName(m.team1Id)}
-                            {m.team1 && <span className="text-xs text-muted-foreground ml-1">({m.team1.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
-                          </div>
-                          {hasScore ? (
-                            <span className="font-mono font-bold">{m.score1} - {m.score2}</span>
-                          ) : <span className="text-muted-foreground">vs</span>}
-                          <div className={`flex-1 text-right ${m.winnerId === m.team2Id ? 'font-bold text-idm-gold-warm' : ''}`}>
-                            {getTeamName(m.team2Id)}
-                            {m.team2 && <span className="text-xs text-muted-foreground ml-1">({m.team2.teamPlayers.map((tp: { player: { gamertag: string } }) => tp.player.gamertag).join(', ')})</span>}
-                          </div>
-                        </div>
-
-                        {m.mvpPlayer && <p className="text-xs text-idm-gold-warm mt-1">⭐ MVP: {m.mvpPlayer.gamertag}</p>}
-
-                        {/* Undo button for completed matches */}
-                        {selected.status === 'main_event' && isCompleted && m.team1Id && m.team2Id && (
-                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-                            <Button size="sm" variant="outline" className="text-sm h-8 text-orange-400 border-orange-400/30 hover:bg-orange-400/10"
-                              disabled={undoScoreMutation.isPending}
-                              onClick={() => {
-                                setConfirmDialog({
-                                  open: true, title: 'Undo Skor?',
-                                  description: `Batalkan skor ${getTeamName(m.team1Id)} ${m.score1} - ${m.score2} ${getTeamName(m.team2Id)}? Stats pemain akan dikembalikan.`,
-                                  onConfirm: () => undoScoreMutation.mutate({ tournamentId: selected.id, matchId: m.id })
-                                });
-                              }}>
-                              {undoScoreMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Undo2 className="w-3 h-3 mr-1" />} Undo
-                            </Button>
-                          </div>
-                        )}
-
-                        {/* Actions for live/pending matches */}
-                        {selected.status === 'main_event' && m.team1Id && m.team2Id && !isCompleted && (
-                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-                            {(isReady || isPending) && (
-                              <Button size="sm" className="text-sm h-8 bg-green-600 hover:bg-green-700 text-white"
-                                disabled={startMatchMutation.isPending}
-                                onClick={() => startMatchMutation.mutate({ tournamentId: selected.id, matchId: m.id })}>
-                                <Play className="w-3 h-3 mr-1" /> Start
-                              </Button>
-                            )}
-                            {isLive && (
-                              <>
-                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team1Id)} className="w-16 h-8 text-sm"
-                                  value={scoreInputs[m.id]?.s1 ?? ''}
-                                  onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s1: e.target.value, s2: prev[m.id]?.s2 ?? '' } }))} />
-                                <span className="text-xs text-muted-foreground">vs</span>
-                                <Input type="number" min={0} step="any" placeholder={getTeamName(m.team2Id)} className="w-16 h-8 text-sm"
-                                  value={scoreInputs[m.id]?.s2 ?? ''}
-                                  onChange={e => setScoreInputs(prev => ({ ...prev, [m.id]: { ...prev[m.id], s2: e.target.value, s1: prev[m.id]?.s1 ?? '' } }))} />
-                                <Button size="sm" className="text-sm h-8 bg-idm-gold-warm hover:bg-idm-gold-warm/80 text-black"
-                                  disabled={scoreInputs[m.id]?.s1 == null || scoreInputs[m.id]?.s1 === '' || scoreInputs[m.id]?.s2 == null || scoreInputs[m.id]?.s2 === '' || scoreMutation.isPending}
-                                  onClick={() => {
-                                    const s1 = parseInt(scoreInputs[m.id].s1);
-                                    const s2 = parseInt(scoreInputs[m.id].s2);
-                                    if (isNaN(s1) || isNaN(s2)) { toast.error('Skor harus berupa angka!'); return; }
-                                    if (s1 < 0 || s2 < 0) { toast.error('Skor tidak boleh negatif!'); return; }
-                                    const isGroupBracket = m.bracket === 'group';
-                                    if (s1 === s2 && !isGroupBracket) { toast.error('Skor tidak boleh seri di bracket eliminasi!'); return; }
-                                    setConfirmDialog({
-                                      open: true, title: 'Konfirmasi Skor?',
-                                      description: `${getTeamName(m.team1Id)} ${s1} - ${s2} ${getTeamName(m.team2Id)}${s1 === s2 ? ' (Seri)' : ''}`,
-                                      onConfirm: () => scoreMutation.mutate({ tournamentId: selected.id, matchId: m.id, score1: s1, score2: s2 })
-                                    });
-                                  }}>
-                                  {scoreMutation.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />} Submit
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  };
-
-                  return (
-                    <>
-                      {/* Swiss rounds — flat list */}
-                      {swissBracket.length > 0 && (() => {
-                        const sortedSwiss = [...swissBracket].sort((a: any, b: any) => a.round - b.round || a.matchNumber - b.matchNumber);
-                        const realSwiss = sortedSwiss.filter((m: any) => m.team1Id && m.team2Id);
-                        const byeSwiss = sortedSwiss.filter((m: any) => !m.team1Id || !m.team2Id);
-                        const getByeTeamName = (m: any) => {
-                          if (m.team1Id && m.team1) return m.team1.name;
-                          if (m.team2Id && m.team2) return m.team2.name;
-                          return 'TBD';
-                        };
-                        return (
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">{BRACKET_LABELS['swiss']}</p>
-                            <div className="space-y-1.5">
-                              {realSwiss.map((m: any) => renderAdminMatchCard(m))}
-                              {byeSwiss.length > 0 && (
-                                <div className="mt-2 pt-2 border-t border-border/10">
-                                  <div className="flex items-center gap-1.5 mb-1.5">
-                                    <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500 font-bold">BYE</Badge>
-                                    <span className="text-xs text-muted-foreground">Tim berikut mendapat bye:</span>
-                                  </div>
-                                  {byeSwiss.map((m: any) => (
-                                    <div key={m.id} className="p-3 rounded-lg border border-amber-500/15 bg-amber-500/5 text-xs opacity-70">
-                                      <div className="flex items-center gap-2">
-                                        <Badge className="text-xs border-0 bg-muted/50">R{m.round}M{m.matchNumber}</Badge>
-                                        <Badge className="text-xs border-0 bg-amber-500/10 text-amber-500">BYE</Badge>
-                                        <span className="text-muted-foreground">{getByeTeamName(m)} <span className="text-amber-500/70 italic">(bye)</span></span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* ── Semi Final Section ── */}
-                      {(sf1 || sf2) && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider">
-                              Semi Final
-                            </div>
-                            <div className="flex-1 h-px bg-border/20" />
-                            <span className="text-xs text-muted-foreground">Pemenang → Grand Final</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {sf1 && renderAdminMatchCard(sf1, 'SF1')}
-                            {sf2 && renderAdminMatchCard(sf2, 'SF2')}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* ── Connection visual: SF → Finals ── */}
-                      {(sf1 || sf2) && (grandFinal || thirdPlace) && (
-                        <div className="flex items-center justify-center gap-2 py-1.5">
-                          <div className="flex-1 flex items-center justify-end">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
-                              <div className="h-px w-8 bg-idm-gold-warm/30" />
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="w-px h-3 bg-idm-gold-warm/20" />
-                            <div className="w-3.5 h-3.5 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
-                              <Crown className="w-2 h-2 text-idm-gold-warm" />
-                            </div>
-                            <div className="w-px h-3 bg-orange-500/20" />
-                          </div>
-                          <div className="flex-1 flex items-center">
-                            <div className="flex items-center gap-1">
-                              <div className="h-px w-8 bg-orange-500/20" />
-                              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* ── Grand Final + 3rd Place Section ── */}
-                      {(grandFinal || thirdPlace) && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-border">
-                              🏆 Grand Final
-                            </div>
-                            <div className="flex-1 h-px bg-border/20" />
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {grandFinal && renderAdminMatchCard(grandFinal, 'Final')}
-                            {thirdPlace && renderAdminMatchCard(thirdPlace, '3rd')}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })() : selected.format === 'single_elimination' ? (
+                {/* ── All formats now use BracketView with admin mode ── */}
+                {selected.format === 'single_elimination' ? (
                   /* ── Single Elimination: bracket visual with admin mode ── */
                   <BracketView
                     matches={selected.matches.map((m: any) => ({
@@ -2366,125 +2130,75 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       setConfirmDialog,
                     }}
                   />
-                ) : selected.format === 'group_stage' ? (() => {
-                  /* ── Group Stage: groups + playoff bracket visual ── */
-                  const groupMatches = matchesByBracket['group'] || [];
-                  const upperBracket = matchesByBracket['upper'] || [];
-                  const lowerBracket = matchesByBracket['lower'] || [];
-                  const playoffAll = [...upperBracket, ...lowerBracket];
-
-                  // Group matches by groupLabel
-                  const groupsMap: Record<string, any[]> = {};
-                  groupMatches.forEach((m: any) => {
-                    const label = m.groupLabel || 'A';
-                    if (!groupsMap[label]) groupsMap[label] = [];
-                    groupsMap[label].push(m);
-                  });
-
-                  // Playoff matches
-                  const sf1 = playoffAll.find((m: any) => m.groupLabel === 'SF1');
-                  const sf2 = playoffAll.find((m: any) => m.groupLabel === 'SF2');
-                  const grandFinal = playoffAll.find((m: any) => m.groupLabel === 'Final');
-                  const thirdPlace = playoffAll.find((m: any) => m.groupLabel === '3rd');
-
-                  return (
-                    <>
-                      {/* Group sections */}
-                      {Object.entries(groupsMap).sort(([a], [b]) => a.localeCompare(b)).map(([label, gMatches]) => {
-                        const realMatches = gMatches.filter((m: any) => m.team1Id && m.team2Id);
-                        return (
-                          <div key={label}>
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="px-2.5 py-1 rounded-md bg-muted/30 text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                                Grup {label}
-                              </div>
-                              <div className="flex-1 h-px bg-border/20" />
-                              <span className="text-xs text-muted-foreground">{realMatches.length} match</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                              {realMatches.map((m: any) => (
-                                <AdminMatchCard key={m.id} m={m} selected={selected} getTeamName={getTeamName}
-                                  scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                                  scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                                  undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {/* ── Semi Final Section ── */}
-                      {(sf1 || sf2) && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/10 text-idm-gold-warm text-xs font-bold uppercase tracking-wider">
-                              Semi Final
-                            </div>
-                            <div className="flex-1 h-px bg-border/20" />
-                            <span className="text-xs text-muted-foreground">Pemenang → Grand Final</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {sf1 && <AdminMatchCard key={sf1.id} m={sf1} labelOverride="SF1" selected={selected} getTeamName={getTeamName}
-                              scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                              scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                              undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />}
-                            {sf2 && <AdminMatchCard key={sf2.id} m={sf2} labelOverride="SF2" selected={selected} getTeamName={getTeamName}
-                              scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                              scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                              undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Connection visual */}
-                      {(sf1 || sf2) && (grandFinal || thirdPlace) && (
-                        <div className="flex items-center justify-center gap-2 py-1.5">
-                          <div className="flex-1 flex items-center justify-end">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-bold text-idm-gold-warm uppercase tracking-wider">🏆 Pemenang</span>
-                              <div className="h-px w-8 bg-idm-gold-warm/30" />
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="w-px h-3 bg-idm-gold-warm/20" />
-                            <div className="w-3.5 h-3.5 rounded-full border border-idm-gold-warm/30 bg-idm-gold-warm/5 flex items-center justify-center">
-                              <Crown className="w-2 h-2 text-idm-gold-warm" />
-                            </div>
-                            <div className="w-px h-3 bg-orange-500/20" />
-                          </div>
-                          <div className="flex-1 flex items-center">
-                            <div className="flex items-center gap-1">
-                              <div className="h-px w-8 bg-orange-500/20" />
-                              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Kalah → 🥉</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* ── Grand Final + 3rd Place Section ── */}
-                      {(grandFinal || thirdPlace) && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="px-2.5 py-1 rounded-md bg-idm-gold-warm/15 text-idm-gold-warm text-xs font-bold uppercase tracking-wider border border-border">
-                              🏆 Grand Final
-                            </div>
-                            <div className="flex-1 h-px bg-border/20" />
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {grandFinal && <AdminMatchCard key={grandFinal.id} m={grandFinal} labelOverride="Final" selected={selected} getTeamName={getTeamName}
-                              scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                              scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                              undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />}
-                            {thirdPlace && <AdminMatchCard key={thirdPlace.id} m={thirdPlace} labelOverride="3rd" selected={selected} getTeamName={getTeamName}
-                              scoreInputs={scoreInputs} setScoreInputs={setScoreInputs}
-                              scoreMutation={scoreMutation} startMatchMutation={startMatchMutation}
-                              undoScoreMutation={undoScoreMutation} setConfirmDialog={setConfirmDialog} />}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })() : (
+                ) : selected.format === 'group_stage' ? (
+                  /* ── Group Stage: BracketView with standings + playoff visual + admin mode ── */
+                  <BracketView
+                    matches={selected.matches.map((m: any) => ({
+                      id: m.id,
+                      score1: m.score1,
+                      score2: m.score2,
+                      status: m.status,
+                      team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+                      team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+                      mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, name: m.mvpPlayer.name, gamertag: m.mvpPlayer.gamertag } : null,
+                      round: m.round ?? 1,
+                      matchNumber: m.matchNumber,
+                      bracket: m.bracket,
+                      groupLabel: m.groupLabel,
+                      winnerId: m.winnerId,
+                      format: m.format,
+                      team1Players: m.team1?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                      team2Players: m.team2?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                    }))}
+                    bracketType="group_stage"
+                    mode="admin"
+                    adminProps={{
+                      tournamentId: selected.id,
+                      tournamentStatus: selected.status,
+                      getTeamName,
+                      scoreInputs,
+                      setScoreInputs,
+                      scoreMutation,
+                      startMatchMutation,
+                      undoScoreMutation,
+                      setConfirmDialog,
+                    }}
+                  />
+                ) : selected.format === 'swiss' ? (
+                  /* ── Swiss: BracketView with standings + playoff visual + admin mode ── */
+                  <BracketView
+                    matches={selected.matches.map((m: any) => ({
+                      id: m.id,
+                      score1: m.score1,
+                      score2: m.score2,
+                      status: m.status,
+                      team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+                      team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+                      mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, name: m.mvpPlayer.name, gamertag: m.mvpPlayer.gamertag } : null,
+                      round: m.round ?? 1,
+                      matchNumber: m.matchNumber,
+                      bracket: m.bracket,
+                      groupLabel: m.groupLabel,
+                      winnerId: m.winnerId,
+                      format: m.format,
+                      team1Players: m.team1?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                      team2Players: m.team2?.teamPlayers?.map((tp: any) => tp.player.gamertag).join(', '),
+                    }))}
+                    bracketType="swiss"
+                    mode="admin"
+                    adminProps={{
+                      tournamentId: selected.id,
+                      tournamentStatus: selected.status,
+                      getTeamName,
+                      scoreInputs,
+                      setScoreInputs,
+                      scoreMutation,
+                      startMatchMutation,
+                      undoScoreMutation,
+                      setConfirmDialog,
+                    }}
+                  />
+                ) : (
                   /* ── Other formats: original flat rendering ── */
                   Object.entries(matchesByBracket).map(([bracket, matches]) => {
                     const sortedMatches = [...matches].sort((a: { round: number; matchNumber: number }, b: { round: number; matchNumber: number }) => a.round - b.round || a.matchNumber - b.matchNumber);

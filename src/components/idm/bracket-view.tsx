@@ -814,8 +814,10 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
 }
 
 /* ─── Group Stage Table ─── */
-function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData: { round: number; label: string; matches: Match[] }[] }) {
+function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Match[]; roundsData: { round: number; label: string; matches: Match[] }[]; mode?: 'public' | 'admin'; adminProps?: AdminBracketProps }) {
   const dt = useDivisionTheme();
+  const isAdmin = mode === 'admin' && !!adminProps;
+  const tournamentInMainEvent = isAdmin && adminProps!.tournamentStatus === 'main_event';
 
   // Separate group matches from playoff matches
   const groupMatches = useMemo(() => matches.filter(m => (m as Match & { bracket?: string }).bracket === 'group'), [matches]);
@@ -929,12 +931,73 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
               const winner2 = hasScore && m.score2! > m.score1!;
               const isDraw = hasScore && m.score1 === m.score2;
               const isLive = m.status === 'live' || m.status === 'main_event';
+              const isCompleted = m.status === 'completed' || m.status === 'scoring';
+              const isReady = m.status === 'ready';
+              const isPending = m.status === 'pending';
+              const bothTeamsExist = !!(m.team1 && m.team2);
+              const bothScoresEntered = isAdmin && isLive && tournamentInMainEvent &&
+                (adminProps!.scoreInputs[m.id]?.s1 ?? '') !== '' && (adminProps!.scoreInputs[m.id]?.s2 ?? '') !== '';
+
+              const handleSubmitScore = () => {
+                if (!adminProps) return;
+                const s1 = parseInt(adminProps.scoreInputs[m.id]?.s1 ?? '');
+                const s2 = parseInt(adminProps.scoreInputs[m.id]?.s2 ?? '');
+                if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) return;
+                adminProps.setConfirmDialog({
+                  open: true,
+                  title: 'Konfirmasi Skor?',
+                  description: `${adminProps.getTeamName(m.team1?.id ?? null)} ${s1} - ${s2} ${adminProps.getTeamName(m.team2?.id ?? null)}`,
+                  onConfirm: () => adminProps!.scoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id, score1: s1, score2: s2 }),
+                });
+              };
+
+              const handleUndo = () => {
+                if (!adminProps) return;
+                adminProps.setConfirmDialog({
+                  open: true,
+                  title: 'Undo Skor?',
+                  description: `Batalkan skor ${adminProps.getTeamName(m.team1?.id ?? null)} ${m.score1} - ${m.score2} ${adminProps.getTeamName(m.team2?.id ?? null)}? Stats pemain akan dikembalikan.`,
+                  onConfirm: () => adminProps!.undoScoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id }),
+                });
+              };
+
               return (
                 <div
                   key={m.id}
                   className={`hover-scale-sm rounded-lg overflow-hidden border ${isLive ? `border-red-500/30 ${dt.neonPulse}` : dt.borderSubtle} transition-all ${dt.hoverBorder} relative`}
                   style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                 >
+                  {/* Admin header bar */}
+                  {isAdmin && (isLive || (isReady || isPending) || isCompleted) && (
+                    <div className={`flex items-center justify-between px-2.5 py-1 border-b ${dt.borderSubtle} bg-muted/30`}>
+                      <div className="flex items-center gap-1.5">
+                        {(isReady || isPending) && bothTeamsExist && tournamentInMainEvent && (
+                          <button
+                            onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id })}
+                            disabled={adminProps!.startMatchMutation.isPending}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+                          >
+                            <Play className="w-2.5 h-2.5" /> Start
+                          </button>
+                        )}
+                        {isLive && (
+                          <div className="flex items-center gap-1">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                            </span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-red-500">LIVE</span>
+                          </div>
+                        )}
+                        {isCompleted && tournamentInMainEvent && (
+                          <span className="text-[9px] font-bold text-green-400">✅</span>
+                        )}
+                      </div>
+                      {isAdmin && m.format && (
+                        <span className="text-[9px] font-bold text-muted-foreground/60">{m.format}</span>
+                      )}
+                    </div>
+                  )}
                   {(!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed' && (
                     <div className="absolute top-0.5 right-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded z-10">
                       WALKOVER
@@ -944,18 +1007,62 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
                     <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                       {m.team1?.name || 'TBD'}
                     </span>
-                    <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                      {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
-                    </span>
+                    {isAdmin && isLive && tournamentInMainEvent ? (
+                      <input
+                        type="number" min={0}
+                        value={adminProps!.scoreInputs[m.id]?.s1 ?? ''}
+                        onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [m.id]: {...prev[m.id] ?? {s1:'', s2:''}, s1: e.target.value}}))}
+                        className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+                        placeholder="0"
+                      />
+                    ) : (
+                      <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                        {m.team1 ? (hasScore ? m.score1 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score1 : '-'))}
+                      </span>
+                    )}
                   </div>
                   <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
                     <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                       {m.team2?.name || 'TBD'}
                     </span>
-                    <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                      {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
-                    </span>
+                    {isAdmin && isLive && tournamentInMainEvent ? (
+                      <input
+                        type="number" min={0}
+                        value={adminProps!.scoreInputs[m.id]?.s2 ?? ''}
+                        onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [m.id]: {...prev[m.id] ?? {s1:'', s2:''}, s2: e.target.value}}))}
+                        className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+                        placeholder="0"
+                      />
+                    ) : (
+                      <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                        {m.team2 ? (hasScore ? m.score2 : '-') : (m.status === 'pending' || m.status === 'ready' ? '' : (hasScore ? m.score2 : '-'))}
+                      </span>
+                    )}
                   </div>
+                  {/* Admin: Submit button */}
+                  {isAdmin && isLive && tournamentInMainEvent && bothScoresEntered && (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+                      <button
+                        onClick={handleSubmitScore}
+                        disabled={adminProps!.scoreMutation.isPending}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+                      >
+                        <Check className="w-3 h-3" /> Submit
+                      </button>
+                    </div>
+                  )}
+                  {/* Admin: Undo button for completed matches */}
+                  {isAdmin && isCompleted && tournamentInMainEvent && bothTeamsExist && (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+                      <button
+                        onClick={handleUndo}
+                        disabled={adminProps!.undoScoreMutation.isPending}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+                      >
+                        <Undo2 className="w-3 h-3" /> Undo
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -974,14 +1081,27 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
 
         // Helper to render playoff card
         const renderPlayoffCard = (m: Match, labelOverride?: string) => {
+          const label = labelOverride || m.groupLabel || '';
+          const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
+          const isGrandFinal = label === 'Final';
+
+          if (isAdmin) {
+            return (
+              <BracketMatchCard
+                match={m}
+                matchLabel={matchLabel}
+                isGrandFinal={isGrandFinal}
+                mode="admin"
+                adminProps={adminProps}
+              />
+            );
+          }
+
           const hasScore = m.score1 !== null && m.score2 !== null;
           const winner1 = hasScore && m.score1! > m.score2!;
           const winner2 = hasScore && m.score2! > m.score1!;
           const isLive = m.status === 'live' || m.status === 'main_event';
-          const label = labelOverride || m.groupLabel || '';
-          const isGrandFinal = label === 'Final';
           const is3rd = label === '3rd';
-          const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
           const isByeMatch = (!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed';
 
           return (
@@ -1096,8 +1216,10 @@ function GroupStageView({ matches, roundsData }: { matches: Match[]; roundsData:
 }
 
 /* ─── Swiss Stage View — Premium MPL-style standings + round-by-round matches ─── */
-function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { round: number; label: string; matches: Match[] }[] }) {
+function SwissView({ matches, roundsData, mode, adminProps }: { matches: Match[]; roundsData: { round: number; label: string; matches: Match[] }[]; mode?: 'public' | 'admin'; adminProps?: AdminBracketProps }) {
   const dt = useDivisionTheme();
+  const isAdmin = mode === 'admin' && !!adminProps;
+  const tournamentInMainEvent = isAdmin && adminProps!.tournamentStatus === 'main_event';
 
   // Track which Swiss round sections are expanded (default: all expanded)
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set(roundsData.map(r => r.round)));
@@ -1331,6 +1453,36 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                   const winner2 = hasScore && m.score2! > m.score1!;
                   const isDraw = hasScore && m.score1 === m.score2;
                   const isLive = m.status === 'live' || m.status === 'main_event';
+                  const isCompleted = m.status === 'completed' || m.status === 'scoring';
+                  const isReady = m.status === 'ready';
+                  const isPending = m.status === 'pending';
+                  const bothTeamsExist = !!(m.team1 && m.team2);
+                  const bothScoresEntered = isAdmin && isLive && tournamentInMainEvent &&
+                    (adminProps!.scoreInputs[m.id]?.s1 ?? '') !== '' && (adminProps!.scoreInputs[m.id]?.s2 ?? '') !== '';
+
+                  const handleSubmitScore = () => {
+                    if (!adminProps) return;
+                    const s1 = parseInt(adminProps.scoreInputs[m.id]?.s1 ?? '');
+                    const s2 = parseInt(adminProps.scoreInputs[m.id]?.s2 ?? '');
+                    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) return;
+                    adminProps.setConfirmDialog({
+                      open: true,
+                      title: 'Konfirmasi Skor?',
+                      description: `${adminProps.getTeamName(m.team1?.id ?? null)} ${s1} - ${s2} ${adminProps.getTeamName(m.team2?.id ?? null)}`,
+                      onConfirm: () => adminProps!.scoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id, score1: s1, score2: s2 }),
+                    });
+                  };
+
+                  const handleUndo = () => {
+                    if (!adminProps) return;
+                    adminProps.setConfirmDialog({
+                      open: true,
+                      title: 'Undo Skor?',
+                      description: `Batalkan skor ${adminProps.getTeamName(m.team1?.id ?? null)} ${m.score1} - ${m.score2} ${adminProps.getTeamName(m.team2?.id ?? null)}? Stats pemain akan dikembalikan.`,
+                      onConfirm: () => adminProps!.undoScoreMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id }),
+                    });
+                  };
+
                   return (
                     <div
                       key={m.id}
@@ -1339,13 +1491,44 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                       } transition-all ${dt.hoverBorder} relative`}
                       style={{ background: 'var(--card-bg, rgba(20,17,10,0.6))' }}
                     >
+                      {/* Admin header bar */}
+                      {isAdmin && (isLive || (isReady || isPending) || isCompleted) && (
+                        <div className={`flex items-center justify-between px-2.5 py-1 border-b ${dt.borderSubtle} bg-muted/30`}>
+                          <div className="flex items-center gap-1.5">
+                            {(isReady || isPending) && bothTeamsExist && tournamentInMainEvent && (
+                              <button
+                                onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id })}
+                                disabled={adminProps!.startMatchMutation.isPending}
+                                className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+                              >
+                                <Play className="w-2.5 h-2.5" /> Start
+                              </button>
+                            )}
+                            {isLive && (
+                              <div className="flex items-center gap-1">
+                                <span className="relative flex h-1.5 w-1.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-red-500">LIVE</span>
+                              </div>
+                            )}
+                            {isCompleted && tournamentInMainEvent && (
+                              <span className="text-[9px] font-bold text-green-400">✅</span>
+                            )}
+                          </div>
+                          {isAdmin && m.format && (
+                            <span className="text-[9px] font-bold text-muted-foreground/60">{m.format}</span>
+                          )}
+                        </div>
+                      )}
                       {/* Team 1 row */}
                       <div className={`flex items-center px-3 py-2 border-b ${dt.borderSubtle} ${winner1 ? dt.bgSubtle : ''} ${!m.team1 ? 'opacity-50' : ''}`}>
                         <span className={`text-xs font-semibold truncate flex-1 ${winner1 ? dt.neonText : !m.team1 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                           {m.team1?.name || 'TBD'}
                         </span>
-                        {/* Score badge: W/L for completed, score otherwise */}
-                        {hasScore && m.team1 && (
+                        {/* Score badge: W/L for completed, score otherwise (public only) */}
+                        {!isAdmin && hasScore && m.team1 && (
                           <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                             winner1 ? 'bg-green-500/15 text-green-500' :
                             isDraw ? 'bg-yellow-500/15 text-yellow-500' :
@@ -1354,17 +1537,27 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                             {winner1 ? 'W' : isDraw ? 'D' : 'L'}
                           </span>
                         )}
-                        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                          {m.team1 ? (hasScore ? m.score1 : '-') : '-'}
-                        </span>
+                        {isAdmin && isLive && tournamentInMainEvent ? (
+                          <input
+                            type="number" min={0}
+                            value={adminProps!.scoreInputs[m.id]?.s1 ?? ''}
+                            onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [m.id]: {...prev[m.id] ?? {s1:'', s2:''}, s1: e.target.value}}))}
+                            className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+                            placeholder="0"
+                          />
+                        ) : (
+                          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner1 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                            {m.team1 ? (hasScore ? m.score1 : '-') : '-'}
+                          </span>
+                        )}
                       </div>
                       {/* Team 2 row */}
                       <div className={`flex items-center px-3 py-2 ${winner2 ? dt.bgSubtle : ''} ${!m.team2 ? 'opacity-50' : ''}`}>
                         <span className={`text-xs font-semibold truncate flex-1 ${winner2 ? dt.neonText : !m.team2 ? 'text-muted-foreground italic' : 'text-foreground/80'}`}>
                           {m.team2?.name || 'TBD'}
                         </span>
-                        {/* Score badge: W/L for completed, score otherwise */}
-                        {hasScore && m.team2 && (
+                        {/* Score badge: W/L for completed, score otherwise (public only) */}
+                        {!isAdmin && hasScore && m.team2 && (
                           <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                             winner2 ? 'bg-green-500/15 text-green-500' :
                             isDraw ? 'bg-yellow-500/15 text-yellow-500' :
@@ -1373,10 +1566,44 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
                             {winner2 ? 'W' : isDraw ? 'D' : 'L'}
                           </span>
                         )}
-                        <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                          {m.team2 ? (hasScore ? m.score2 : '-') : '-'}
-                        </span>
+                        {isAdmin && isLive && tournamentInMainEvent ? (
+                          <input
+                            type="number" min={0}
+                            value={adminProps!.scoreInputs[m.id]?.s2 ?? ''}
+                            onChange={e => adminProps!.setScoreInputs(prev => ({...prev, [m.id]: {...prev[m.id] ?? {s1:'', s2:''}, s2: e.target.value}}))}
+                            className="w-10 h-7 text-center text-sm font-black bg-background/50 border border-border/40 rounded-md focus:border-idm-gold-warm/50 focus:outline-none tabular-nums"
+                            placeholder="0"
+                          />
+                        ) : (
+                          <span className={`text-sm font-bold tabular-nums w-6 text-right ${winner2 ? dt.neonText : isDraw ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                            {m.team2 ? (hasScore ? m.score2 : '-') : '-'}
+                          </span>
+                        )}
                       </div>
+                      {/* Admin: Submit button */}
+                      {isAdmin && isLive && tournamentInMainEvent && bothScoresEntered && (
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+                          <button
+                            onClick={handleSubmitScore}
+                            disabled={adminProps!.scoreMutation.isPending}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+                          >
+                            <Check className="w-3 h-3" /> Submit
+                          </button>
+                        </div>
+                      )}
+                      {/* Admin: Undo button for completed matches */}
+                      {isAdmin && isCompleted && tournamentInMainEvent && bothTeamsExist && (
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 border-t ${dt.borderSubtle}`}>
+                          <button
+                            onClick={handleUndo}
+                            disabled={adminProps!.undoScoreMutation.isPending}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+                          >
+                            <Undo2 className="w-3 h-3" /> Undo
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1400,13 +1627,26 @@ function SwissView({ matches, roundsData }: { matches: Match[]; roundsData: { ro
 
         // Helper to render a playoff match card
         const renderPlayoffCard = (m: Match, labelOverride?: string) => {
+          const label = labelOverride || m.groupLabel || (m.bracket === 'lower' ? '3rd Place' : `R${m.round}`);
+          const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
+          const isGrandFinal = label === 'Final';
+
+          if (isAdmin) {
+            return (
+              <BracketMatchCard
+                match={m}
+                matchLabel={matchLabel}
+                isGrandFinal={isGrandFinal}
+                mode="admin"
+                adminProps={adminProps}
+              />
+            );
+          }
+
           const hasScore = m.score1 !== null && m.score2 !== null;
           const winner1 = hasScore && m.score1! > m.score2!;
           const winner2 = hasScore && m.score2! > m.score1!;
           const isLive = m.status === 'live' || m.status === 'main_event';
-          const label = labelOverride || m.groupLabel || (m.bracket === 'lower' ? '3rd Place' : `R${m.round}`);
-          const matchLabel = label === 'SF1' ? 'Semi Final 1' : label === 'SF2' ? 'Semi Final 2' : label === 'Final' ? 'Grand Final' : label === '3rd' ? '3rd Place' : label;
-          const isGrandFinal = label === 'Final';
           const is3rd = label === '3rd';
           const isByeMatch = (!m.team1 || !m.team2) && (m.team1 || m.team2) && m.status !== 'completed';
 
@@ -2772,7 +3012,7 @@ export function BracketView({ matches, bracketType, mode = 'public', adminProps 
   if (bracketType === 'group_stage') {
     return (
       <div>
-        <GroupStageView matches={matches} roundsData={roundsData} />
+        <GroupStageView matches={matches} roundsData={roundsData} mode={mode} adminProps={adminProps} />
       </div>
     );
   }
@@ -2781,7 +3021,7 @@ export function BracketView({ matches, bracketType, mode = 'public', adminProps 
   if (bracketType === 'round_robin') {
     return (
       <div className="space-y-5">
-        <GroupStageView matches={matches} roundsData={roundsData} />
+        <GroupStageView matches={matches} roundsData={roundsData} mode={mode} adminProps={adminProps} />
       </div>
     );
   }
@@ -2790,7 +3030,7 @@ export function BracketView({ matches, bracketType, mode = 'public', adminProps 
   if (bracketType === 'swiss') {
     return (
       <div>
-        <SwissView matches={matches} roundsData={roundsData} />
+        <SwissView matches={matches} roundsData={roundsData} mode={mode} adminProps={adminProps} />
       </div>
     );
   }
