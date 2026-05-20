@@ -1318,8 +1318,9 @@ async function checkAndSeedPlayoffs(tournamentId: string) {
     }
   } else if (numGroups === 2) {
     // 2 groups: A1 vs B2 (SF1), B1 vs A2 (SF2)
-    const groupA = standingsByGroup['A'];
-    const groupB = standingsByGroup['B'];
+    // Handles balanced distribution: e.g., 5 teams → Group A (3), Group B (2)
+    const groupA = standingsByGroup[groupLabels[0]];
+    const groupB = standingsByGroup[groupLabels[1]];
 
     if (groupA && groupB && groupA.length >= 2 && groupB.length >= 2) {
       const A1 = groupA[0].teamId;

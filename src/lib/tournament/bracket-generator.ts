@@ -155,7 +155,7 @@ export function generateRoundRobin(teams: string[], tournamentId: string): Brack
   return matches;
 }
 
-// Generate Group Stage
+// Generate Group Stage — Distributes teams evenly across groups (max diff of 1)
 export function generateGroupStage(
   teams: string[],
   groupCount: number,
@@ -165,11 +165,17 @@ export function generateGroupStage(
   const groups: { name: string; teams: string[] }[] = [];
   const matches: BracketMatch[] = [];
   
-  // Create groups
-  const teamsPerGroup = Math.ceil(teams.length / groupCount);
+  // Distribute teams evenly: e.g., 5 teams / 2 groups = [3, 2]
+  const baseSize = Math.floor(teams.length / groupCount);
+  const remainder = teams.length % groupCount;
   
+  let teamIndex = 0;
   for (let i = 0; i < groupCount; i++) {
-    const groupTeams = shuffledTeams.slice(i * teamsPerGroup, (i + 1) * teamsPerGroup);
+    // First `remainder` groups get +1 team
+    const groupSize = baseSize + (i < remainder ? 1 : 0);
+    const groupTeams = shuffledTeams.slice(teamIndex, teamIndex + groupSize);
+    teamIndex += groupSize;
+    
     groups.push({
       name: `Group ${String.fromCharCode(65 + i)}`, // A, B, C...
       teams: groupTeams

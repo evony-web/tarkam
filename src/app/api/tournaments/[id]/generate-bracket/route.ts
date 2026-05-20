@@ -482,17 +482,73 @@ export async function POST(
   }
 
   // ===== GROUP STAGE =====
+  // Distributes teams evenly across groups (max difference of 1 team per group).
+  // Then creates round-robin matches within each group, followed by playoff bracket.
+  //
+  // Examples:
+  //   4 teams → 2 groups (2+2) → SF (top 1 each) → Final + 3rd
+  //   5 teams → 2 groups (3+2) → SF (top 2 each) → Final + 3rd
+  //   6 teams → 2 groups (3+3) → SF (top 2 each) → Final + 3rd
+  //   7 teams → 2 groups (4+3) → SF (top 2 each) → Final + 3rd
+  //   8 teams → 2 groups (4+4) → SF (top 2 each) → Final + 3rd
+  //   9 teams → 3 groups (3+3+3) → SF (top 2 from best groups) → Final + 3rd
+  //  10 teams → 2 groups (5+5) or 3 groups (4+3+3) → depends on preference
+  //  12 teams → 4 groups (3+3+3+3) → QF (top 2 each) → SF → Final + 3rd
+  //  16 teams → 4 groups (4+4+4+4) → QF (top 2 each) → SF → Final + 3rd
+  //
   else if (format === 'group_stage') {
-    const groupSize = 4;
-    const numGroups = Math.ceil(teamCount / groupSize);
     const groupLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     let matchNumber = 0;
 
+    // ── Determine number of groups and distribute teams evenly ──
+    // Logic: find the ideal number of groups so each group has 3-5 teams
+    // Teams are distributed as evenly as possible (max diff of 1 per group)
+    function calculateGroupDistribution(teamCount: number): { numGroups: number; groupSizes: number[] } {
+      // For very small team counts, use 2 groups minimum
+      if (teamCount <= 3) {
+        return { numGroups: 2, groupSizes: [Math.ceil(teamCount / 2), Math.floor(teamCount / 2)] };
+      }
+
+      // Find ideal number of groups: target 3-5 teams per group
+      // Prefer groups of 3-4, allow 2 or 5 only when necessary
+      let numGroups: number;
+
+      if (teamCount <= 8) {
+        // 4-8 teams → 2 groups
+        numGroups = 2;
+      } else if (teamCount <= 12) {
+        // 9-12 teams → 3 groups
+        numGroups = 3;
+      } else if (teamCount <= 16) {
+        // 13-16 teams → 4 groups
+        numGroups = 4;
+      } else {
+        // 17+ teams → aim for ~4 per group
+        numGroups = Math.ceil(teamCount / 4);
+      }
+
+      // Distribute teams evenly: e.g., 5 teams → [3, 2], 7 teams → [4, 3]
+      const baseSize = Math.floor(teamCount / numGroups);
+      const remainder = teamCount % numGroups;
+      const groupSizes: number[] = [];
+      for (let g = 0; g < numGroups; g++) {
+        // First `remainder` groups get +1 team
+        groupSizes.push(baseSize + (g < remainder ? 1 : 0));
+      }
+
+      return { numGroups, groupSizes };
+    }
+
+    const { numGroups, groupSizes } = calculateGroupDistribution(teamCount);
+
+    // ── Create group matches (round-robin within each group) ──
+    let teamIndex = 0;
     for (let g = 0; g < numGroups; g++) {
-      const groupTeams = shuffledTeams.slice(g * groupSize, (g + 1) * groupSize);
+      const groupTeams = shuffledTeams.slice(teamIndex, teamIndex + groupSizes[g]);
+      teamIndex += groupSizes[g];
       const label = groupLabels[g];
 
-      // Round-robin: each team plays every other team
+      // Round-robin: each team plays every other team in the group
       for (let i = 0; i < groupTeams.length; i++) {
         for (let j = i + 1; j < groupTeams.length; j++) {
           matchNumber++;
@@ -507,8 +563,10 @@ export async function POST(
       }
     }
 
-    // Create playoff bracket based on number of groups
+    // ── Create playoff bracket based on number of groups ──
+    // Playoff structure depends on how many teams advance from each group
     if (numGroups === 1) {
+      // Single group: top 4 advance → SF (1st vs 4th, 2nd vs 3rd)
       matchNumber++;
       const sf1 = await db.match.create({
         data: {
@@ -545,6 +603,7 @@ export async function POST(
       });
       matches.push(thirdPlace);
     } else if (numGroups === 2) {
+      // 2 groups: top 2 from each group advance → SF (A1 vs B2, B1 vs A2)
       matchNumber++;
       const sf1 = await db.match.create({
         data: {
@@ -581,6 +640,7 @@ export async function POST(
       });
       matches.push(thirdPlace);
     } else if (numGroups === 3) {
+      // 3 groups: top from each group + best 2nd place → SF
       matchNumber++;
       const sf1 = await db.match.create({
         data: {
@@ -617,6 +677,7 @@ export async function POST(
       });
       matches.push(thirdPlace);
     } else if (numGroups === 4) {
+      // 4 groups: top 2 from each group → QF (cross-bracket) → SF → Final
       matchNumber++;
       const qf1 = await db.match.create({
         data: {
@@ -689,6 +750,7 @@ export async function POST(
       });
       matches.push(thirdPlace);
     } else {
+      // 5+ groups: generic playoff bracket seeded by group standings
       const playoffTeams = nextPowerOf2(numGroups);
       const playoffRounds = Math.ceil(Math.log2(playoffTeams));
 

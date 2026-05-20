@@ -452,3 +452,31 @@ Stage Summary:
 - Root cause: Prisma internally wraps `update + include` in a transaction
 - Fix: Split update and read into separate calls (both are non-transactional)
 - Tested and confirmed working on actual Neon database
+
+---
+Task ID: 2
+Agent: Main
+Task: Fix group stage bracket distribution — balanced team split instead of hardcoded groupSize=4
+
+Work Log:
+- Read full generate-bracket/route.ts (752 lines) and score/route.ts playoff seeding logic
+- Identified root cause: `const groupSize = 4` hardcoded at line 486, causing 5 teams → Group A: 4, Group B: 1
+- Replaced hardcoded groupSize with `calculateGroupDistribution()` function that:
+  - 4-8 teams → 2 groups (e.g., 5→[3,2], 6→[3,3], 7→[4,3], 8→[4,4])
+  - 9-12 teams → 3 groups
+  - 13-16 teams → 4 groups
+  - 17+ → ceil(teamCount/4) groups
+  - Distributes teams evenly with max diff of 1 per group
+- Changed team slicing from fixed `slice(g*4, (g+1)*4)` to cumulative `teamIndex` tracking
+- Updated score/route.ts: changed hardcoded `standingsByGroup['A']`/`['B']` to use `groupLabels[0]`/`[1]` for dynamic group names
+- Updated library module `bracket-generator.ts` with same balanced distribution logic
+- Verified no TypeScript errors in modified files
+- Dev server running with 200 OK
+
+Stage Summary:
+- Key fix: `calculateGroupDistribution(5)` → `[3, 2]` instead of `[4, 1]`
+- Files modified:
+  - `src/app/api/tournaments/[id]/generate-bracket/route.ts` — New balanced distribution
+  - `src/app/api/tournaments/[id]/score/route.ts` — Dynamic group label references
+  - `src/lib/tournament/bracket-generator.ts` — Same balanced distribution logic
+- Playoff seeding logic unchanged (A1 vs B2, B1 vs A2 already works with 2 groups)
