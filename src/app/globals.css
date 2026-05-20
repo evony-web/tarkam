@@ -5898,14 +5898,21 @@ html {
   }
 
   /* Compact pill buttons: smaller visual size but still tap-friendly.
-     Uses padding for touch area instead of min-height/min-width. */
+     Unsets the 44px min-size rule. Touch area is extended via invisible
+     ::after pseudo-element so the pill stays visually compact (no forced
+     padding that would bloat it beyond its Tailwind-defined size). */
   button.compact-pill,
   [role="button"].compact-pill {
     min-height: unset;
     min-width: unset;
-    /* Keep a reasonable tap target via vertical padding */
-    padding-top: 6px;
-    padding-bottom: 6px;
+    position: relative;
+  }
+  button.compact-pill::after,
+  [role="button"].compact-pill::after {
+    content: '';
+    position: absolute;
+    inset: -6px -4px;
+    border-radius: inherit;
   }
 }
 

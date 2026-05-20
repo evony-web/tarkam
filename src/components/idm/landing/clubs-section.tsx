@@ -110,7 +110,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                           if (isSelected && isActive) return;
                           setSelectedSeasonId(isActive ? null : season.id);
                         }}
-                        className={`
+                        className={`compact-pill
                           inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold
                           transition-all duration-200 cursor-pointer border
                           ${isSelected

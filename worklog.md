@@ -846,3 +846,22 @@ Stage Summary:
 - WeekSelector now scales to any number of weeks (9, 10, 20+) without layout issues
 - Navigation arrows work correctly with proper sliding window
 - Season leaderboard, per-week leaderboard, and Sultan logic all verified working
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix mobile CSS override causing buttons/pill tabs to be non-compact on mobile in penyawer section
+
+Work Log:
+- Investigated `@media (pointer: coarse)` rule in globals.css (lines 5887-5910)
+- Found root cause: `compact-pill` override forced `padding-top: 6px; padding-bottom: 6px` which overrode the Tailwind `py-0.5` (2px) mobile padding, making pills look bloated
+- Fixed CSS: Replaced forced padding with invisible `::after` pseudo-element touch area (`inset: -6px -4px`) so pills stay visually compact but remain tap-friendly
+- Added `compact-pill` class to season toggle buttons in `players-section.tsx` and `clubs-section.tsx`
+- Verified all pill/tab buttons in donor leaderboard section already use `compact-pill` class
+- Lint check passed, dev server compiling successfully
+
+Stage Summary:
+- Key fix: `globals.css` compact-pill rule changed from forced padding to pseudo-element touch target
+- Files modified: `globals.css`, `players-section.tsx`, `clubs-section.tsx`
+- Pills/tabs on mobile will now render at their designed Tailwind size instead of being bloated by 6px padding
+- Touch targets remain accessible via invisible `::after` pseudo-element
