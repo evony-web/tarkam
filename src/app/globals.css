@@ -5885,16 +5885,27 @@ html {
    buttons that should stay small (carousel dots, week dots, tab dots, etc.)
    ============================================ */
 @media (pointer: coarse) {
-  button:not(.compact-dot), 
-  [role="button"]:not(.compact-dot),
+  button:not(.compact-dot):not(.compact-pill), 
+  [role="button"]:not(.compact-dot):not(.compact-pill),
   a,
   .tap-target {
     min-height: 44px;
     min-width: 44px;
   }
   
-  .landing-scroll button:not(.compact-dot) {
+  .landing-scroll button:not(.compact-dot):not(.compact-pill) {
     min-height: 44px;
+  }
+
+  /* Compact pill buttons: smaller visual size but still tap-friendly.
+     Uses padding for touch area instead of min-height/min-width. */
+  button.compact-pill,
+  [role="button"].compact-pill {
+    min-height: unset;
+    min-width: unset;
+    /* Keep a reasonable tap target via vertical padding */
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 }
 

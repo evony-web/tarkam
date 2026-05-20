@@ -343,7 +343,7 @@ function WeekSelector({
       <button
         onClick={() => needScroll && setWindowStart(s => Math.max(0, s - 1))}
         disabled={!canScrollLeft}
-        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+        className={`compact-pill w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
           canScrollLeft
             ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
             : 'text-muted-foreground/20 cursor-not-allowed'
@@ -364,7 +364,7 @@ function WeekSelector({
           <button
             key={week}
             onClick={() => onSelectWeek(week)}
-            className={`px-1.5 sm:px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            className={`compact-pill px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               selectedWeek === week
                 ? week === latestWeek
                   ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
@@ -390,7 +390,7 @@ function WeekSelector({
       <button
         onClick={() => needScroll && setWindowStart(s => Math.min(totalWeeks - MAX_VISIBLE, s + 1))}
         disabled={!canScrollRight}
-        className={`w-5 h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
+        className={`compact-pill w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full transition-all shrink-0 ${
           canScrollRight
             ? 'hover:bg-idm-gold-warm/10 text-idm-gold-warm/60 cursor-pointer'
             : 'text-muted-foreground/20 cursor-not-allowed'
@@ -664,13 +664,13 @@ export function DonorLeaderboardSection({
         <div className="max-w-2xl mx-auto">
           {/* ── Toggles Row ── */}
           <AnimatedSection variant="fadeUp" className="mb-6">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
               {/* Time range toggle: Season vs Week selector */}
-              <div className="flex items-center gap-1.5 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+              <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
                 {/* Season button */}
                 <button
                   onClick={() => setTimeRange('season')}
-                  className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                  className={`compact-pill px-2.5 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                     timeRange === 'season'
                       ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
                       : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
@@ -683,7 +683,7 @@ export function DonorLeaderboardSection({
                 {/* Week selector — only shown when there are weeks available */}
                 {availableWeeks.length > 0 && (
                   <>
-                    <div className="w-px h-4 bg-idm-gold-warm/15" />
+                    <div className="w-px h-3 sm:h-4 bg-idm-gold-warm/15" />
                     <WeekSelector
                       availableWeeks={availableWeeks}
                       selectedWeek={typeof timeRange === 'number' ? timeRange : latestWeekNumber}
@@ -695,7 +695,7 @@ export function DonorLeaderboardSection({
               </div>
 
               {/* Division toggle */}
-              <div className="flex items-center gap-1 p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
+              <div className="flex items-center gap-0.5 sm:gap-1 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
                 {([
                   { key: 'all' as DivisionFilter, label: 'Semua' },
                   { key: 'male' as DivisionFilter, label: '♂ Cowo' },
@@ -704,7 +704,7 @@ export function DonorLeaderboardSection({
                   <button
                     key={key}
                     onClick={() => setDivisionFilter(key)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    className={`compact-pill px-2 sm:px-3 py-0.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                       divisionFilter === key
                         ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-[0_0_8px_color-mix(in_srgb,var(--color-idm-gold-warm)_15%,transparent)]'
                         : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
