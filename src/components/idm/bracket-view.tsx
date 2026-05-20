@@ -1234,8 +1234,8 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
       </div>
       <div className="p-2">
         <ZoomableContainer>
-          <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
-            <div className="relative min-w-max px-2" ref={containerRef}>
+          <div className="min-w-max pb-2 -mx-1">
+            <div className="relative px-2" ref={containerRef}>
               {/* SVG connector overlay — covers entire unified bracket */}
               {connectors.length > 0 && <BracketConnectors paths={connectors} />}
 
@@ -2624,8 +2624,8 @@ function BracketColumnView({
       </div>
       <div className="p-2">
         <ZoomableContainer>
-          <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
-            <div className="relative min-w-max px-2" ref={containerRef}>
+          <div className="min-w-max pb-2 -mx-1">
+            <div className="relative px-2" ref={containerRef}>
               {connectors.length > 0 && <BracketConnectors paths={connectors} />}
               <div className="flex gap-12">
                 {roundsData.map((round, roundIdx) => {
@@ -3067,8 +3067,8 @@ function UpperSemiView({ matches, mode, adminProps }: { matches: Match[]; mode?:
       </div>
       <div className="p-2">
         <ZoomableContainer>
-          <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
-            <div className="relative min-w-max px-2" ref={containerRef}>
+          <div className="min-w-max pb-2 -mx-1">
+            <div className="relative px-2" ref={containerRef}>
               {/* SVG connector overlay — covers entire unified bracket */}
               {connectors.length > 0 && <BracketConnectors paths={connectors} />}
 
@@ -3622,7 +3622,7 @@ export function BracketView({ matches, bracketType, mode = 'public', adminProps 
   const isFinalRound = (roundIdx: number) => roundIdx === roundsData.length - 1;
 
   const bracketContent = (
-    <div className="overflow-x-auto custom-scrollbar pb-2 -mx-1">
+    <div className="min-w-max pb-2 -mx-1">
       <div className="relative min-w-max px-2" ref={containerRef}>
         {/* SVG connector overlay */}
         {connectors.length > 0 && <BracketConnectors paths={connectors} />}
