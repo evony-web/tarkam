@@ -281,12 +281,12 @@ function SultanOfWeeklyCard({
    WEEK SELECTOR — Scalable week navigation
    
    Strategy:
-   • ≤ 6 weeks  → All pills visible (no scroll needed)
-   • > 6 weeks  → Scrollable pills with ◀ ▶ arrows
-                   (shows max 6 at a time, sliding window)
+   • ≤ 4 weeks  → All pills visible, arrows disabled
+   • ≥ 5 weeks  → Scrollable pills with ◀ ▶ arrows
+                   (shows max 4 at a time, sliding window)
    
-   Window auto-centers on selected week — no separate
-   scroll state needed. Arrows shift the window by 1.
+   Arrows always visible (disabled when can't scroll).
+   Step per click = 1 week. Auto-centers on selected week.
    
    Handles any season length: 2 weeks, 9 weeks, even 20+.
    ═══════════════════════════════════════════════════════ */
@@ -302,7 +302,7 @@ function WeekSelector({
   onSelectWeek: (week: number) => void;
 }) {
   const totalWeeks = availableWeeks.length;
-  const MAX_VISIBLE = 6;
+  const MAX_VISIBLE = 4;
   const needScroll = totalWeeks > MAX_VISIBLE;
 
   // ── Sliding window state (only used when needScroll) ──
