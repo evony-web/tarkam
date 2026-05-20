@@ -3,9 +3,11 @@
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
-import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine, X, Music } from 'lucide-react';
-import { getAvatarUrl } from '@/lib/utils';
-import type { StatsData } from '@/types/stats';
+import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine, X, Music, Gem, Crown } from 'lucide-react';
+import { AvatarMedia } from '@/components/ui/avatar-media';
+import { ClubLogoImage } from '@/components/idm/club-logo-image';
+import { getAvatarUrl, hexToRgba } from '@/lib/utils';
+import type { StatsData, SultanPlayer } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════════════
    TARKAM IDM — TARKAM ARENA HERO
@@ -98,17 +100,25 @@ export function HeroSection({
   const femaleChampionSeason = !isSeasonDataPlaceholder ? femaleData?.allSeasons?.find(s => s.status === 'completed' && s.championPlayer) : undefined;
   const maleChampion = maleChampionSeason?.championPlayer ?? null;
   const femaleChampion = femaleChampionSeason?.championPlayer ?? null;
-  const maleChampionAvatar = maleChampion ? getAvatarUrl(maleChampion.gamertag, 'male', maleChampion.avatar) : '';
-  const femaleChampionAvatar = femaleChampion ? getAvatarUrl(femaleChampion.gamertag, 'female', femaleChampion.avatar) : '';
   // Club champion — prefer male season, fallback to female
   const championClub = maleChampionSeason?.championClub ?? femaleChampionSeason?.championClub ?? null;
   const hasChampions = !!(maleChampion || femaleChampion);
   // Show skeleton when data is placeholder (season switch) OR when still loading
   const showChampionSkeleton = isSeasonDataPlaceholder || (!maleData && !femaleData);
-  // Gold skin visual constants for season champion avatars
-  const CHAMPION_GOLD = '#EFF923';
-  const maleHasSkin = maleChampion?.hasSeasonChampionSkin ?? false;
-  const femaleHasSkin = femaleChampion?.hasSeasonChampionSkin ?? false;
+  // Sultan of Season — extract from both divisions, deduplicated by season number
+  const latestSultan: { seasonNumber: number; sultan: SultanPlayer } | null = (() => {
+    const seen = new Set<number>();
+    for (const season of [...(maleData?.allSeasons || []), ...(femaleData?.allSeasons || [])]) {
+      if (season.sultanPlayer && !seen.has(season.number)) {
+        seen.add(season.number);
+        return { seasonNumber: season.number, sultan: season.sultanPlayer };
+      }
+    }
+    return null;
+  })();
+  const hasSultan = !!latestSultan;
+  // Season number for the latest completed season
+  const championSeasonNumber = maleChampionSeason?.number ?? femaleChampionSeason?.number ?? 0;
 
   return (
     <>
@@ -301,48 +311,125 @@ export function HeroSection({
             {heroTagline}
           </p>
 
-          {/* ═══════════════ SEASON CLUB CHAMPION ═══════════════ */}
+          {/* ═══════════════ SEASON CHAMPIONS: Sultan | Club | Female ═══════════════ */}
           {showChampionSkeleton ? (
             /* ─── Skeleton placeholder during season switch / initial load ─── */
             <div className="hero-enter-5 flex items-center justify-center mb-6 sm:mb-10">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03]">
-                <div className="w-10 h-10 rounded-xl bg-idm-gold-warm/10" />
-                <div className="space-y-1.5">
-                  <div className="w-16 h-2 rounded bg-idm-gold-warm/10" />
-                  <div className="w-10 h-1.5 rounded bg-idm-gold-warm/5" />
-                </div>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03]">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-idm-gold-warm/10" />
+                    <div className="space-y-1.5 hidden sm:block">
+                      <div className="w-12 h-2 rounded bg-idm-gold-warm/10" />
+                      <div className="w-8 h-1.5 rounded bg-idm-gold-warm/5" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ) : championClub ? (
-            /* ─── Season Club Champion Card ─── */
+          ) : (hasSultan || championClub || femaleChampion) ? (
+            /* ─── Season Champions Row: Sultan | Club | Female ─── */
             <div className="hero-enter-5 flex items-center justify-center mb-6 sm:mb-10">
-              <div className="relative flex items-center gap-2 sm:gap-2.5 p-4 sm:p-5 rounded-2xl border" style={{ background: 'rgba(239,249,35,0.06)', borderColor: 'rgba(239,249,35,0.2)', boxShadow: '0 0 20px rgba(239,249,35,0.08)' }}>
-                {/* Club Logo */}
-                {championClub?.logo ? (
-                  <div className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.15)' }}>
-                    <Image src={championClub.logo} alt={championClub.name} fill sizes="48px" className="object-cover" loading="lazy" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(239,249,35,0.1)' }}>
-                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-idm-gold-warm/60" />
-                  </div>
-                )}
+              <div className="flex items-stretch gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl border" style={{ background: 'rgba(239,249,35,0.04)', borderColor: 'rgba(239,249,35,0.15)', boxShadow: '0 0 20px rgba(239,249,35,0.06)' }}>
 
-                {/* Club Name + Season label */}
-                <div className="flex flex-col">
-                  <span className="text-[10px] sm:text-xs md:text-sm font-black tracking-wider uppercase text-idm-gold-warm/80 leading-tight">
-                    {championClub?.name || 'Champion'}
-                  </span>
-                  <span className="text-[7px] sm:text-[8px] md:text-[9px] font-bold tracking-[0.15em] uppercase text-idm-gold-warm/35">
-                    Season Club
-                  </span>
-                </div>
+                {/* 💎 Sultan of Season — Left */}
+                {latestSultan ? (
+                  <div className="flex items-center gap-2 sm:gap-2.5 pr-2 sm:pr-3 border-r" style={{ borderColor: 'rgba(67,160,71,0.2)' }}>
+                    {/* Diamond avatar with emerald frame */}
+                    <div className="relative w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 shrink-0"
+                      style={{
+                        clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                        background: 'linear-gradient(135deg, #43A047, #66BB6A, #43A047)',
+                        padding: '2px',
+                      }}>
+                      <div className="relative w-full h-full overflow-hidden"
+                        style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}>
+                        <AvatarMedia
+                          src={getAvatarUrl(latestSultan.sultan.gamertag, latestSultan.sultan.division === 'female' ? 'female' : 'male', latestSultan.sultan.avatar)}
+                          alt={latestSultan.sultan.gamertag}
+                          fill
+                          sizes="48px"
+                          className="object-cover object-top"
+                          loading="lazy"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <Gem className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" style={{ color: '#66BB6A' }} />
+                        <span className="text-[9px] sm:text-[10px] md:text-xs font-black tracking-wider uppercase truncate" style={{ color: '#66BB6A' }}>
+                          {latestSultan.sultan.gamertag}
+                        </span>
+                      </div>
+                      <span className="text-[6px] sm:text-[7px] md:text-[8px] font-bold tracking-[0.12em] uppercase" style={{ color: 'rgba(67,160,71,0.5)' }}>
+                        Sultan S{latestSultan.seasonNumber}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* 🏆 Club Season Champion — Center */}
+                {championClub ? (
+                  <div className="flex items-center gap-2 sm:gap-2.5 pr-2 sm:pr-3 border-r" style={{ borderColor: 'rgba(239,249,35,0.15)' }}>
+                    {/* Club Logo */}
+                    <div className="relative w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl overflow-hidden shrink-0" style={{ boxShadow: '0 0 12px rgba(239,249,35,0.15)' }}>
+                      <ClubLogoImage
+                        clubName={championClub.name}
+                        dbLogo={championClub.logo}
+                        alt={championClub.name}
+                        width={48}
+                        height={48}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <Trophy className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-idm-gold-warm/70" />
+                        <span className="text-[9px] sm:text-[10px] md:text-xs font-black tracking-wider uppercase text-idm-gold-warm/80 truncate">
+                          {championClub.name}
+                        </span>
+                      </div>
+                      <span className="text-[6px] sm:text-[7px] md:text-[8px] font-bold tracking-[0.12em] uppercase text-idm-gold-warm/35">
+                        {championSeasonNumber > 0 ? `Season Club S${championSeasonNumber}` : 'Season Club'}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* ♀ Female Champion — Right */}
+                {femaleChampion ? (
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    {/* Female avatar */}
+                    <div className="relative w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0" style={{ boxShadow: '0 0 10px rgba(255,45,120,0.15)', border: '1.5px solid rgba(255,45,120,0.3)' }}>
+                      <AvatarMedia
+                        src={getAvatarUrl(femaleChampion.gamertag, 'female', femaleChampion.avatar)}
+                        alt={femaleChampion.gamertag}
+                        fill
+                        sizes="48px"
+                        className="object-cover object-top"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-idm-gold-warm/70" />
+                        <span className="text-[9px] sm:text-[10px] md:text-xs font-black tracking-wider uppercase text-idm-female-light truncate">
+                          {femaleChampion.gamertag}
+                        </span>
+                      </div>
+                      <span className="text-[6px] sm:text-[7px] md:text-[8px] font-bold tracking-[0.12em] uppercase text-idm-female/50">
+                        {championSeasonNumber > 0 ? `Juara S${championSeasonNumber}` : 'Juara Season'}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
               </div>
             </div>
           ) : null}
 
           {/* ═══════════════ CTA BUTTONS ═══════════════ */}
-          <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${championClub ? '' : 'hero-enter-5'}`}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${(hasSultan || championClub || femaleChampion) ? '' : 'hero-enter-5'}`}>
             {/* Daftar Tarkam — Primary CTA → Registration */}
             <button
               onClick={() => onRegister('male')}

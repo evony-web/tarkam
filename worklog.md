@@ -962,3 +962,36 @@ Stage Summary:
 - Collapsed view shows: icon + title + summary names + season badge + chevron (compact ~50px each)
 - Sultan of Season shows history of previous seasons when expanded (data was already available but hidden)
 - File modified: `/home/z/my-project/src/components/idm/highlights-page.tsx`
+
+---
+Task ID: 6
+Agent: Main
+Task: Move season champion sections from Juara page to hero banner — Sultan | Club | Female layout
+
+Work Log:
+- User said tab-based dropdown approach was not visible (SeasonChampionSection was never rendered in the app — dead import)
+- User requested removing 3 champion sections (Reigning Champion, Club Season, Sultan of Season) from HighlightsPage (Juara menu)
+- User requested adding Sultan Season to hero banner alongside existing Club Champion, with Female Champion on the right
+- Removed 3 collapsible ChampionCollapsible sections from highlights-page.tsx (lines 2216-2329)
+- Modified hero-section.tsx:
+  - Added imports: AvatarMedia, ClubLogoImage, Gem, Crown, SultanPlayer type, hexToRgba
+  - Added Sultan of Season data extraction from allSeasons (deduplicated by season number)
+  - Added championSeasonNumber for season badges
+  - Replaced single Club Champion card with 3-column layout: Sultan (💎 left) | Club (🏆 center) | Female (♀ right)
+  - Sultan uses diamond-shaped avatar (clipPath) with emerald border
+  - Club uses ClubLogoImage with gold styling
+  - Female uses round avatar with pink border + Crown icon
+  - Each section has icon + gamertag/name + season badge
+  - Skeleton updated to show 3 placeholder columns
+  - Sections separated by vertical borders with color-coded borders (emerald, gold, pink)
+- Also added tab-based ChampionTabBar to season-champion-section.tsx (from earlier attempt) — this component is currently not rendered but available for future use
+- Lint passes clean, dev server 200 OK
+
+Stage Summary:
+- Hero banner now shows: 💎 Sultan Season | 🏆 Club Season | ♀ Female Champion in one row
+- 3 champion sections removed from Juara (HighlightsPage) — cleaner, less cluttered
+- Season champion data now in the most visible location (hero/beranda)
+- Files modified:
+  - `src/components/idm/landing/hero-section.tsx` — 3-column champion layout
+  - `src/components/idm/highlights-page.tsx` — removed 3 collapsible sections
+  - `src/components/idm/landing/season-champion-section.tsx` — tab-based UI added (unused but available)
