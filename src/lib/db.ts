@@ -1,13 +1,6 @@
-// ─── Database Client — Optimized for Vercel Free Tier ───
-// Uses Neon serverless driver in production to avoid connection
-// exhaustion on Vercel serverless functions.
-// Falls back to standard PrismaClient for local SQLite development.
-//
-// Key optimizations:
-// - PrismaNeonHttp: HTTP-based, no TCP/WebSocket connections at all
-//   → Zero connection pool exhaustion risk on free tier
-//   → ~50ms cold starts vs 200-500ms with TCP
-// - Lazy singleton pattern to ensure env vars are loaded before init
+// ─── Database Client — Dual Environment ───
+// Production (Vercel): Neon PostgreSQL via standard PrismaClient
+// Local development: SQLite via standard PrismaClient
 //
 // NOTE: Lazy initialization is required because Turbopack may evaluate
 // this module before .env is loaded. By deferring PrismaClient creation
@@ -38,19 +31,12 @@ function createPrismaClient(): PrismaClient {
   }
 
   if (_isPostgresUrl()) {
-    // ── Production: Neon HTTP adapter (no TCP, no WebSocket) ──
-    // Uses HTTP fetch to query Neon — perfect for Vercel serverless.
-    // No connection pool, no idle connections, no exhaustion.
-    // Free tier safe: Neon HTTP queries don't count toward connection limit.
-    console.log('[DB] Using Neon PostgreSQL (HTTP adapter) —', dbUrl?.substring(0, 30) + '...')
-
-    // Dynamic import to avoid bundling neon adapter in SQLite mode
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaNeonHttp } = require('@prisma/adapter-neon')
-    const adapter = new PrismaNeonHttp(dbUrl!, {})
+    // ── Production: Neon PostgreSQL ──
+    // Standard PrismaClient works with Neon using the pooled connection URL.
+    // For Prisma migrations/schema push, use DIRECT_URL (non-pooled).
+    console.log('[DB] Using Neon PostgreSQL —', dbUrl?.substring(0, 30) + '...')
     return new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
-      adapter,
     })
   }
 
@@ -91,18 +77,15 @@ export const isSQLite = !_isPostgresUrl()
 export const isPostgreSQL = _isPostgresUrl()
 
 // ═══════════════════════════════════════════════════════════
-// NEON HTTP ADAPTER COMPATIBILITY HELPERS
+// POSTGRESQL COMPATIBILITY HELPERS
 // ═══════════════════════════════════════════════════════════
-// PrismaNeonHttp does NOT support:
-//   - $transaction() (interactive or batch)
-//   - updateMany() (uses transactions internally)
-//   - deleteMany() with complex where clauses (may use transactions)
-// These helpers use raw SQL as a workaround when running on Neon.
+// When running on PostgreSQL (Neon), certain Prisma operations
+// need raw SQL workarounds. On SQLite, standard Prisma is used.
 // ═══════════════════════════════════════════════════════════
 
 /**
- * Neon-compatible replacement for Prisma's updateMany().
- * When running on Neon HTTP, uses raw SQL instead (no transaction needed).
+ * PostgreSQL-compatible replacement for Prisma's updateMany().
+ * When running on PostgreSQL, uses raw SQL instead.
  * When running on SQLite, falls back to normal Prisma updateMany.
  *
  * @param table - Prisma model name (e.g. 'Participation', 'Player')
@@ -116,8 +99,6 @@ export async function neonUpdateMany(
   data: Record<string, unknown>
 ): Promise<number> {
   if (!_isPostgresUrl()) {
-    // SQLite: use Prisma updateMany (not needed but for type consistency)
-    // This path should rarely be hit — callers should use db.model.updateMany directly for SQLite
     throw new Error('neonUpdateMany should only be called for PostgreSQL. Use db.model.updateMany for SQLite.');
   }
 
@@ -166,8 +147,8 @@ export async function neonUpdateMany(
 }
 
 /**
- * Neon-compatible replacement for Prisma's deleteMany().
- * When running on Neon HTTP, uses raw SQL instead (no transaction needed).
+ * PostgreSQL-compatible replacement for Prisma's deleteMany().
+ * When running on PostgreSQL, uses raw SQL instead.
  * When running on SQLite, falls back to normal Prisma deleteMany.
  *
  * @param table - Prisma model name (e.g. 'TeamPlayer', 'Match')
@@ -206,8 +187,8 @@ export async function neonDeleteMany(
 }
 
 /**
- * Neon-compatible replacement for Prisma's createMany().
- * When running on Neon HTTP, creates rows one by one sequentially.
+ * PostgreSQL-compatible replacement for Prisma's createMany().
+ * When running on PostgreSQL, creates rows one by one sequentially.
  * When running on SQLite, falls back to normal Prisma createMany.
  *
  * @param model - Prisma model delegate (e.g. db.teamPlayer)
@@ -231,12 +212,9 @@ export async function neonCreateMany<T>(
 }
 
 /**
- * Neon-compatible replacement for Prisma's $transaction().
- * When running on Neon HTTP, simply runs operations sequentially (no transaction).
- * When running on SQLite, uses real $transaction.
- * 
- * WARNING: On Neon, operations are NOT atomic. If one fails, earlier ones remain.
- * This is a trade-off for Vercel free tier compatibility.
+ * PostgreSQL-compatible replacement for Prisma's $transaction().
+ * When running on PostgreSQL, uses standard $transaction.
+ * When running on SQLite, uses standard $transaction.
  */
 export async function neonTransaction<T>(
   fn: (tx: PrismaClient) => Promise<T>
@@ -244,6 +222,6 @@ export async function neonTransaction<T>(
   if (!_isPostgresUrl()) {
     return db.$transaction(fn as never) as Promise<T>;
   }
-  // Neon HTTP mode: no transaction support, just run sequentially
-  return fn(db);
+  // PostgreSQL: use standard Prisma transaction
+  return db.$transaction(fn as never) as Promise<T>;
 }

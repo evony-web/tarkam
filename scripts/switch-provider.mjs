@@ -31,12 +31,24 @@ function getCurrentProvider() {
 }
 
 function setProvider(target) {
-  const schema = readFileSync(SCHEMA_PATH, 'utf-8');
-  const updated = schema.replace(
-    /provider\s*=\s*"\w+"/,
-    `provider = "${target}"`
-  );
-  writeFileSync(SCHEMA_PATH, updated, 'utf-8');
+  let schema = readFileSync(SCHEMA_PATH, 'utf-8');
+  
+  if (target === 'sqlite') {
+    // Switch provider to sqlite and remove directUrl (SQLite doesn't support it)
+    schema = schema.replace(/provider\s*=\s*"\w+"/, `provider = "sqlite"`);
+    schema = schema.replace(/\s*directUrl\s*=\s*env\("[^"]*"\)\n?/, '\n');
+  } else {
+    // Switch provider to postgresql and add directUrl if missing
+    schema = schema.replace(/provider\s*=\s*"\w+"/, `provider = "postgresql"`);
+    if (!schema.includes('directUrl')) {
+      schema = schema.replace(
+        /url\s*=\s*env\("DATABASE_URL"\)\n/,
+        `url      = env("DATABASE_URL")\n  directUrl = env("DIRECT_URL")\n`
+      );
+    }
+  }
+  
+  writeFileSync(SCHEMA_PATH, schema, 'utf-8');
 }
 
 function runGenerate() {
