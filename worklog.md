@@ -564,3 +564,33 @@ Stage Summary:
   - `src/lib/tournament/bracket-generator.ts` — Library module update
   - `src/components/idm/bracket-view.tsx` — GroupStageView double elim rendering + backward compat
 - Backward compatible: existing tournaments with old SF1/SF2 labels still render correctly
+
+---
+Task ID: 5
+Agent: Main
+Task: Add SVG connector lines to Group Stage Double Elimination Playoff bracket
+
+Work Log:
+- Analyzed current GroupStageView playoff rendering — new-style double elim matches rendered without connector lines
+- Studied UpperSemiView's connector implementation (SVG overlay, getCardPos helper, calculateBracketConnectors, cross-bracket UB→GF/LB→GF)
+- Created new `GroupStagePlayoffBracket` component with full SVG connector support:
+  - Container ref + card refs for DOM position tracking
+  - `calculateConnectors` callback with same algorithm as UpperSemiView
+  - Within-bracket connectors for UB rounds (division color) and LB rounds (orange color)
+  - Cross-bracket connectors: UB Final → GF and LB Final → GF (gold color)
+  - Neon glow effect on winner paths (3-layer SVG: glow + main + bright center)
+  - Connector dots at junction points
+  - `alignBracketCards` callback for proper card vertical alignment based on feeder positions
+  - BYE placeholder filling for correct spacing
+  - ZoomableContainer for pinch-zoom + drag-pan on mobile
+- Modified GroupStageView to use `GroupStagePlayoffBracket` for new-style brackets instead of inline IIFE
+- Layout: UB + LB stacked vertically on left, Grand Final on right (same as UpperSemiView)
+- Drop indicator "Yang kalah turun ke Lower Bracket" preserved between UB and LB sections
+- Backward compat: old-style SF1/SF2/Final/3rd still renders without connectors (no change)
+
+Stage Summary:
+- Group Stage Playoff now has SVG connector lines matching Upper Semi format's visual quality
+- Connector lines show: UB round→round, LB round→round, UB Final→GF, LB Final→GF
+- Card alignment auto-adjusts to vertically center between feeder matches
+- ZoomableContainer added for mobile-friendly zoom/pan
+- File modified: `src/components/idm/bracket-view.tsx` (new GroupStagePlayoffBracket component + GroupStageView simplified)
