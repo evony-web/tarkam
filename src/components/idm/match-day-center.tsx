@@ -737,7 +737,7 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
                 <button
                   key={bt.value}
                   onClick={() => setBracketTypeManual(bt.value)}
-                  className={`shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
+                  className={`compact-pill shrink-0 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
                     bracketType === bt.value
                       ? 'bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 shadow-sm'
                       : 'text-muted-foreground hover:text-foreground border border-transparent hover:bg-muted/40'

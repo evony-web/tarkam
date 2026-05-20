@@ -274,7 +274,7 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel, mode = 'public', ad
               <button 
                 onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: match.id })}
                 disabled={adminProps!.startMatchMutation.isPending}
-                className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+                className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
               >
                 <Play className="w-2.5 h-2.5" /> Start
               </button>
@@ -427,7 +427,7 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel, mode = 'public', ad
           <button 
             onClick={handleSubmitScore}
             disabled={adminProps!.scoreMutation.isPending}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+            className="compact-pill flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
           >
             <Check className="w-3 h-3" /> Submit
           </button>
@@ -440,7 +440,7 @@ function BracketMatchCard({ match, isGrandFinal, matchLabel, mode = 'public', ad
           <button
             onClick={handleUndo}
             disabled={adminProps!.undoScoreMutation.isPending}
-            className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+            className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
           >
             <Undo2 className="w-3 h-3" /> Undo
           </button>
@@ -739,7 +739,7 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
       <div className="lg:hidden flex items-center gap-1.5 mb-2 px-1">
         <button
           onClick={() => handleZoom(displayState.scale - 0.25)}
-          className="flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
+          className="compact-pill flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
           aria-label="Zoom out"
         >
           <ZoomOut className="w-4 h-4 text-foreground" />
@@ -749,14 +749,14 @@ function ZoomableContainer({ children }: { children: React.ReactNode }) {
         </div>
         <button
           onClick={() => handleZoom(displayState.scale + 0.25)}
-          className="flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
+          className="compact-pill flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
           aria-label="Zoom in"
         >
           <ZoomIn className="w-4 h-4 text-foreground" />
         </button>
         <button
           onClick={resetZoom}
-          className="flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
+          className="compact-pill flex items-center justify-center w-9 h-9 rounded-lg bg-background/90 hover:bg-muted border border-border/60 shadow-sm transition-colors active:scale-95"
           aria-label="Reset zoom"
         >
           <Maximize2 className="w-3.5 h-3.5 text-foreground" />
@@ -1540,7 +1540,7 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
                           <button
                             onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id })}
                             disabled={adminProps!.startMatchMutation.isPending}
-                            className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+                            className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
                           >
                             <Play className="w-2.5 h-2.5" /> Start
                           </button>
@@ -1610,7 +1610,7 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
                       <button
                         onClick={handleSubmitScore}
                         disabled={adminProps!.scoreMutation.isPending}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+                        className="compact-pill flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
                       >
                         <Check className="w-3 h-3" /> Submit
                       </button>
@@ -1622,7 +1622,7 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
                       <button
                         onClick={handleUndo}
                         disabled={adminProps!.undoScoreMutation.isPending}
-                        className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+                        className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
                       >
                         <Undo2 className="w-3 h-3" /> Undo
                       </button>
@@ -2075,7 +2075,7 @@ function SwissView({ matches, roundsData, mode, adminProps }: { matches: Match[]
                               <button
                                 onClick={() => adminProps!.startMatchMutation.mutate({ tournamentId: adminProps!.tournamentId, matchId: m.id })}
                                 disabled={adminProps!.startMatchMutation.isPending}
-                                className="flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
+                                className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/15 text-green-400 hover:bg-green-500/25 border border-green-500/25 transition-colors disabled:opacity-50"
                               >
                                 <Play className="w-2.5 h-2.5" /> Start
                               </button>
@@ -2162,7 +2162,7 @@ function SwissView({ matches, roundsData, mode, adminProps }: { matches: Match[]
                           <button
                             onClick={handleSubmitScore}
                             disabled={adminProps!.scoreMutation.isPending}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
+                            className="compact-pill flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-idm-gold-warm/20 text-idm-gold-warm hover:bg-idm-gold-warm/30 border border-idm-gold-warm/30 transition-colors disabled:opacity-50"
                           >
                             <Check className="w-3 h-3" /> Submit
                           </button>
@@ -2174,7 +2174,7 @@ function SwissView({ matches, roundsData, mode, adminProps }: { matches: Match[]
                           <button
                             onClick={handleUndo}
                             disabled={adminProps!.undoScoreMutation.isPending}
-                            className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
+                            className="compact-pill flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-orange-400 hover:bg-orange-400/10 border border-orange-400/25 transition-colors disabled:opacity-50"
                           >
                             <Undo2 className="w-3 h-3" /> Undo
                           </button>

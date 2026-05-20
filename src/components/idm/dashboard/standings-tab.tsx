@@ -244,7 +244,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
             <div className="flex items-center justify-center pt-1">
               <button
                 onClick={() => setShowAllPlayers(!showAllPlayers)}
-                className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
+                className={`compact-pill flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
               >
                 {showAllPlayers ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({allPlayers.length})</>}
               </button>
@@ -362,7 +362,7 @@ export function StandingsTab({ data, otherDivisionData, currentDivision, setSele
                 <div className="flex items-center justify-center pt-1">
                   <button
                     onClick={() => setShowAllClubs(!showAllClubs)}
-                    className={`flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
+                    className={`compact-pill flex items-center gap-1 text-xs font-medium ${dt.text} hover:underline cursor-pointer`}
                   >
                     {showAllClubs ? <><ChevronUp className="w-3 h-3" /> Tampilkan Sedikit</> : <><ChevronDown className="w-3 h-3" /> Tampilkan Semua ({data.clubs.length})</>}
                   </button>

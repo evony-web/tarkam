@@ -191,14 +191,14 @@ export function CommunityDonors({ maleData, femaleData, onSawer }: CommunityDono
         <div className="flex items-center gap-0.5 ml-auto p-0.5 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10">
           <button
             onClick={() => setTimeRange('season')}
-            className={`px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
+            className={`compact-pill px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
               timeRange === 'season' ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
             }`}
           >🏆 Season</button>
           <button
             onClick={() => setTimeRange('week')}
             disabled={!hasWeekDonors}
-            className={`px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
+            className={`compact-pill px-2 py-1 rounded-full text-[8px] lg:text-[9px] font-bold transition-all cursor-pointer ${
               timeRange === 'week' ? 'bg-idm-gold-warm/15 text-idm-gold-warm' : !hasWeekDonors ? 'text-muted-foreground/30 cursor-not-allowed' : 'text-muted-foreground/60 hover:text-idm-gold-warm/70'
             }`}
           >📅 W{weekNumber || '?'}</button>

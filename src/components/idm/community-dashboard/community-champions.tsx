@@ -32,7 +32,7 @@ export function CommunityChampions({ maleData, femaleData, selectedDivision = 'a
       <div className="flex items-center gap-1 overflow-x-auto">
         <button
           onClick={() => setActiveTab('top3')}
-          className={`relative px-4 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
+          className={`compact-pill relative px-4 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'top3'
               ? 'border-idm-gold-warm text-idm-gold-warm'
               : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -43,7 +43,7 @@ export function CommunityChampions({ maleData, femaleData, selectedDivision = 'a
         </button>
         <button
           onClick={() => setActiveTab('sultan')}
-          className={`relative px-4 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
+          className={`compact-pill relative px-4 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'sultan'
               ? 'border-emerald-500 text-emerald-400'
               : 'border-transparent text-muted-foreground hover:text-foreground'

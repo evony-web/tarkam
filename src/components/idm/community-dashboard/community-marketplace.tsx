@@ -149,7 +149,7 @@ export function CommunityMarketplace({ onLoginRequired }: { onLoginRequired?: ()
           {/* Pasang Iklan Button — Orange */}
           <button
             onClick={() => setSubmitOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-orange-500/15 border border-orange-500/25 text-[10px] sm:text-xs font-bold text-orange-400 hover:bg-orange-500/25 transition-colors cursor-pointer"
+            className="compact-pill flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-orange-500/15 border border-orange-500/25 text-[10px] sm:text-xs font-bold text-orange-400 hover:bg-orange-500/25 transition-colors cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             <span className="hidden sm:inline">Pasang Iklan</span>
@@ -176,7 +176,7 @@ export function CommunityMarketplace({ onLoginRequired }: { onLoginRequired?: ()
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap border transition-all duration-200 cursor-pointer ${
+            className={`compact-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap border transition-all duration-200 cursor-pointer ${
               activeCategory === cat.id
                 ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
                 : 'bg-idm-gold-warm/5 border border-idm-gold-warm/10 text-muted-foreground hover:bg-idm-gold-warm/10 hover:text-foreground'

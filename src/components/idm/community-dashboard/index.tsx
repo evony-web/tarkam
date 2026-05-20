@@ -108,7 +108,7 @@ const SectionTabBar = React.memo(function SectionTabBar<T extends string>({
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap lg:px-4 lg:py-2 lg:text-xs ${
+              className={`compact-pill flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all whitespace-nowrap lg:px-4 lg:py-2 lg:text-xs ${
                 isActive
                   ? 'bg-idm-gold-warm/20 text-idm-gold-warm shadow-sm border border-idm-gold-warm/25 activity-card-glass'
                   : 'text-muted-foreground hover:text-foreground border border-transparent hover:bg-muted/40'
@@ -402,7 +402,7 @@ const BracketHasilSection = React.memo(function BracketHasilSection({
             <button
               key={div.key}
               onClick={() => setHasilDivision(div.key)}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+              className={`compact-pill px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
                 hasilDivision === div.key
                   ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm shadow-idm-gold-warm/10 border border-idm-gold-warm/25'
                   : 'text-muted-foreground/70 hover:text-foreground border border-transparent hover:bg-muted/40'
@@ -1085,7 +1085,7 @@ export function CommunityDashboard() {
             </div>
             <div className="flex items-center gap-1 p-1 rounded-lg bg-idm-gold-warm/5 border border-idm-gold-warm/10">
               {(['all', 'male', 'female'] as const).map(d => (
-                <button key={d} onClick={() => handleDivisionChange(d)} className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${selectedDivision === d ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm border border-idm-gold-warm/25' : 'text-muted-foreground/70 border border-transparent hover:bg-muted/40'}`}>{d === 'all' ? 'Semua' : d === 'male' ? 'Cowo' : 'Cewe'}</button>
+                <button key={d} onClick={() => handleDivisionChange(d)} className={`compact-pill px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${selectedDivision === d ? 'bg-idm-gold-warm/15 text-idm-gold-warm shadow-sm border border-idm-gold-warm/25' : 'text-muted-foreground/70 border border-transparent hover:bg-muted/40'}`}>{d === 'all' ? 'Semua' : d === 'male' ? 'Cowo' : 'Cewe'}</button>
               ))}
             </div>
           </div>
