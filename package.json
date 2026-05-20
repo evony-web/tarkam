@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "node scripts/switch-provider.mjs sqlite && prisma db push",
+    "db:push:pg": "node scripts/switch-provider.mjs postgresql && prisma db push",
     "db:generate": "node scripts/switch-provider.mjs sqlite",
     "db:generate:pg": "node scripts/switch-provider.mjs postgresql",
     "db:migrate": "prisma migrate dev",

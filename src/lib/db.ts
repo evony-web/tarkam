@@ -20,7 +20,6 @@ import { resolve } from 'path'
 dotenvConfig({ path: resolve(process.cwd(), '.env'), override: true })
 
 import { PrismaClient } from '@prisma/client'
-import { PrismaNeonHttp } from '@prisma/adapter-neon'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -31,12 +30,24 @@ function _isPostgresUrl(): boolean {
 }
 
 function createPrismaClient(): PrismaClient {
+  const dbUrl = process.env.DATABASE_URL
+
+  if (!dbUrl) {
+    console.error('[DB] ❌ DATABASE_URL is not set! Database connection will fail.')
+    console.error('[DB] Set DATABASE_URL in .env (local) or Vercel Environment Variables (production)')
+  }
+
   if (_isPostgresUrl()) {
     // ── Production: Neon HTTP adapter (no TCP, no WebSocket) ──
     // Uses HTTP fetch to query Neon — perfect for Vercel serverless.
     // No connection pool, no idle connections, no exhaustion.
     // Free tier safe: Neon HTTP queries don't count toward connection limit.
-    const adapter = new PrismaNeonHttp(process.env.DATABASE_URL!, {})
+    console.log('[DB] Using Neon PostgreSQL (HTTP adapter) —', dbUrl?.substring(0, 30) + '...')
+
+    // Dynamic import to avoid bundling neon adapter in SQLite mode
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaNeonHttp } = require('@prisma/adapter-neon')
+    const adapter = new PrismaNeonHttp(dbUrl!, {})
     return new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
       adapter,
@@ -44,11 +55,12 @@ function createPrismaClient(): PrismaClient {
   }
 
   // ── Local development: SQLite ──
+  console.log('[DB] Using SQLite —', dbUrl || '(no URL)')
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: dbUrl,
       },
     },
   })
