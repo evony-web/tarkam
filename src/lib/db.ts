@@ -151,13 +151,19 @@ export async function neonUpdateMany(
  * When running on PostgreSQL, uses raw SQL instead.
  * When running on SQLite, falls back to normal Prisma deleteMany.
  *
+ * IMPORTANT: When called inside a neonTransaction(), pass the transaction client (tx)
+ * as the 3rd argument so the delete runs WITHIN the transaction.
+ * If no tx is provided, uses the global db client (outside transaction).
+ *
  * @param table - Prisma model name (e.g. 'TeamPlayer', 'Match')
  * @param whereClauses - Array of { column, operator, value } conditions
+ * @param tx - Optional PrismaClient transaction client to run within a transaction
  * @returns Number of rows deleted
  */
 export async function neonDeleteMany(
   table: string,
-  whereClauses: Array<{ column: string; operator: '=' | 'IN' | 'NOT NULL' | 'IS NULL'; value?: string | string[] }>
+  whereClauses: Array<{ column: string; operator: '=' | 'IN' | 'NOT NULL' | 'IS NULL'; value?: string | string[] }>,
+  tx?: PrismaClient
 ): Promise<number> {
   if (!_isPostgresUrl()) {
     throw new Error('neonDeleteMany should only be called for PostgreSQL. Use db.model.deleteMany for SQLite.');
@@ -183,7 +189,8 @@ export async function neonDeleteMany(
   }
 
   const sql = `DELETE FROM "${table}"${whereParts.length > 0 ? ' WHERE ' + whereParts.join(' AND ') : ''}`;
-  return db.$executeRawUnsafe(sql, ...params);
+  const client = tx || db;
+  return client.$executeRawUnsafe(sql, ...params);
 }
 
 /**
@@ -213,8 +220,9 @@ export async function neonCreateMany<T>(
 
 /**
  * PostgreSQL-compatible replacement for Prisma's $transaction().
- * When running on PostgreSQL, uses standard $transaction.
- * When running on SQLite, uses standard $transaction.
+ * For PostgreSQL (Neon): uses extended timeout (30s) to prevent
+ * "Transaction not found" errors on serverless with many sequential queries.
+ * For SQLite: uses default timeout.
  */
 export async function neonTransaction<T>(
   fn: (tx: PrismaClient) => Promise<T>
@@ -222,6 +230,10 @@ export async function neonTransaction<T>(
   if (!_isPostgresUrl()) {
     return db.$transaction(fn as never) as Promise<T>;
   }
-  // PostgreSQL: use standard Prisma transaction
-  return db.$transaction(fn as never) as Promise<T>;
+  // PostgreSQL (Neon): use extended timeout to prevent transaction expiry
+  // Neon serverless can have cold starts and high latency; default 5s is too short
+  return db.$transaction(fn as never, {
+    maxWait: 10000,   // Max time to acquire a connection from the pool (10s)
+    timeout: 30000,   // Max time for the entire transaction (30s)
+  }) as Promise<T>;
 }

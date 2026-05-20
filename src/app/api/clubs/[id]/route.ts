@@ -303,7 +303,7 @@ export async function DELETE(
     await neonTransaction(async (tx) => {
       // Delete all Club season entries for this profile
       if (isPostgreSQL) {
-        await neonDeleteMany('Club', [{ column: 'profileId', operator: '=', value: id }]);
+        await neonDeleteMany('Club', [{ column: 'profileId', operator: '=', value: id }], tx);
       } else {
         await tx.club.deleteMany({
           where: { profileId: id },

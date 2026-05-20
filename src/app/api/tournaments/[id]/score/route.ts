@@ -1671,10 +1671,11 @@ export async function PUT(
       }
 
       // Delete PlayerPoint records
-      // Neon workaround: deleteMany() doesn't work with PrismaNeonHttp
+      // Pass tx so delete runs WITHIN the transaction (fixes "Transaction not found" error)
       if (isPostgreSQL) {
         await neonDeleteMany('PlayerPoint',
           [{ column: 'matchId', operator: '=', value: matchId }, { column: 'tournamentId', operator: '=', value: id }],
+          tx,
         );
       } else {
         await tx.playerPoint.deleteMany({ where: { matchId, tournamentId: id } });
