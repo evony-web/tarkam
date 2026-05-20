@@ -798,9 +798,11 @@ export function LandingPage() {
         maleData={maleData}
         femaleData={femaleData}
         isDataLoading={isDataLoading}
-        onSawer={() => {
-          setPaymentModalDivision('male');
-          const tid = tournamentStatus?.male?.tournamentId;
+        onSawer={(division) => {
+          setPaymentModalDivision(division);
+          const tid = division === 'female'
+            ? tournamentStatus?.female?.tournamentId
+            : tournamentStatus?.male?.tournamentId;
           setDonationTournamentId(tid || null);
           setDonationModalOpen(true);
         }}

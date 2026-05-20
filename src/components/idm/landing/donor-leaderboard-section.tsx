@@ -20,7 +20,7 @@ interface DonorLeaderboardSectionProps {
   maleData?: StatsData;
   femaleData?: StatsData;
   isDataLoading?: boolean;
-  onSawer?: () => void;
+  onSawer?: (division: 'male' | 'female') => void;
 }
 
 /* ─── Constants ─── */
@@ -638,12 +638,20 @@ export function DonorLeaderboardSection({
                   <p className="text-sm font-semibold text-muted-foreground">Belum ada penyawer minggu ini</p>
                   <p className="text-xs text-muted-foreground/60 mt-1">Jadilah yang pertama menyawer!</p>
                   {onSawer && (
-                    <button
-                      onClick={onSawer}
-                      className="mt-5 px-6 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-h-[36px]"
-                    >
-                      💰 Sawer Sekarang
-                    </button>
+                    <div className="mt-5 flex items-center gap-2">
+                      <button
+                        onClick={() => onSawer('male')}
+                        className="compact-pill px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-idm-male/10 text-idm-male hover:bg-idm-male/20 transition-all duration-200 cursor-pointer min-h-[36px]"
+                      >
+                        🕺 Sawer Cowo
+                      </button>
+                      <button
+                        onClick={() => onSawer('female')}
+                        className="compact-pill px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-idm-female/10 text-idm-female hover:bg-idm-female/20 transition-all duration-200 cursor-pointer min-h-[36px]"
+                      >
+                        💃 Sawer Cewe
+                      </button>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -910,12 +918,18 @@ export function DonorLeaderboardSection({
               </div>
               {/* Sawer CTA — inside summary card */}
               {onSawer && (
-                <div className="mt-3 flex justify-center">
+                <div className="mt-3 flex items-center justify-center gap-2">
                   <button
-                    onClick={onSawer}
-                    className="px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-idm-gold-warm to-[#e8d5a3] text-black hover:shadow-[0_0_20px_rgba(249,203,37,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-h-[36px]"
+                    onClick={() => onSawer('male')}
+                    className="compact-pill px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-idm-male/10 text-idm-male hover:bg-idm-male/20 hover:shadow-[0_0_14px_rgba(46,159,255,0.12)] transition-all duration-200 cursor-pointer active:scale-[0.97] min-h-[36px]"
                   >
-                    💰 Sawer Sekarang
+                    🕺 Sawer Cowo
+                  </button>
+                  <button
+                    onClick={() => onSawer('female')}
+                    className="compact-pill px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-idm-female/10 text-idm-female hover:bg-idm-female/20 hover:shadow-[0_0_14px_rgba(255,45,120,0.12)] transition-all duration-200 cursor-pointer active:scale-[0.97] min-h-[36px]"
+                  >
+                    💃 Sawer Cewe
                   </button>
                 </div>
               )}
