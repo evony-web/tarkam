@@ -995,3 +995,31 @@ Stage Summary:
   - `src/components/idm/landing/hero-section.tsx` — 3-column champion layout
   - `src/components/idm/highlights-page.tsx` — removed 3 collapsible sections
   - `src/components/idm/landing/season-champion-section.tsx` — tab-based UI added (unused but available)
+
+---
+Task ID: hero-sultan-cards
+Agent: Main
+Task: Update hero banner with 3 separate champion cards (Sultan Male | Club | Sultan Female) + remove champion sections from Juara page
+
+Work Log:
+- Read hero-section.tsx and found existing champion row was a SINGLE combined card with Sultan | Club | Female Champion all in one container
+- User requested: 3 SEPARATE cards, Sultan Male (left), Club Season (center), Female Sultan (right - NOT Female Champion)
+- User also requested: names and descriptions BELOW the avatar in each card
+- Replaced sultan data extraction: was a single `latestSultan` from both divisions, now separate `maleSultan`/`femaleSultan` per division
+- Replaced single-card champion row with 3 independent cards:
+  - Left: 💎 Sultan Male - diamond avatar with emerald frame (#43A047), name + "Sultan S{N}" below
+  - Center: 🏆 Club Season - rounded club logo with gold frame, name + "Season Club S{N}" below
+  - Right: 💎 Sultan Female - diamond avatar with pink-emerald blend (#E91E63), name + "Sultan S{N}" below
+- Each card has its own border, background color, and box-shadow matching its accent color
+- Updated skeleton placeholder to match new 3 separate cards layout
+- Updated CTA condition from `hasSultan || championClub || femaleChampion` to `hasMaleSultan || championClub || hasFemaleSultan`
+- Cleaned up unused imports (Crown) and unused variables (maleChampion, femaleChampion, hasChampions)
+- Juara page (highlights-page.tsx) already had champion sections removed from render — only Weekly Champions, MVP Spotlight, Sultan of the Week, MVP Hall of Fame remain
+- Lint passes clean, dev server running without errors
+
+Stage Summary:
+- Hero banner now shows 3 separate clean cards for season champions
+- Left = Sultan Male (💎 emerald), Center = Club Season (🏆 gold), Right = Sultan Female (💎 pink)
+- Names and descriptions are BELOW the avatar in each card
+- Female Sultan replaces Female Champion (user correction)
+- File modified: `/home/z/my-project/src/components/idm/landing/hero-section.tsx`
