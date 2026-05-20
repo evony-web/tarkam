@@ -57,6 +57,7 @@ export function useParallax(layers: ParallaxLayer[]) {
 
     // ── Step 1.5: IntersectionObserver — only run parallax when hero is visible ──
     // This prevents wasted GPU cycles on transforms when the hero is scrolled past
+    let cleanupVis: (() => void) | null = null;
     const heroEl = document.querySelector('.hero-section-immediate') || cached[0]?.els[0]?.parentElement;
     if (heroEl) {
       const visibilityIO = new IntersectionObserver(
@@ -64,11 +65,7 @@ export function useParallax(layers: ParallaxLayer[]) {
         { rootMargin: '100px 0px', threshold: 0 }
       );
       visibilityIO.observe(heroEl);
-
-      // Cleanup visibility observer on unmount
-      const originalCleanup = () => visibilityIO.disconnect();
-      // We'll call this in the return cleanup
-      let _cleanupVis = originalCleanup;
+      cleanupVis = () => visibilityIO.disconnect();
     }
 
     // ── Step 2: Single rAF loop — reads scrollY, writes transforms ──
@@ -105,7 +102,7 @@ export function useParallax(layers: ParallaxLayer[]) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = 0;
       }
-      if (typeof _cleanupVis === 'function') _cleanupVis();
+      if (cleanupVis) cleanupVis();
     };
   }, [stableLayers]);
 }

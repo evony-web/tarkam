@@ -1192,7 +1192,7 @@ function GroupStagePlayoffBracket({ playoffMatches, mode, adminProps }: { playof
   const getMatchDisplayLabel = (groupLabel: string | undefined, match?: Match): string => {
     if (!groupLabel) return '';
     // Show "Waiting" indicator for L1 matches where rank 3 is pre-seeded
-    if (match && groupLabel.match(/^L1-\d+$/) && match.team1Id && !match.team2Id) {
+    if (match && groupLabel.match(/^L1-\d+$/) && match.team1 && !match.team2) {
       return `LB R1 (Waiting)`;
     }
     const upperMatch = groupLabel.match(/^U(\d+)-(\d+)$/);
