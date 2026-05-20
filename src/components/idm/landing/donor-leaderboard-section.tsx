@@ -668,7 +668,7 @@ export function DonorLeaderboardSection({
         <div className="max-w-2xl mx-auto">
           {/* ── Toggles Row — two separate pill groups on one line ── */}
           <AnimatedSection variant="fadeUp" className="mb-6">
-            <div className="flex items-center gap-1 sm:gap-2 flex-nowrap">
+            <div className="flex items-center gap-1 sm:gap-2 flex-nowrap justify-between">
               {/* Time range toggle: Season vs Week selector */}
               <div className="flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-full bg-idm-gold-warm/[0.06] border border-idm-gold-warm/10 shrink-0">
                 {/* Season button */}
