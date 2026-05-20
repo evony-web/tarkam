@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import { Crown, Trophy, Flame, Calendar, Music, Shield, Swords, TrendingUp, Users, Medal, Heart, Gem } from 'lucide-react';
 import { SectionHeader, AnimatedSection } from './shared';
@@ -1251,9 +1252,75 @@ function ClubChampionCard({
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   CHAMPION TAB BAR — Switch between Juara / Club / Sultan
+   Consistent with division tabs used in Bracket & Hasil
+   Pulse animation on unselected tabs for engagement
+   ═══════════════════════════════════════════════════════════════ */
+type ChampionTab = 'champion' | 'club' | 'sultan';
+
+function ChampionTabBar({
+  activeTab,
+  onTabChange,
+  hasSultan,
+  hasClub,
+}: {
+  activeTab: ChampionTab;
+  onTabChange: (tab: ChampionTab) => void;
+  hasSultan: boolean;
+  hasClub: boolean;
+}) {
+  const tabs: { key: ChampionTab; label: string; emoji: string; accentVar: string; available: boolean }[] = [
+    { key: 'champion', label: 'Juara Season', emoji: '👑', accentVar: 'var(--idm-gold)', available: true },
+    { key: 'club', label: 'Club Champion', emoji: '🏆', accentVar: 'var(--idm-gold-warm)', available: hasClub },
+    { key: 'sultan', label: 'Sultan Season', emoji: '💎', accentVar: '#43A047', available: hasSultan },
+  ];
+
+  const availableTabs = tabs.filter(t => t.available);
+
+  return (
+    <div className="flex items-center gap-2 px-1">
+      {availableTabs.map((tab) => {
+        const isActive = activeTab === tab.key;
+
+        return (
+          <button
+            key={tab.key}
+            onClick={() => onTabChange(tab.key)}
+            className={`
+              relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider
+              transition-all duration-300 cursor-pointer select-none
+              ${isActive
+                ? 'bg-card border shadow-sm'
+                : 'border animate-pulse hover:bg-card/50'
+              }
+            `}
+            style={{
+              borderColor: isActive ? cm(tab.accentVar, 35) : cm(tab.accentVar, 8),
+              color: isActive ? tab.accentVar : cm(tab.accentVar, 50),
+              backgroundColor: isActive ? cm(tab.accentVar, 6) : 'transparent',
+              boxShadow: isActive ? `0 0 16px ${cm(tab.accentVar, 10)}` : 'none',
+            }}
+          >
+            <span className="text-sm">{tab.emoji}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.key === 'champion' ? 'Juara' : tab.key === 'club' ? 'Club' : 'Sultan'}</span>
+            {isActive && (
+              <div
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full w-3/4"
+                style={{ backgroundColor: tab.accentVar, boxShadow: `0 0 8px ${cm(tab.accentVar, 40)}` }}
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    MAIN SEASON CHAMPION SECTION COMPONENT
-   Single card with Male + Female champion side-by-side
-   Dynamic subtitle based on champion state
+   Tab-based layout: Juara Season | Club Champion | Sultan Season
+   Only one champion card visible at a time for maximum visual impact
    ═══════════════════════════════════════════════════════════════ */
 export function SeasonChampionSection({
   maleData,
@@ -1293,6 +1360,7 @@ export function SeasonChampionSection({
     clubChampionGroups.get(key)!.push(entry);
   }
   const hasClubChampion = clubChampionGroups.size > 0;
+  const hasSultanData = sultans.length > 0;
 
   // Determine if champion exists
   const hasChampion = maleChampions.length > 0 || femaleChampions.length > 0;
@@ -1304,10 +1372,52 @@ export function SeasonChampionSection({
   // Season progress
   const seasonProgress = maleData?.seasonProgress;
 
-  // Dynamic subtitle
-  const subtitle = hasChampion
-    ? 'Juara season Tarkam IDM — pemain peringkat #1 saat season ditutup'
-    : 'Belum ada juara musim ini — Bintang Minggu Ini: performa terbaik minggu berjalan';
+  // ── Tab state ──
+  // Determine smart default: champion > sultan > club
+  const defaultTab: ChampionTab = hasChampion ? 'champion' : hasSultanData ? 'sultan' : hasClubChampion ? 'club' : 'champion';
+  const [activeTab, setActiveTab] = useState<ChampionTab>(defaultTab);
+
+  // Dynamic subtitle based on active tab
+  const getTabSubtitle = () => {
+    switch (activeTab) {
+      case 'champion':
+        return hasChampion
+          ? 'Juara season Tarkam IDM — pemain peringkat #1 saat season ditutup'
+          : 'Belum ada juara musim ini — Bintang Minggu Ini: performa terbaik minggu berjalan';
+      case 'club':
+        return 'Club terbaik di Tarkam IDM — gabungan skor seluruh anggota';
+      case 'sultan':
+        return 'Top penyawer season — supporter terbesar Tarkam IDM';
+    }
+  };
+
+  const getTabIcon = () => {
+    switch (activeTab) {
+      case 'champion': return hasChampion ? Crown : Flame;
+      case 'club': return Trophy;
+      case 'sultan': return Gem;
+    }
+  };
+
+  const getTabLabel = () => {
+    switch (activeTab) {
+      case 'champion': return hasChampion ? 'TOP SEASON' : 'BINTANG MINGGU INI';
+      case 'club': return 'CLUB CHAMPION';
+      case 'sultan': return 'SULTAN OF SEASON';
+    }
+  };
+
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case 'champion': return hasChampion ? 'Top Season' : 'Bintang Minggu Ini';
+      case 'club': return 'Club Champion';
+      case 'sultan': return 'Sultan of Season';
+    }
+  };
+
+  // Check if we have more than 1 tab available (to show tab bar)
+  const availableTabCount = [true, hasClubChampion, hasSultanData].filter(Boolean).length;
+  const showTabBar = availableTabCount > 1;
 
   return (
     <section id="season-champion" role="region" aria-label="Top Season" className="landing-section relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden bg-deep">
@@ -1319,54 +1429,69 @@ export function SeasonChampionSection({
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-idm-gold-warm/12 to-transparent" />
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Section Header — dynamic subtitle */}
+        {/* Section Header — dynamic based on active tab */}
         {!hideHeader && (
           <AnimatedSection>
             <SectionHeader
-              icon={hasChampion ? Crown : Flame}
-              label={hasChampion ? 'TOP SEASON' : 'BINTANG MINGGU INI'}
-              title={hasChampion ? 'Top Season' : 'Bintang Minggu Ini'}
-              subtitle={subtitle}
+              icon={getTabIcon()}
+              label={getTabLabel()}
+              title={getTabTitle()}
+              subtitle={getTabSubtitle()}
             />
           </AnimatedSection>
         )}
 
-        {/* Player Champion Card */}
-        <div className="mt-10 sm:mt-14">
+        {/* ═══ Champion Tab Bar ═══ */}
+        {showTabBar && !isDataLoading && !isSeasonDataPlaceholder && (
+          <div className="mt-6 sm:mt-8">
+            <ChampionTabBar
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              hasSultan={hasSultanData}
+              hasClub={hasClubChampion}
+            />
+          </div>
+        )}
+
+        {/* ═══ Tab Content ═══ */}
+        <div className="mt-4 sm:mt-6">
           {(isDataLoading || isSeasonDataPlaceholder) ? (
             <div className="rounded-2xl bg-card border border-idm-gold-warm/10 h-80 animate-pulse" />
           ) : (
-            <DuoChampionCard
-              maleChampions={maleChampions}
-              femaleChampions={femaleChampions}
-              maleWeeklyPerformer={maleWeeklyPerformer}
-              femaleWeeklyPerformer={femaleWeeklyPerformer}
-              seasonProgress={seasonProgress}
-              setSelectedPlayer={setSelectedPlayer}
-              skinMap={skinMap}
-            />
+            <>
+              {/* 👑 Juara Season / Bintang Minggu Ini */}
+              {activeTab === 'champion' && (
+                <DuoChampionCard
+                  maleChampions={maleChampions}
+                  femaleChampions={femaleChampions}
+                  maleWeeklyPerformer={maleWeeklyPerformer}
+                  femaleWeeklyPerformer={femaleWeeklyPerformer}
+                  seasonProgress={seasonProgress}
+                  setSelectedPlayer={setSelectedPlayer}
+                  skinMap={skinMap}
+                />
+              )}
+
+              {/* 🏆 Club Season Champion */}
+              {activeTab === 'club' && hasClubChampion && (
+                <div className="space-y-6">
+                  {Array.from(clubChampionGroups.entries()).map(([key, entries]) => (
+                    <ClubChampionCard
+                      key={key}
+                      clubChampions={entries}
+                      setSelectedClub={setSelectedClub}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* 💎 Sultan of Season */}
+              {activeTab === 'sultan' && hasSultanData && (
+                <SultanOfSeasonCard sultans={sultans} setSelectedPlayer={setSelectedPlayer} />
+              )}
+            </>
           )}
         </div>
-
-        {/* ═══ Sultan of Season Card ═══ */}
-        {sultans.length > 0 && !isDataLoading && !isSeasonDataPlaceholder && (
-          <div className="mt-4">
-            <SultanOfSeasonCard sultans={sultans} setSelectedPlayer={setSelectedPlayer} />
-          </div>
-        )}
-
-        {/* ═══ Club Season Champion Card (Tarkam) ═══ */}
-        {hasClubChampion && !isDataLoading && !isSeasonDataPlaceholder && (
-          <div className="mt-8 space-y-6">
-            {Array.from(clubChampionGroups.entries()).map(([key, entries]) => (
-              <ClubChampionCard
-                key={key}
-                clubChampions={entries}
-                setSelectedClub={setSelectedClub}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </section>
   );
