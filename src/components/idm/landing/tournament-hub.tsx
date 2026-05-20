@@ -455,8 +455,18 @@ function TournamentCard({
           const { totalWeeks, completedWeeks, percentage } = data.seasonProgress;
           const curWeek = data?.activeTournament?.weekNumber || (completedWeeks + 1);
           const hasActive = curWeek <= totalWeeks && curWeek > completedWeeks;
-          // Phase config
-          const phase = curWeek <= 2 ? 'registration' : curWeek <= totalWeeks - 2 ? 'competition' : 'playoffs';
+          // Phase config — use actual tournament status when available
+          const tournamentStatus = data?.activeTournament?.status;
+          const phase = (() => {
+            // If we have an active tournament, use its actual status
+            if (tournamentStatus === 'registration' || tournamentStatus === 'approval') return 'registration';
+            if (tournamentStatus === 'in_progress') return 'competition';
+            if (tournamentStatus === 'completed') return 'competition';
+            // Fallback: infer from week number
+            if (curWeek <= 2) return 'registration';
+            if (curWeek <= totalWeeks - 2) return 'competition';
+            return 'playoffs';
+          })();
           const phaseCfg = {
             registration: { label: 'Registrasi', Icon: Flag, bg: 'bg-blue-500/10', text: 'text-blue-400' },
             competition: { label: 'Kompetisi', Icon: Zap, bg: 'bg-green-500/10', text: 'text-green-400' },
