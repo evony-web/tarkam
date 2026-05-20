@@ -31,8 +31,8 @@ function DivisionChips({
 }) {
   const options = [
     { key: 'semua' as const, label: 'Semua' },
-    { key: 'male' as const, label: '♂ Cowo' },
-    { key: 'female' as const, label: '♀ Cewe' },
+    { key: 'male' as const, label: 'Cowo' },
+    { key: 'female' as const, label: 'Cewe' },
   ].filter(opt => !hideSemua || opt.key !== 'semua');
 
   return (
