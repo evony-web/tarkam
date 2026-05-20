@@ -36,10 +36,18 @@ function setProvider(target) {
   if (target === 'sqlite') {
     // Switch provider to sqlite and remove directUrl (SQLite doesn't support it)
     schema = schema.replace(/provider\s*=\s*"\w+"/, `provider = "sqlite"`);
-    schema = schema.replace(/\s*directUrl\s*=\s*env\("[^"]*"\)\n?/, '\n');
+    // Remove directUrl line entirely for SQLite
+    schema = schema.replace(/\n\s*directUrl\s*=\s*env\("[^"]*"\)/, '');
   } else {
     // Switch provider to postgresql
     schema = schema.replace(/provider\s*=\s*"\w+"/, `provider = "postgresql"`);
+    // Add directUrl back if not present
+    if (!schema.includes('directUrl')) {
+      schema = schema.replace(
+        /(url\s*=\s*env\("DATABASE_URL"\))/,
+        `$1\n  directUrl = env("DIRECT_URL")`
+      );
+    }
   }
   
   writeFileSync(SCHEMA_PATH, schema, 'utf-8');
