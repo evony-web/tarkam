@@ -754,7 +754,7 @@ export function DonorLeaderboardSection({
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-1.5 max-h-[310px] sm:max-h-[370px] overflow-y-auto custom-scrollbar">
+                  <div className="space-y-1.5 max-h-[320px] sm:max-h-[380px] overflow-y-auto custom-scrollbar">
                     {filteredDonors.map((donor, i) => {
                       const progress = Math.max(5, (donor.totalAmount / maxAmount) * 100);
                       const medal = RANK_MEDALS[i] || null;
