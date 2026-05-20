@@ -22,6 +22,7 @@ interface TournamentHubProps {
   onPayment: (division: 'male' | 'female') => void;
   onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
+  onViewBracket?: (division: 'male' | 'female') => void;
   maleRegOpen?: boolean;
   femaleRegOpen?: boolean;
 }
@@ -199,6 +200,7 @@ function TournamentCard({
   onPayment,
   onDonate,
   onVideoPlay,
+  onViewBracket,
   isRegOpen,
 }: {
   division: typeof DIVISION.male | typeof DIVISION.female;
@@ -210,6 +212,7 @@ function TournamentCard({
   onPayment: (division: 'male' | 'female') => void;
   onDonate: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
+  onViewBracket?: (division: 'male' | 'female') => void;
   isRegOpen?: boolean;
 }) {
   const Icon = division.icon;
@@ -537,14 +540,11 @@ function TournamentCard({
           </div>
           <div className="flex justify-center">
             <button
-              onClick={() => {
-                const el = document.getElementById('hasil');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              className="px-6 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-white hover:opacity-90 active:scale-[0.98]"
+              onClick={() => onViewBracket?.(division.key)}
+              className="compact-pill px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 border bg-transparent hover:bg-muted/30 active:scale-[0.98]"
               style={{
-                background: `linear-gradient(135deg, ${division.color} 0%, ${division.colorLight} 100%)`,
-                boxShadow: `0 4px 15px rgba(${division.colorRgb},0.25)`,
+                borderColor: `rgba(${division.colorRgb},0.3)`,
+                color: division.color,
               }}
             >
               <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -576,6 +576,7 @@ export function TournamentHub({
   onPayment,
   onDonate,
   onVideoPlay,
+  onViewBracket,
   maleRegOpen,
   femaleRegOpen,
 }: TournamentHubProps) {
@@ -647,6 +648,7 @@ export function TournamentHub({
               onPayment={onPayment}
               onDonate={onDonate}
               onVideoPlay={onVideoPlay}
+              onViewBracket={onViewBracket}
               isRegOpen={maleRegOpen}
             />
           </AnimatedSection>
@@ -663,6 +665,7 @@ export function TournamentHub({
               onPayment={onPayment}
               onDonate={onDonate}
               onVideoPlay={onVideoPlay}
+              onViewBracket={onViewBracket}
               isRegOpen={femaleRegOpen}
             />
           </AnimatedSection>

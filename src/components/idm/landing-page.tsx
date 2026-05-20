@@ -783,6 +783,7 @@ export function LandingPage() {
           setDonationTournamentId(tid || null);
           setDonationModalOpen(true);
         }}
+        onViewBracket={enterBracket}
         onVideoPlay={openVideoModal}
         maleRegOpen={maleRegOpen}
         femaleRegOpen={femaleRegOpen}
