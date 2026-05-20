@@ -541,11 +541,8 @@ function TournamentCard({
           <div className="flex justify-center">
             <button
               onClick={() => onViewBracket?.(division.key)}
-              className="compact-pill px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 border bg-transparent hover:bg-muted/30 active:scale-[0.98]"
-              style={{
-                borderColor: `rgba(${division.colorRgb},0.3)`,
-                color: division.color,
-              }}
+              className="compact-pill py-1 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 hover:opacity-80 active:scale-[0.98]"
+              style={{ color: division.color }}
             >
               <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span>Lihat Hasil</span>
