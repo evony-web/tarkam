@@ -29,6 +29,77 @@ type DivisionFilter = 'all' | 'male' | 'female';
 
 
 /* ═══════════════════════════════════════════
+   Champion Collapsible — Dropdown wrapper for champion sections
+   Collapsed: compact header bar with icon + title + summary
+   Expanded: full content + optional extra content below
+   ═══════════════════════════════════════════ */
+function ChampionCollapsible({
+  icon: Icon,
+  iconColor,
+  title,
+  badge,
+  badgeColor = 'idm-gold-warm',
+  summary,
+  defaultOpen = false,
+  children,
+  extraContent,
+}: {
+  icon: typeof Crown;
+  iconColor: string;
+  title: string;
+  badge?: React.ReactNode;
+  badgeColor?: string;
+  summary?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  extraContent?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="rounded-2xl border border-idm-gold-warm/10 bg-card/60 overflow-hidden transition-all duration-300">
+      {/* Collapsible Header — always visible */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2.5 px-3 lg:px-5 py-2.5 cursor-pointer hover:bg-idm-gold-warm/[0.03] transition-colors"
+      >
+        <div
+          className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+          style={{ backgroundColor: hexToRgba(iconColor, 0.15), border: `1px solid ${hexToRgba(iconColor, 0.25)}` }}
+        >
+          <Icon className="w-3 h-3" style={{ color: iconColor }} />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: iconColor }}>
+          {title}
+        </span>
+        {summary && (
+          <span className="text-[10px] text-muted-foreground/60 truncate flex-1 text-right">
+            {summary}
+          </span>
+        )}
+        {badge && (
+          <span className="ml-auto">{badge}</span>
+        )}
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-muted-foreground/50 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {/* Collapsible Content */}
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        <div className="border-t border-idm-gold-warm/8">
+          {children}
+        </div>
+        {extraContent}
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══════════════════════════════════════════
    Champion Header — Sticky heading with division filter tabs
    ═══════════════════════════════════════════ */
 const ChampionsMvpHeader = React.memo(function ChampionsMvpHeader({
@@ -312,11 +383,13 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
   femaleData,
   selectedDivision,
   onPlayerClick,
+  bare = false,
 }: {
   maleData?: StatsData;
   femaleData?: StatsData;
   selectedDivision: DivisionFilter;
   onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+  bare?: boolean;
 }) {
   const ct = useCommunityTheme();
 
@@ -338,100 +411,113 @@ const ReigningChampionPlaque = React.memo(function ReigningChampionPlaque({
     ? Math.max(latestMale.number, latestFemale.number)
     : hasMale ? latestMale.number : hasFemale ? latestFemale.number : 0;
 
-  return (
-    <div className="animate-fade-enter-sm">
-      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}>
-        <div className={ct.casinoBar} />
-
-        {/* Header — "Reigning Champion" with season badge */}
-        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
-          <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
-            <Crown className={`w-3 h-3 ${ct.neonText}`} />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Reigning Champion</span>
-          <SharePopup
-            shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/?view=champion` : ''}
-            title="Bagikan Juara"
-            subtitle="Reigning Champion"
-            shareText="Lihat juara Tarkam IDM!"
-            buttonLabel="Bagikan juara"
-            size="sm"
-          />
-          {seasonNumber > 0 ? (
-            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
-              <Crown className="w-2.5 h-2.5 mr-0.5" />S{seasonNumber}
-            </Badge>
-          ) : (
-            <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 ml-auto text-[9px] font-bold">
-              TBA
-            </Badge>
-          )}
-        </div>
-
-        {/* Content — MVP-style division cards */}
-        {selectedDivision === 'all' ? (
-          /* Unified "all" mode: male/female side-by-side on desktop, stacked on mobile */
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {showMale && (
-              <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
-                {hasMale && latestMale?.championPlayer ? (
-                  <ChampionDivisionCard
-                    champion={latestMale.championPlayer}
-                    seasonNumber={latestMale.number}
-                    division="male"
-                    onPlayerClick={onPlayerClick}
-                    bare
-                  />
-                ) : (
-                  <GhostChampionDivisionCard division="male" bare />
-                )}
-              </div>
-            )}
-            {showFemale && (
-              <div>
-                {hasFemale && latestFemale?.championPlayer ? (
-                  <ChampionDivisionCard
-                    champion={latestFemale.championPlayer}
-                    seasonNumber={latestFemale.number}
-                    division="female"
-                    onPlayerClick={onPlayerClick}
-                    bare
-                  />
-                ) : (
-                  <GhostChampionDivisionCard division="female" bare />
-                )}
-              </div>
+  const content = (
+    <>
+      {/* Header — "Reigning Champion" with season badge — only shown when NOT bare */}
+      {!bare && (
+        <>
+          <div className={ct.casinoBar} />
+          <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+            <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
+              <Crown className={`w-3 h-3 ${ct.neonText}`} />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Reigning Champion</span>
+            <SharePopup
+              shareUrl={typeof window !== 'undefined' ? `${window.location.origin}/?view=champion` : ''}
+              title="Bagikan Juara"
+              subtitle="Reigning Champion"
+              shareText="Lihat juara Tarkam IDM!"
+              buttonLabel="Bagikan juara"
+              size="sm"
+            />
+            {seasonNumber > 0 ? (
+              <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
+                <Crown className="w-2.5 h-2.5 mr-0.5" />S{seasonNumber}
+              </Badge>
+            ) : (
+              <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 ml-auto text-[9px] font-bold">
+                TBA
+              </Badge>
             )}
           </div>
-        ) : (
-          /* Specific division mode — single card */
-          <div>
-            {showMale && (
-              hasMale && latestMale?.championPlayer ? (
+        </>
+      )}
+
+      {/* Content — MVP-style division cards */}
+      {selectedDivision === 'all' ? (
+        /* Unified "all" mode: male/female side-by-side on desktop, stacked on mobile */
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          {showMale && (
+            <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
+              {hasMale && latestMale?.championPlayer ? (
                 <ChampionDivisionCard
                   champion={latestMale.championPlayer}
                   seasonNumber={latestMale.number}
                   division="male"
                   onPlayerClick={onPlayerClick}
+                  bare
                 />
               ) : (
-                <GhostChampionDivisionCard division="male" />
-              )
-            )}
-            {showFemale && (
-              hasFemale && latestFemale?.championPlayer ? (
+                <GhostChampionDivisionCard division="male" bare />
+              )}
+            </div>
+          )}
+          {showFemale && (
+            <div>
+              {hasFemale && latestFemale?.championPlayer ? (
                 <ChampionDivisionCard
                   champion={latestFemale.championPlayer}
                   seasonNumber={latestFemale.number}
                   division="female"
                   onPlayerClick={onPlayerClick}
+                  bare
                 />
               ) : (
-                <GhostChampionDivisionCard division="female" />
-              )
-            )}
-          </div>
-        )}
+                <GhostChampionDivisionCard division="female" bare />
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Specific division mode — single card */
+        <div>
+          {showMale && (
+            hasMale && latestMale?.championPlayer ? (
+              <ChampionDivisionCard
+                champion={latestMale.championPlayer}
+                seasonNumber={latestMale.number}
+                division="male"
+                onPlayerClick={onPlayerClick}
+              />
+            ) : (
+              <GhostChampionDivisionCard division="male" />
+            )
+          )}
+          {showFemale && (
+            hasFemale && latestFemale?.championPlayer ? (
+              <ChampionDivisionCard
+                champion={latestFemale.championPlayer}
+                seasonNumber={latestFemale.number}
+                division="female"
+                onPlayerClick={onPlayerClick}
+              />
+            ) : (
+              <GhostChampionDivisionCard division="female" />
+            )
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  if (bare) {
+    return content;
+  }
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}>
+        {content}
       </div>
     </div>
   );
@@ -456,10 +542,12 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
   maleData,
   femaleData,
   selectedDivision,
+  bare = false,
 }: {
   maleData?: StatsData;
   femaleData?: StatsData;
   selectedDivision: DivisionFilter;
+  bare?: boolean;
 }) {
   const ct = useCommunityTheme();
 
@@ -502,34 +590,36 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
   const femaleMembers = allMembers.filter(m => m.division === 'female');
   const captainMember = allMembers[0];
 
-  return (
-    <div className="animate-fade-enter-sm">
-      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden ${!hasData ? 'opacity-55' : ''}`}>
-        <div className={ct.casinoBar} />
-
-        {/* Header */}
-        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
-          <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
-            <Trophy className={`w-3 h-3 ${ct.neonText}`} />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Season 1 Club Champion</span>
-          {hasData ? (
-            <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
-              <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
-            </Badge>
-          ) : (
-            <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 ml-auto text-[9px] font-bold">
-              TBA
-            </Badge>
-          )}
+  const headerSection = !bare ? (
+    <>
+      <div className={ct.casinoBar} />
+      <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+        <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
+          <Trophy className={`w-3 h-3 ${ct.neonText}`} />
         </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-idm-gold-warm">Season 1 Club Champion</span>
+        {hasData ? (
+          <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 ml-auto text-[9px] font-bold">
+            <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
+          </Badge>
+        ) : (
+          <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 ml-auto text-[9px] font-bold">
+            TBA
+          </Badge>
+        )}
+      </div>
+    </>
+  ) : null;
 
-        {hasData && clubData ? (
-          /* ═══ Data State — Full club champion display ═══ */
-          <div className="p-3 sm:p-5">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
-              {/* Club Logo + Crown */}
-              <div className="relative shrink-0">
+  const content = (
+    <>
+      {headerSection}
+      {hasData && clubData ? (
+      /* ═══ Data State — Full club champion display ═══ */
+      <div className="p-3 sm:p-5">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+          {/* Club Logo + Crown */}
+          <div className="relative shrink-0">
                 <div
                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-idm-gold-warm/15 bg-white/[0.02]"
                   style={{ boxShadow: '0 0 24px rgba(239,249,35,0.06)' }}
@@ -663,6 +753,17 @@ const SeasonOneClubChampion = React.memo(function SeasonOneClubChampion({
             </div>
           </div>
         )}
+      </>
+    );
+
+  if (bare) {
+    return content;
+  }
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden ${!hasData ? 'opacity-55' : ''}`}>
+        {content}
       </div>
     </div>
   );
@@ -895,92 +996,108 @@ function SultanOfSeasonCardPage({
   femaleSultans,
   selectedDivision,
   onPlayerClick,
+  bare = false,
 }: {
   maleSultans: { seasonNumber: number; sultan: SultanPlayer }[];
   femaleSultans: { seasonNumber: number; sultan: SultanPlayer }[];
   selectedDivision: DivisionFilter;
   onPlayerClick: (player: TopPlayer & { division?: string }, division: 'male' | 'female') => void;
+  bare?: boolean;
 }) {
   const ct = useCommunityTheme();
   const showMale = selectedDivision === 'all' || selectedDivision === 'male';
   const showFemale = selectedDivision === 'all' || selectedDivision === 'female';
 
-  return (
-    <div className="animate-fade-enter-sm">
-      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}
-        style={{ borderColor: hexToRgba(EMERALD, 0.2) }}>
-        {/* Emerald accent bar */}
-        <div className="h-1" style={{ background: `linear-gradient(90deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})` }} />
-
-        {/* Header */}
-        <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
-          <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-            style={{ backgroundColor: hexToRgba(EMERALD, 0.15), border: `1px solid ${hexToRgba(EMERALD, 0.25)}` }}>
-            <Gem className="w-3 h-3" style={{ color: EMERALD_LIGHT }} />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: EMERALD_LIGHT }}>
-            Sultan of Season
-          </span>
+  const headerSection = !bare ? (
+    <>
+      {/* Emerald accent bar */}
+      <div className="h-1" style={{ background: `linear-gradient(90deg, ${EMERALD}, ${EMERALD_LIGHT}, ${EMERALD})` }} />
+      {/* Header */}
+      <div className={`flex items-center gap-2.5 px-3 lg:px-5 py-2.5 border-b ${ct.borderSubtle}`}>
+        <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+          style={{ backgroundColor: hexToRgba(EMERALD, 0.15), border: `1px solid ${hexToRgba(EMERALD, 0.25)}` }}>
+          <Gem className="w-3 h-3" style={{ color: EMERALD_LIGHT }} />
         </div>
+        <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: EMERALD_LIGHT }}>
+          Sultan of Season
+        </span>
+      </div>
+    </>
+  ) : null;
 
-        {/* Content — side-by-side DIAMOND cards on desktop, stacked on mobile */}
-        {selectedDivision === 'all' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {showMale && (
-              <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
-                {maleSultans.length > 0 ? (
-                  <SultanSeasonDiamondCard
-                    sultanData={maleSultans[0]}
-                    division="male"
-                    onPlayerClick={onPlayerClick}
-                    bare
-                  />
-                ) : (
-                  <GhostSultanSeasonDiamondCard division="male" bare />
-                )}
-              </div>
-            )}
-            {showFemale && (
-              <div>
-                {femaleSultans.length > 0 ? (
-                  <SultanSeasonDiamondCard
-                    sultanData={femaleSultans[0]}
-                    division="female"
-                    onPlayerClick={onPlayerClick}
-                    bare
-                  />
-                ) : (
-                  <GhostSultanSeasonDiamondCard division="female" bare />
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            {showMale && (
-              maleSultans.length > 0 ? (
+  const content = (
+    <>
+      {headerSection}
+      {/* Content — side-by-side DIAMOND cards on desktop, stacked on mobile */}
+      {selectedDivision === 'all' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          {showMale && (
+            <div className={`border-b lg:border-b-0 lg:border-r ${ct.borderSubtle}`}>
+              {maleSultans.length > 0 ? (
                 <SultanSeasonDiamondCard
                   sultanData={maleSultans[0]}
                   division="male"
                   onPlayerClick={onPlayerClick}
+                  bare
                 />
               ) : (
-                <GhostSultanSeasonDiamondCard division="male" />
-              )
-            )}
-            {showFemale && (
-              femaleSultans.length > 0 ? (
+                <GhostSultanSeasonDiamondCard division="male" bare />
+              )}
+            </div>
+          )}
+          {showFemale && (
+            <div>
+              {femaleSultans.length > 0 ? (
                 <SultanSeasonDiamondCard
                   sultanData={femaleSultans[0]}
                   division="female"
                   onPlayerClick={onPlayerClick}
+                  bare
                 />
               ) : (
-                <GhostSultanSeasonDiamondCard division="female" />
-              )
-            )}
-          </div>
-        )}
+                <GhostSultanSeasonDiamondCard division="female" bare />
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          {showMale && (
+            maleSultans.length > 0 ? (
+              <SultanSeasonDiamondCard
+                sultanData={maleSultans[0]}
+                division="male"
+                onPlayerClick={onPlayerClick}
+              />
+            ) : (
+              <GhostSultanSeasonDiamondCard division="male" />
+            )
+          )}
+          {showFemale && (
+            femaleSultans.length > 0 ? (
+              <SultanSeasonDiamondCard
+                sultanData={femaleSultans[0]}
+                division="female"
+                onPlayerClick={onPlayerClick}
+              />
+            ) : (
+              <GhostSultanSeasonDiamondCard division="female" />
+            )
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  if (bare) {
+    return content;
+  }
+
+  return (
+    <div className="animate-fade-enter-sm">
+      <div className={`rounded-2xl ${ct.casinoCard} overflow-hidden`}
+        style={{ borderColor: hexToRgba(EMERALD, 0.2) }}>
+        {content}
       </div>
     </div>
   );
@@ -2033,13 +2150,61 @@ export function HighlightsPage() {
     return { maleSeasonSultans: maleSultans, femaleSeasonSultans: femaleSultans };
   }, [maleData, femaleData]);
 
+  // ─── Summary data for collapsible headers ───
+  const reigningChampionSummary = React.useMemo(() => {
+    const parts: string[] = [];
+    const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+    const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+    const latestMale = completedMaleSeasons.sort((a, b) => b.number - a.number)[0];
+    const latestFemale = completedFemaleSeasons.sort((a, b) => b.number - a.number)[0];
+    if (latestMale?.championPlayer) parts.push(latestMale.championPlayer.gamertag);
+    if (latestFemale?.championPlayer) parts.push(latestFemale.championPlayer.gamertag);
+    return parts.length > 0 ? parts.join(' · ') : '';
+  }, [maleData, femaleData]);
+
+  const reigningSeasonNumber = React.useMemo(() => {
+    const completedMaleSeasons = maleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+    const completedFemaleSeasons = femaleData?.allSeasons?.filter(s => s.status === 'completed' && s.championPlayer) || [];
+    const m = completedMaleSeasons.sort((a, b) => b.number - a.number)[0]?.number || 0;
+    const f = completedFemaleSeasons.sort((a, b) => b.number - a.number)[0]?.number || 0;
+    return Math.max(m, f);
+  }, [maleData, femaleData]);
+
+  const clubChampionSummary = React.useMemo(() => {
+    const maleSeason1 = maleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+    const femaleSeason1 = femaleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+    const names: string[] = [];
+    if (maleSeason1?.championClub) names.push(maleSeason1.championClub.name);
+    if (femaleSeason1?.championClub && femaleSeason1.championClub.name !== (maleSeason1?.championClub?.name)) names.push(femaleSeason1.championClub.name);
+    return names.length > 0 ? names.join(' · ') : '';
+  }, [maleData, femaleData]);
+
+  const hasClubData = React.useMemo(() => {
+    const m = maleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+    const f = femaleData?.allSeasons?.find(s => s.number === 1 && s.status === 'completed' && s.championClub);
+    return !!(m || f);
+  }, [maleData, femaleData]);
+
+  const sultanSummary = React.useMemo(() => {
+    const parts: string[] = [];
+    if (maleSeasonSultans.length > 0) parts.push(maleSeasonSultans[0].sultan.gamertag);
+    if (femaleSeasonSultans.length > 0) parts.push(femaleSeasonSultans[0].sultan.gamertag);
+    return parts.length > 0 ? parts.join(' · ') : '';
+  }, [maleSeasonSultans, femaleSeasonSultans]);
+
+  const sultanSeasonNumber = React.useMemo(() => {
+    const m = maleSeasonSultans[0]?.seasonNumber || 0;
+    const f = femaleSeasonSultans[0]?.seasonNumber || 0;
+    return Math.max(m, f);
+  }, [maleSeasonSultans, femaleSeasonSultans]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Content */}
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-4 lg:px-6 py-4">
 
         {/* ═══ 1. Champion & MVP Sections ═══ */}
-        <div className="space-y-4 sm:space-y-5">
+        <div className="space-y-3 sm:space-y-4">
           {/* Sticky Division Filter Header — sticks below fixed nav (h-14) */}
           <div className="sticky top-14 z-30 -mx-1.5 sm:-mx-2 lg:-mx-3 px-1.5 sm:px-2 lg:px-3 py-2.5 bg-background/95 backdrop-blur-md border-b border-idm-gold-warm/10">
             <ChampionsMvpHeader
@@ -2048,28 +2213,120 @@ export function HighlightsPage() {
             />
           </div>
 
-          {/* Reigning Champion Plaque */}
-          <ReigningChampionPlaque
-            maleData={maleData}
-            femaleData={femaleData}
-            selectedDivision={selectedDivision}
-            onPlayerClick={handlePlayerClick}
-          />
+          {/* Reigning Champion Plaque — Collapsible */}
+          <ChampionCollapsible
+            icon={Crown}
+            iconColor="#EFF923"
+            title="Reigning Champion"
+            summary={reigningChampionSummary || undefined}
+            badge={
+              reigningSeasonNumber > 0 ? (
+                <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 text-[9px] font-bold">
+                  <Crown className="w-2.5 h-2.5 mr-0.5" />S{reigningSeasonNumber}
+                </Badge>
+              ) : (
+                <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 text-[9px] font-bold">TBA</Badge>
+              )
+            }
+            defaultOpen={false}
+          >
+            <ReigningChampionPlaque
+              maleData={maleData}
+              femaleData={femaleData}
+              selectedDivision={selectedDivision}
+              onPlayerClick={handlePlayerClick}
+              bare
+            />
+          </ChampionCollapsible>
 
-          {/* Season 1 Club Champion */}
-          <SeasonOneClubChampion
-            maleData={maleData}
-            femaleData={femaleData}
-            selectedDivision={selectedDivision}
-          />
+          {/* Season 1 Club Champion — Collapsible */}
+          <ChampionCollapsible
+            icon={Trophy}
+            iconColor="#EFF923"
+            title="Club Season 1"
+            summary={clubChampionSummary || undefined}
+            badge={
+              hasClubData ? (
+                <Badge className="bg-idm-gold-warm/15 text-idm-gold-warm border border-idm-gold-warm/25 text-[9px] font-bold">
+                  <Trophy className="w-2.5 h-2.5 mr-0.5" />S1
+                </Badge>
+              ) : (
+                <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 text-[9px] font-bold">TBA</Badge>
+              )
+            }
+            defaultOpen={false}
+          >
+            <SeasonOneClubChampion
+              maleData={maleData}
+              femaleData={femaleData}
+              selectedDivision={selectedDivision}
+              bare
+            />
+          </ChampionCollapsible>
 
-          {/* Sultan of Season — side-by-side Male & Female */}
-          <SultanOfSeasonCardPage
-            maleSultans={maleSeasonSultans}
-            femaleSultans={femaleSeasonSultans}
-            selectedDivision={selectedDivision}
-            onPlayerClick={handlePlayerClick}
-          />
+          {/* Sultan of Season — Collapsible with history */}
+          <ChampionCollapsible
+            icon={Gem}
+            iconColor="#66BB6A"
+            title="Sultan of Season"
+            summary={sultanSummary || undefined}
+            badge={
+              sultanSeasonNumber > 0 ? (
+                <Badge className="text-[9px] font-bold border py-0 px-1.5"
+                  style={{ color: '#66BB6A', backgroundColor: 'rgba(67,160,71,0.08)', borderColor: 'rgba(67,160,71,0.15)' }}>
+                  <Gem className="w-2 h-2 mr-0.5" />S{sultanSeasonNumber}
+                </Badge>
+              ) : (
+                <Badge className="bg-muted/20 text-muted-foreground/40 border border-border/10 text-[9px] font-bold">TBA</Badge>
+              )
+            }
+            defaultOpen={false}
+            extraContent={
+              /* Season history — previous sultans below the latest */
+              (maleSeasonSultans.length > 1 || femaleSeasonSultans.length > 1) ? (
+                <div className="border-t border-idm-gold-warm/8 px-3 lg:px-5 py-3">
+                  <p className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mb-2">Season Sebelumnya</p>
+                  <div className="space-y-1.5">
+                    {(() => {
+                      const maxSeasons = Math.max(maleSeasonSultans.length, femaleSeasonSultans.length);
+                      const rows: React.ReactNode[] = [];
+                      for (let i = 1; i < maxSeasons; i++) {
+                        const ms = maleSeasonSultans[i];
+                        const fs = femaleSeasonSultans[i];
+                        if (!ms && !fs) continue;
+                        rows.push(
+                          <div key={`sultan-hist-${i}`} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-muted/20 border border-border/10">
+                            <Gem className="w-3 h-3 shrink-0" style={{ color: '#66BB6A', opacity: 0.6 }} />
+                            <span className="text-[9px] font-bold text-muted-foreground/50 shrink-0">S{ms?.seasonNumber || fs?.seasonNumber}</span>
+                            {ms && (
+                              <span className="text-[10px] font-semibold text-idm-male-light truncate flex items-center gap-1">
+                                <Music className="w-2.5 h-2.5 shrink-0" />{ms.sultan.gamertag}
+                              </span>
+                            )}
+                            {ms && fs && <span className="text-[8px] text-muted-foreground/30">·</span>}
+                            {fs && (
+                              <span className="text-[10px] font-semibold text-idm-female-light truncate flex items-center gap-1">
+                                <Shield className="w-2.5 h-2.5 shrink-0" />{fs.sultan.gamertag}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      }
+                      return rows;
+                    })()}
+                  </div>
+                </div>
+              ) : undefined
+            }
+          >
+            <SultanOfSeasonCardPage
+              maleSultans={maleSeasonSultans}
+              femaleSultans={femaleSeasonSultans}
+              selectedDivision={selectedDivision}
+              onPlayerClick={handlePlayerClick}
+              bare
+            />
+          </ChampionCollapsible>
 
           {/* Weekly Champions */}
           <div className="animate-fade-enter-sm">

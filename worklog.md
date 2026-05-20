@@ -930,3 +930,35 @@ Stage Summary:
 - Donation modal now shows only: Type toggle → Custom Amount → Name → Message → Submit
 - Donor list completely removed — cleaner, more focused on the donation form itself
 - File modified: `/home/z/my-project/src/components/idm/donation-modal.tsx`
+
+---
+Task ID: 3
+Agent: Main
+Task: Implement collapsible dropdown for 3 champion sections in Juara page
+
+Work Log:
+- Created `ChampionCollapsible` wrapper component with:
+  - Collapsed: compact header bar (icon + title + summary + badge + chevron)
+  - Expanded: full content + optional extra content (for Sultan history)
+  - Smooth CSS transition with max-h + opacity animation
+  - Chevron rotation animation (rotate-180 when open)
+- Added `bare` prop to all 3 section components:
+  - `ReigningChampionPlaque` — skips outer card wrapper and header when bare
+  - `SeasonOneClubChampion` — skips outer card wrapper and header when bare
+  - `SultanOfSeasonCardPage` — skips outer card wrapper and header when bare
+- Wrapped all 3 sections in `ChampionCollapsible` in HighlightsPage:
+  - **Reigning Champion**: icon=Crown, summary=champion names, badge=season number
+  - **Club Season 1**: icon=Trophy, summary=club name, badge=S1
+  - **Sultan of Season**: icon=Gem, summary=sultan names, badge=season number
+- Added Sultan of Season **history rows** when expanded:
+  - Shows previous season sultans below the latest diamond card
+  - Format: `💎 S1 · 🎵 MaleSultan · 🛡 FemaleSultan`
+  - Only shown when there are more than 1 season of sultans
+- All 3 sections default to collapsed (defaultOpen=false)
+- Lint passes clean
+
+Stage Summary:
+- Page Juara: 3 champion sections now collapsible — saves ~600px vertical space when collapsed
+- Collapsed view shows: icon + title + summary names + season badge + chevron (compact ~50px each)
+- Sultan of Season shows history of previous seasons when expanded (data was already available but hidden)
+- File modified: `/home/z/my-project/src/components/idm/highlights-page.tsx`
