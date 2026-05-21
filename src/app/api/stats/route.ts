@@ -900,6 +900,11 @@ export async function GET(request: Request) {
     losses: c.losses,
     points: c.points,
     gameDiff: c.gameDiff,
+    // Division-split points — each Club record belongs to one division
+    malePoint: c.division === 'male' ? c.points : 0,
+    femalePoint: c.division === 'female' ? c.points : 0,
+    maleCount: c.division === 'male' ? (c.profile?._count?.members || 0) : 0,
+    femaleCount: c.division === 'female' ? (c.profile?._count?.members || 0) : 0,
     _count: { members: c.profile?._count?.members || 0 },
     profileId: c.profileId,
   }));

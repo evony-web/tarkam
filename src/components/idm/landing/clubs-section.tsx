@@ -200,12 +200,32 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
               // Build club list — deduplicate by ID since same ClubProfile can appear in both divisions
               const leagueClubs = isHistorical
                 ? [
-                    ...(maleData?.clubs || []).map((c, i) => ({ ...c, memberCount: c._count?.members || 0, maleMemberCount: (c as any).maleCount || 0, femaleMemberCount: (c as any).femaleCount || 0, malePoints: (c as any).malePoint || 0, femalePoints: (c as any).femalePoint || 0, members: [], _key: `m-${c.id}-${i}` })),
-                    ...(femaleData?.clubs || []).map((c, i) => ({ ...c, memberCount: c._count?.members || 0, maleMemberCount: (c as any).maleCount || 0, femaleMemberCount: (c as any).femaleCount || 0, malePoints: (c as any).malePoint || 0, femalePoints: (c as any).femalePoint || 0, members: [], _key: `f-${c.id}-${i}` })),
+                    ...(maleData?.clubs || []).map((c, i) => ({
+                      ...c,
+                      memberCount: c._count?.members || 0,
+                      maleMemberCount: (c as any).maleCount || 0,
+                      femaleMemberCount: (c as any).femaleCount || 0,
+                      malePoints: (c as any).malePoint || 0,
+                      femalePoints: (c as any).femalePoint || 0,
+                      members: [],
+                      _key: `m-${c.id}-${i}`,
+                    })),
+                    ...(femaleData?.clubs || []).map((c, i) => ({
+                      ...c,
+                      memberCount: c._count?.members || 0,
+                      maleMemberCount: (c as any).maleCount || 0,
+                      femaleMemberCount: (c as any).femaleCount || 0,
+                      malePoints: (c as any).malePoint || 0,
+                      femalePoints: (c as any).femalePoint || 0,
+                      members: [],
+                      _key: `f-${c.id}-${i}`,
+                    })),
                   ].reduce((acc: any[], club) => {
-                    const existing = acc.find(c => c.id === club.id);
+                    // Merge by profileId (same ClubProfile can appear in both divisions)
+                    const profileId = club.profileId || club.id;
+                    const existing = acc.find(c => (c.profileId || c.id) === profileId);
                     if (existing) {
-                      // Merge: sum member counts, keep both division badges
+                      // Merge: sum member counts and division-split points
                       existing.maleMemberCount += club.maleMemberCount || 0;
                       existing.femaleMemberCount += club.femaleMemberCount || 0;
                       existing.memberCount += club.memberCount || 0;
@@ -216,7 +236,7 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                       acc.push({ ...club });
                     }
                     return acc;
-                  }, [])  // Merge by ID (ClubProfile.id or Club.id)
+                  }, [])
                 : (leagueData?.clubs || []).map((c, i) => ({ ...c, _key: `l-${c.id}-${i}` }));
               const sortedClubs = [...leagueClubs].sort((a, b) => isHistorical ? ((a as any).rank ?? 999) - ((b as any).rank ?? 999) || b.points - a.points : a.name.localeCompare(b.name));
 

@@ -122,3 +122,37 @@ Stage Summary:
 - Stats API response reduced by ~5-10% via trimming
 - No new lint errors introduced
 - Dev server running successfully
+
+---
+Task ID: 0 (urgent)
+Agent: main
+Task: Fix ReferenceError: Cannot access 'autoData' before initialization
+
+Work Log:
+- User reported runtime crash: `ReferenceError: Cannot access 'autoData' before initialization` in MyTournamentCard
+- Root cause: `refetchInterval: autoData?.liveMatch ? 30000 : 300000` references `autoData` inside the same `useQuery` destructuring that declares it — temporal dead zone
+- Fix: Changed to callback form `refetchInterval: (query) => query.state.data?.liveMatch ? 30000 : 300000`
+- Verified: page loads 200 OK, no console errors
+
+Stage Summary:
+- Critical runtime crash fixed — MyTournamentCard no longer crashes on mount
+- Used TanStack Query v5 callback pattern for refetchInterval to avoid TDZ
+
+---
+Task ID: 3 (bug refinement)
+Agent: main
+Task: Refine Bug #3 (Clubs malePoints/femalePoints) and Bug #5 (maleSeason! crash guard)
+
+Work Log:
+- Bug #3 refined: Added `malePoint`, `femalePoint`, `maleCount`, `femaleCount` fields to /api/stats flatClubs response
+  - Each Club record belongs to one division, so malePoint = division==='male' ? points : 0
+  - Clubs-section now correctly accesses (c as any).malePoint and (c as any).femalePoint
+  - Fixed merge deduplication to use profileId instead of club.id (same ClubProfile can have male+female Club records)
+- Bug #5 refined: Fixed players-section.tsx `maleSeason!` non-null assertion
+  - Changed to `.filter((s): s is NonNullable<typeof s> => s != null)` type-safe filter
+- Verified: stats API returns new fields correctly (malePoint: 39 for male clubs, femalePoint: 12 for female clubs)
+
+Stage Summary:
+- Stats API now returns division-split points for clubs (malePoint/femalePoint/maleCount/femaleCount)
+- Clubs section merge now correctly uses profileId for deduplication
+- Players section no longer risks crash from null season

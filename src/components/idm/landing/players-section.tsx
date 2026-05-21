@@ -75,9 +75,9 @@ export function PlayersSection({
   const allSeasons = maleData?.allSeasons || femaleData?.allSeasons || [];
   const uniqueSeasonNumbers = [...new Set(allSeasons.map(s => s.number))];
   const seasonsForSelector = uniqueSeasonNumbers.map(num => {
-    const maleSeason = allSeasons.find(s => s.number === num);
-    return maleSeason!;
-  }).sort((a, b) => b.number - a.number); // S2 first, S1 second
+    const season = allSeasons.find(s => s.number === num);
+    return season;
+  }).filter((s): s is NonNullable<typeof s> => s != null).sort((a, b) => b.number - a.number); // S2 first, S1 second
 
   // Sort players
   const malePlayers = [...(maleData?.topPlayers || [])].sort((a, b) => isHistorical ? b.points - a.points : a.gamertag.localeCompare(b.gamertag));
