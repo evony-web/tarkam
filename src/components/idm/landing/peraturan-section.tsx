@@ -2,18 +2,18 @@
 
 import { useAppStore } from '@/lib/store';
 import {
-  Trophy, Shield,
-  BookOpen, Scale,
+  Trophy, BookOpen, Scale,
   Loader2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCommunityTheme } from '@/hooks/use-community-theme';
 import { useQuery } from '@tanstack/react-query';
+import { SectionHeader } from './shared';
 
 /* ═══════════════════════════════════════════════════════════════
-   PERATURAN — Rules & Format Section
+   PERATURAN SECTION — Landing Page
    Tournament rules and scoring format
    Reads from CMS settings (prefix: peraturan_)
+   Moved from LeagueView (admin-only) to Beranda for all users
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Parse JSON items from CMS setting string ─── */
@@ -51,28 +51,26 @@ const DEFAULTS = {
 };
 
 /* ─── Rule Card ─── */
-function RuleCard({ icon: Icon, title, items, accentColor }: {
+function RuleCard({ icon: Icon, title, items }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   items: { label: string; value: string; highlight?: boolean }[];
-  accentColor?: string;
 }) {
-  const ct = useCommunityTheme();
   return (
-    <Card className={`${ct.casinoCard} overflow-hidden`}>
-      <div className={ct.casinoBar} />
+    <Card className="overflow-hidden border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03] hover:border-idm-gold-warm/20 transition-colors">
+      <div className="h-1 bg-gradient-to-r from-idm-gold-warm/60 via-idm-gold-warm to-idm-gold-warm/60" />
       <CardContent className="p-0 relative z-10">
-        <div className={`flex items-center gap-2.5 px-4 py-3 border-b ${ct.borderSubtle}`}>
-          <div className={`w-5 h-5 rounded ${ct.iconBg} flex items-center justify-center shrink-0`}>
-            <Icon className={`w-3 h-3 ${ct.neonText}`} />
+        <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border/50">
+          <div className="w-5 h-5 rounded bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
+            <Icon className="w-3 h-3 text-idm-gold-warm" />
           </div>
           <h3 className="text-xs font-semibold uppercase tracking-wider">{title}</h3>
         </div>
         <div className="p-4 space-y-2">
           {items.map((item, i) => (
-            <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg ${ct.bgSubtle}`}>
+            <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30">
               <span className="text-[11px] text-muted-foreground font-medium">{item.label}</span>
-              <span className={`text-xs font-bold ${item.highlight ? ct.neonText : 'text-foreground'}`}>{item.value}</span>
+              <span className={`text-xs font-bold ${item.highlight ? 'text-idm-gold-warm' : 'text-foreground'}`}>{item.value}</span>
             </div>
           ))}
         </div>
@@ -81,12 +79,14 @@ function RuleCard({ icon: Icon, title, items, accentColor }: {
   );
 }
 
-export function LeagueView() {
-  const { division } = useAppStore();
-  const ct = useCommunityTheme();
-  const divisionLabel = division === 'semua' ? 'Semua' : division === 'male' ? 'Cowo' : 'Cewe';
+interface PeraturanSectionProps {
+  cmsSettings?: Record<string, string>;
+}
 
-  /* ── Fetch CMS settings ── */
+export function PeraturanSection({ cmsSettings }: PeraturanSectionProps) {
+  const { division } = useAppStore();
+
+  /* ── Fetch CMS settings if not provided ── */
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ['cms-settings'],
     queryFn: async () => {
@@ -94,9 +94,12 @@ export function LeagueView() {
       return res.json() as Promise<{ settings: { id: string; key: string; value: string; type: string }[]; map: Record<string, string> }>;
     },
     staleTime: 60_000,
+    enabled: !cmsSettings || Object.keys(cmsSettings).length === 0,
   });
 
-  const settingsMap = settingsData?.map || {};
+  const settingsMap = cmsSettings && Object.keys(cmsSettings).length > 0
+    ? Object.fromEntries(Object.entries(cmsSettings).map(([k, v]) => [k.replace('peraturan_', ''), v]))
+    : settingsData?.map || {};
 
   /* ── Parsed items from CMS ── */
   const subtitle = settingsMap.peraturan_subtitle || DEFAULTS.peraturan_subtitle;
@@ -105,71 +108,62 @@ export function LeagueView() {
   const matchTitle = settingsMap.peraturan_match_title || DEFAULTS.peraturan_match_title;
   const matchItems = parseItems(settingsMap.peraturan_match_items, parseItems(DEFAULTS.peraturan_match_items, []));
 
+  const divisionLabel = division === 'male' ? 'Cowo' : division === 'female' ? 'Cewe' : 'Semua';
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
-      </div>
+      <section id="peraturan" className="landing-section relative py-8 sm:py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-idm-gold-warm" />
+          </div>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="lg:community-surface lg:rounded-3xl lg:border lg:border-border/30 overflow-hidden relative">
-      {/* Subtle gold radial glow at top — desktop only */}
-      <div className="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-48 bg-idm-gold-warm/[0.05] rounded-full blur-3xl pointer-events-none" />
+    <section id="peraturan" className="landing-section relative py-8 sm:py-12 px-4 overflow-hidden">
+      {/* Subtle glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-48 bg-idm-gold-warm/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 p-2 sm:p-4 lg:p-5 space-y-4 sm:space-y-5">
-      {/* ═══ Context Header — consistent with all views ═══ */}
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-          <BookOpen className="w-4 h-4 text-idm-gold-warm" />
-        </div>
-        <div>
-          <h2 className="text-sm font-bold text-idm-gold-warm">Peraturan</h2>
-          <p className="text-[10px] text-muted-foreground/60">Divisi {divisionLabel} — Tarkam IDM</p>
-        </div>
-      </div>
+      <div className="relative z-10 max-w-4xl mx-auto">
+        <SectionHeader
+          icon={BookOpen}
+          label="Peraturan"
+          title="Aturan & Sistem Poin"
+          subtitle={subtitle}
+        />
 
-      {/* ═══ Hero Banner ═══ */}
-      <Card className={`${ct.casinoCard} ${ct.casinoGlow} casino-shimmer overflow-hidden`}>
-        <div className={ct.casinoBar} />
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/95" />
-          <div className="relative z-10 p-4 lg:p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-2xl ${ct.iconBg} flex items-center justify-center`}>
-                <BookOpen className={`w-5 h-5 ${ct.neonText}`} />
-              </div>
-              <div>
-                <h2 className={`text-lg font-black ${ct.neonGradient}`}>Peraturan</h2>
-                <p className="text-[11px] text-muted-foreground">Divisi {divisionLabel} — Tarkam IDM</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground max-w-lg leading-relaxed">
-              {subtitle}
-            </p>
+        {/* Division badge */}
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-idm-gold-warm/15 bg-idm-gold-warm/[0.04]">
+            <Scale className="w-3 h-3 text-idm-gold-warm" />
+            <span className="text-[10px] font-semibold text-idm-gold-warm/80 uppercase tracking-wider">Divisi {divisionLabel}</span>
           </div>
         </div>
-      </Card>
 
-      {/* ═══ Scoring Format ═══ */}
-      <div className="stagger-item-subtle stagger-d0">
-        <RuleCard
-          icon={Trophy}
-          title={poinTitle}
-          items={poinItems}
-        />
-      </div>
+        {/* Rules Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+          {/* Scoring Format */}
+          <div className="reveal reveal-fade-up reveal-delay-1">
+            <RuleCard
+              icon={Trophy}
+              title={poinTitle}
+              items={poinItems}
+            />
+          </div>
 
-      {/* ═══ Match Rules ═══ */}
-      <div className="stagger-item-subtle stagger-d1">
-        <RuleCard
-          icon={Scale}
-          title={matchTitle}
-          items={matchItems}
-        />
+          {/* Match Rules */}
+          <div className="reveal reveal-fade-up reveal-delay-2">
+            <RuleCard
+              icon={Scale}
+              title={matchTitle}
+              items={matchItems}
+            />
+          </div>
+        </div>
       </div>
-      </div>
-    </div>
+    </section>
   );
 }

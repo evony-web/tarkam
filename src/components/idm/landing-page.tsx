@@ -43,6 +43,7 @@ const UnifiedLoginModal = dynamic(() => import('./unified-login-modal').then(m =
 const DonationModal = dynamic(() => import('./donation-modal').then(m => ({ default: m.DonationModal })), { ssr: false, loading: () => null });
 const HasilSection = dynamic(() => import('./landing/hasil-section').then(m => ({ default: m.HasilSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
 const PeringkatSection = dynamic(() => import('./landing/peringkat-section').then(m => ({ default: m.PeringkatSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
+const PeraturanSection = dynamic(() => import('./landing/peraturan-section').then(m => ({ default: m.PeraturanSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
 
 // Shared hooks & components
 import { useSwipeNavigation, useScrollReveal, useParallax, SectionDivider } from './landing/shared';
@@ -867,6 +868,15 @@ export function LandingPage() {
         selectedSeasonId={selectedSeasonId}
         setSelectedSeasonId={setSelectedSeasonId}
         isHistorical={maleData?.isHistorical || femaleData?.isHistorical || false}
+      />
+      </div>
+
+      <SectionDivider />
+
+      {/* Peraturan — Rules & Scoring Format */}
+      <div className="section-reveal">
+      <PeraturanSection
+        cmsSettings={cms}
       />
       </div>
 

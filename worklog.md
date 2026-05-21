@@ -65,3 +65,30 @@ Stage Summary:
 - AppView type cleaned: removed 3 dead view keys (community, champions, clubs)
 - Admin panel and home button preserved untouched
 - All active features intact: beranda, peringkat, hasil, bracket, juara, pemain, admin panel
+
+---
+Task ID: 2
+Agent: main
+Task: Implement all 5 recommendations for League/Peraturan cleanup
+
+Work Log:
+- Created landing/peraturan-section.tsx — moved Peraturan from LeagueView (admin-only) to Beranda section accessible to all users
+- Added PeraturanSection dynamic import and section to landing-page.tsx (between ClubsSection and SponsorsSection)
+- Removed LeagueView from app-shell.tsx: deleted dynamic import, routing case 'league', header label, isDashboardView array, isFullBleed check
+- Removed 'league' from AppView type in store.ts
+- Updated use-shell-theme.ts: removed 'league' from non-division views check
+- Deleted league-view.tsx (now replaced by peraturan-section.tsx on Beranda)
+- Deleted match-detail-modal.tsx (dead code — not imported anywhere)
+- Deleted /api/league-matches/[id]/route.ts (dead — only used by deleted match-detail-modal)
+- Deleted /api/league-matches/club/route.ts (dead — not called from any frontend)
+- Kept /api/league-matches/route.ts (still used by AdminSettingsPanel)
+- Kept /api/league/route.ts (still used by sidebar season progress and Hero section)
+- Lint passes (only pre-existing script errors), app loads 200 OK
+
+Stage Summary:
+- Peraturan sekarang bisa diakses semua user di Beranda (bukan hanya admin)
+- 'league' view key dihapus dari AppView type — konsisten dengan UI
+- 3 dead files deleted: league-view.tsx, match-detail-modal.tsx, 2 API routes
+- /api/league-matches tetap ada karena dipakai AdminSettingsPanel
+- /api/league tetap ada karena dipakai sidebar season progress + Hero section
+- Semua rekomendasi #1-#5 sudah diimplementasikan

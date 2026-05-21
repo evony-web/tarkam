@@ -19,9 +19,9 @@ export function useShellTheme(): DivisionTheme {
   const dt = useDivisionTheme();
   const ct = useCommunityTheme();
 
-  // Non-division views: marketplace, league (peraturan), matchday (arena live)
+  // Non-division views: marketplace, matchday (arena live)
   // These use gold-anchored surface wrappers and don't filter by division
-  if (currentView === 'marketplace' || currentView === 'league' || currentView === 'matchday') return ct;
+  if (currentView === 'marketplace' || currentView === 'matchday') return ct;
   // "Semua" (All) = neutral base identity → gold, not a specific division color
   if (division === 'semua') return ct;
   return dt;

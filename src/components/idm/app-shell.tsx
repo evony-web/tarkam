@@ -41,9 +41,6 @@ const viewLoading = (
   </div>
 );
 
-const LeagueView = dynamic(() => import('./league-view').then(m => ({ default: m.LeagueView })), {
-  loading: () => viewLoading,
-});
 const AdminPanel = dynamic(() => import('./admin-panel').then(m => ({ default: m.AdminPanel })), {
   loading: () => <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-idm-gold-warm border-t-transparent rounded-full animate-spin" /></div>,
 });
@@ -562,7 +559,7 @@ export function AppShell() {
   }
 
   /* ═══ Dashboard-only guard: non-admin players should NOT see the sidebar layout ═══ */
-  const isDashboardView = ['dashboard', 'admin', 'matchday', 'league', 'marketplace', 'register'].includes(currentView as string);
+  const isDashboardView = ['dashboard', 'admin', 'matchday', 'marketplace', 'register'].includes(currentView as string);
   if (isDashboardView && !adminAuth.isAuthenticated) {
     // Non-admin users should never reach the sidebar layout — synchronous redirect (no flash)
     // Use useEffect to avoid setState during render, but render landing immediately
@@ -578,7 +575,6 @@ export function AppShell() {
     switch (currentView) {
       case 'dashboard': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminRedirectGuard onRedirect={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }}><LandingPage /></AdminRedirectGuard>;
       case 'matchday': return <MatchDayCenter />;
-      case 'league': return <LeagueView />;
       case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminRedirectGuard onRedirect={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }}><LandingPage /></AdminRedirectGuard>;
       case 'register': return <RegistrationForm />;
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
@@ -610,7 +606,6 @@ export function AppShell() {
               <span className="text-idm-gold-warm"> · {{
                 matchday: 'Arena Live',
                 marketplace: 'Marketplace',
-                league: 'Peraturan',
                 bracket: 'Bracket',
                 hasil: 'Hasil',
                 register: 'Daftar',
@@ -682,7 +677,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'hasil' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
+            const isFullBleed = currentView === 'dashboard' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'hasil' || currentView === 'matchday' || currentView === 'players' || currentView === 'highlights' ;
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile
