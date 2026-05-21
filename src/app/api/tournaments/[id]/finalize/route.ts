@@ -128,15 +128,79 @@ export async function POST(
       }
     }
   } else if (format === 'group_stage') {
-    const finalMatch = tournament.matches.find(m => m.groupLabel === 'Final' && m.status === 'completed');
-    const thirdMatch = tournament.matches.find(m => m.groupLabel === '3rd' && m.status === 'completed');
+    // Group stage format: group rounds → playoff bracket (upper/lower/grand_final)
+    // The bracket generator creates matches with groupLabel like:
+    //   Groups: 'A', 'B', etc.
+    //   Playoff: 'U1-1', 'L1-1', 'GF', '3rd', etc.
+    // OR traditional: 'Final', '3rd'
+
+    const completedMatches = tournament.matches.filter(m => m.status === 'completed');
+
+    // Try to find Grand Final match — support multiple groupLabel conventions
+    let finalMatch = completedMatches.find(m => m.groupLabel === 'Final' && m.status === 'completed');
+    if (!finalMatch) {
+      finalMatch = completedMatches.find(m => m.groupLabel === 'GF' && m.status === 'completed');
+    }
+    if (!finalMatch) {
+      // Fallback: match with bracket='grand_final'
+      finalMatch = completedMatches.find(m => m.bracket === 'grand_final');
+    }
 
     if (finalMatch) {
       rank1TeamId = finalMatch.winnerId;
       rank2TeamId = finalMatch.loserId;
     }
+
+    // Try to find 3rd place match
+    let thirdMatch = completedMatches.find(m => m.groupLabel === '3rd' && m.status === 'completed');
+    if (!thirdMatch) {
+      // Fallback: highest round in lower bracket
+      const lowerMatches = completedMatches.filter(m => m.bracket === 'lower');
+      if (lowerMatches.length > 0) {
+        const maxLowerRound = Math.max(...lowerMatches.map(m => m.round));
+        thirdMatch = lowerMatches.find(m => m.round === maxLowerRound);
+      }
+    }
+
     if (thirdMatch) {
       rank3TeamIds = thirdMatch.winnerId ? [thirdMatch.winnerId] : [];
+    }
+
+    // ═══ FALLBACK: No playoff matches played ═══
+    // If group stage is done but playoffs haven't been played (e.g., admin finalized
+    // after group stage only), determine rankings from group match win counts.
+    // This is the same pattern used by upper_semi and swiss formats.
+    if (!rank1TeamId && tournament.teams.length > 0) {
+      const teamWins: Record<string, number> = {};
+      const teamScoreDiff: Record<string, number> = {};
+      for (const team of tournament.teams) {
+        teamWins[team.id] = 0;
+        teamScoreDiff[team.id] = 0;
+      }
+      for (const match of completedMatches) {
+        if (match.winnerId && teamWins[match.winnerId] !== undefined) {
+          teamWins[match.winnerId]++;
+        }
+        // Track score differential as tiebreaker
+        if (match.team1Id && match.team2Id) {
+          const s1 = match.score1 ?? 0;
+          const s2 = match.score2 ?? 0;
+          if (teamScoreDiff[match.team1Id] !== undefined) teamScoreDiff[match.team1Id] += s1 - s2;
+          if (teamScoreDiff[match.team2Id] !== undefined) teamScoreDiff[match.team2Id] += s2 - s1;
+        }
+      }
+
+      // Sort by wins desc, then score differential desc as tiebreaker
+      const sortedTeamIds = Object.entries(teamWins)
+        .sort((a, b) => {
+          if (b[1] !== a[1]) return b[1] - a[1];
+          return (teamScoreDiff[b[0]] || 0) - (teamScoreDiff[a[0]] || 0);
+        })
+        .map(([id]) => id);
+
+      if (sortedTeamIds[0]) rank1TeamId = sortedTeamIds[0];
+      if (sortedTeamIds[1]) rank2TeamId = sortedTeamIds[1];
+      if (sortedTeamIds[2]) rank3TeamIds = [sortedTeamIds[2]];
     }
   } else if (format === 'upper_semi') {
     // Double-elimination format (Upper Semi):

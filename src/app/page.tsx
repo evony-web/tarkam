@@ -35,14 +35,15 @@ function optimizeCloudinaryUrl(rawUrl: string, width: number): string {
 }
 
 export default async function Home() {
-  // ★ TTFB OPTIMIZATION: Only fetch male stats in SSR (primary division).
-  // Female stats are loaded client-side by React Query.
-  // This cuts SSR DB queries by ~40% and reduces TTFB significantly.
-  const [initialCms, initialMaleStats] = await Promise.all([
+  // ★ Fetch BOTH male + female stats in SSR for instant display.
+  // Previously, female stats were loaded client-side only (TTFB optimization),
+  // but this caused a 10-15 second visible delay before female data appeared.
+  // The parallel fetch adds minimal SSR time since both queries run concurrently.
+  const [initialCms, initialMaleStats, initialFemaleStats] = await Promise.all([
     fetchCmsContent(),
     fetchLandingStats('male'),
+    fetchLandingStats('female'),
   ]);
-  const initialFemaleStats = null;
 
   // Preload hero background image from CMS settings
   const heroBgDesktop = initialCms.settings.hero_bg_desktop || '';
