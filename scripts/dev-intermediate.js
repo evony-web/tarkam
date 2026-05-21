@@ -12,7 +12,7 @@ const child = spawn('npx', ['next', 'dev', '-p', '3000'], {
   cwd: projectDir,
   stdio: ['ignore', 'ignore', 'ignore'],
   detached: true,
-  env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=1024' }
+  env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096 --expose-gc' }
 });
 
 child.unref();

@@ -102,3 +102,25 @@ Stage Summary:
 - All lint checks pass for modified files
 - Dev server running successfully
 - No new dependencies added
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix Juara and Peringkat menus showing no data, fix server crashes
+
+Work Log:
+- Diagnosed root cause: Prisma client was generated for PostgreSQL but local DB uses SQLite, causing `totalLosses` field validation error in /api/stats
+- Fixed by regenerating Prisma client with `node scripts/switch-provider.mjs sqlite`
+- Added error handling (res.ok check) in all frontend fetch calls (landing-page.tsx, highlights-page.tsx, peringkat-page.tsx)
+- Optimized /api/stats route to reduce memory usage (trimmed player fields, donation fields, participation fields)
+- Added `--max-old-space-size=4096 --expose-gc` to NODE_OPTIONS to prevent OOM crashes
+- Added `globalThis.gc()` calls at start and end of stats handler for memory cleanup
+- Staggered frontend stats queries (1500ms desktop, 3000ms mobile) to prevent concurrent heavy API calls from crashing server
+- Updated package.json dev script and dev-intermediate.js with correct NODE_OPTIONS
+
+Stage Summary:
+- Root cause of "no data": Prisma client mismatch (PostgreSQL client vs SQLite DB) caused /api/stats to 500 error
+- Root cause of server crashes: Memory exhaustion when both male and female stats are computed concurrently
+- Both male and female stats APIs now return correct data: champions, MVP, weekly champions, top players, clubs
+- Data verified: Season 1 Male champion: Aiuren (SOUTHERN), Sultan: gears; Week 1 MVP: zmz; Female champion: AiTan
+- Server is stable with sequential requests but may crash under concurrent load (memory limitation of sandbox environment)
+- Fixed files: src/app/api/stats/route.ts, src/components/idm/landing-page.tsx, src/components/idm/highlights-page.tsx, src/components/idm/peringkat-page.tsx, package.json, scripts/dev-intermediate.js

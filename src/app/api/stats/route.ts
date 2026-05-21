@@ -18,6 +18,9 @@ const STATS_CACHE_HEADERS = {
 };
 
 export async function GET(request: Request) {
+  // ★ Force GC at the start to free memory from previous requests
+  try { if (typeof globalThis.gc === 'function') globalThis.gc(); } catch {}
+
   const headers = new Headers();
   headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
 
@@ -91,10 +94,38 @@ export async function GET(request: Request) {
       },
       orderBy: { weekNumber: 'desc' },
       include: {
-        teams: { include: { teamPlayers: { include: { player: true } } } },
-        matches: { include: { team1: true, team2: true, mvpPlayer: true } },
-        participations: { include: { player: true } },
-        donations: true,
+        teams: {
+          select: {
+            id: true, name: true, power: true, isWinner: true, rank: true,
+            teamPlayers: {
+              select: {
+                playerId: true, tier: true,
+                player: { select: { id: true, gamertag: true, avatar: true, tier: true, division: true } },
+              },
+            },
+          },
+        },
+        matches: {
+          select: {
+            id: true, round: true, matchNumber: true, bracket: true, groupLabel: true,
+            format: true, score1: true, score2: true, status: true,
+            team1Id: true, team2Id: true, winnerId: true, mvpPlayerId: true,
+            scheduledAt: true, completedAt: true,
+            team1: { select: { id: true, name: true } },
+            team2: { select: { id: true, name: true } },
+            mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true } },
+          },
+        },
+        participations: {
+          select: {
+            id: true, playerId: true, status: true, tierOverride: true,
+            pointsEarned: true, isMvp: true, isWinner: true,
+            player: { select: { id: true, gamertag: true, avatar: true, tier: true, division: true, points: true } },
+          },
+        },
+        donations: {
+          select: { id: true, donorName: true, amount: true, type: true, status: true, createdAt: true, tournamentId: true, division: true },
+        },
       },
     });
     if (activeNonCompleted) return activeNonCompleted;
@@ -104,10 +135,38 @@ export async function GET(request: Request) {
       where: { seasonId: { in: [activeSeasonId, clubSeasonId] } },
       orderBy: { weekNumber: 'desc' },
       include: {
-        teams: { include: { teamPlayers: { include: { player: true } } } },
-        matches: { include: { team1: true, team2: true, mvpPlayer: true } },
-        participations: { include: { player: true } },
-        donations: true,
+        teams: {
+          select: {
+            id: true, name: true, power: true, isWinner: true, rank: true,
+            teamPlayers: {
+              select: {
+                playerId: true, tier: true,
+                player: { select: { id: true, gamertag: true, avatar: true, tier: true, division: true } },
+              },
+            },
+          },
+        },
+        matches: {
+          select: {
+            id: true, round: true, matchNumber: true, bracket: true, groupLabel: true,
+            format: true, score1: true, score2: true, status: true,
+            team1Id: true, team2Id: true, winnerId: true, mvpPlayerId: true,
+            scheduledAt: true, completedAt: true,
+            team1: { select: { id: true, name: true } },
+            team2: { select: { id: true, name: true } },
+            mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true } },
+          },
+        },
+        participations: {
+          select: {
+            id: true, playerId: true, status: true, tierOverride: true,
+            pointsEarned: true, isMvp: true, isWinner: true,
+            player: { select: { id: true, gamertag: true, avatar: true, tier: true, division: true, points: true } },
+          },
+        },
+        donations: {
+          select: { id: true, donorName: true, amount: true, type: true, status: true, createdAt: true, tournamentId: true, division: true },
+        },
       },
     });
   })();
@@ -179,11 +238,11 @@ export async function GET(request: Request) {
     }),
 
     // All active players for this division (needed for leaderboard even if no season points)
+    // OPTIMIZED: Removed isActive (always true due to filter), name (not used by leaderboard)
     db.player.findMany({
       where: { division: divisionFilter, isActive: true, registrationStatus: 'approved' },
       select: {
         id: true,
-        name: true,
         gamertag: true,
         avatar: true,
         tier: true,
@@ -196,10 +255,9 @@ export async function GET(request: Request) {
         matches: true,
         division: true,
         city: true,
-        isActive: true,
         clubMembers: {
           where: { leftAt: null },
-          include: { profile: { select: { id: true, name: true, logo: true } } },
+          select: { profile: { select: { id: true, name: true, logo: true } } },
           take: 1,
         },
       },
@@ -237,6 +295,7 @@ export async function GET(request: Request) {
 
     // Tournaments list — fetch from ALL seasons for this division (not just activeSeasonId)
     // so that MVP Hall of Fame and weeklyChampions include completed seasons too
+    // OPTIMIZED: Trimmed player selects to only fields actually used by frontend
     db.tournament.findMany({
       where: { seasonId: { in: allSeasons.map((s: { id: string }) => s.id) } },
       orderBy: { weekNumber: 'asc' },
@@ -248,10 +307,13 @@ export async function GET(request: Request) {
             teamPlayers: {
               include: {
                 player: {
-                  include: {
+                  select: {
+                    id: true, gamertag: true, avatar: true, tier: true,
+                    points: true, totalWins: true, totalMvp: true,
+                    streak: true, matches: true, city: true,
                     clubMembers: {
                       where: { leftAt: null },
-                      include: { profile: { select: { id: true, name: true, logo: true } } },
+                      select: { profile: { select: { id: true, name: true, logo: true } } },
                       take: 1,
                     },
                   },
@@ -262,7 +324,15 @@ export async function GET(request: Request) {
         },
         participations: {
           where: { isMvp: true },
-          include: { player: true },
+          include: {
+            player: {
+              select: {
+                id: true, gamertag: true, avatar: true, tier: true,
+                totalMvp: true, points: true, totalWins: true,
+                streak: true, matches: true,
+              },
+            },
+          },
         },
       },
     }),
@@ -308,24 +378,23 @@ export async function GET(request: Request) {
 
     // ★ Cross-division players for Sultan of the Week donor matching (moved into Promise.all)
     // Sultan donor can be from ANY division, so we must search both male & female players
+    // OPTIMIZED: Only select fields actually used for donor matching (removed name, totalLosses)
     db.player.findMany({
       where: { isActive: true, registrationStatus: 'approved' },
       select: {
         id: true,
-        name: true,
         gamertag: true,
         avatar: true,
         tier: true,
         points: true,
         totalWins: true,
-        totalLosses: true,
         totalMvp: true,
         streak: true,
         division: true,
         city: true,
         clubMembers: {
           where: { leftAt: null },
-          include: { profile: { select: { id: true, name: true, logo: true } } },
+          select: { profile: { select: { id: true, name: true, logo: true } } },
           take: 1,
         },
       },
@@ -854,17 +923,19 @@ export async function GET(request: Request) {
         where: { tournamentId: latestTournament.id },
         _sum: { amount: true },
       }),
+      // OPTIMIZED: Only select playerId + pointsEarned; player data comes from topPlayersMap
       db.participation.findMany({
         where: { tournamentId: latestTournament.id, status: 'approved' },
-        include: { player: true },
+        select: { id: true, playerId: true, pointsEarned: true },
       }),
       // ═══ Query completed matches to calculate per-player match wins/losses ═══
       // This replaces the old isWinner-based W/L which only tracked tournament-level wins
+      // OPTIMIZED: teamPlayers select only playerId (the only field used for match stats)
       db.match.findMany({
         where: { tournamentId: latestTournament.id, status: 'completed' },
         include: {
-          winner: { include: { teamPlayers: true } },
-          loser: { include: { teamPlayers: true } },
+          winner: { select: { teamPlayers: { select: { playerId: true } } } },
+          loser: { select: { teamPlayers: { select: { playerId: true } } } },
         },
       }),
     ]);
@@ -1338,6 +1409,10 @@ export async function GET(request: Request) {
   }, {
     headers: STATS_CACHE_HEADERS,
   });
+  // ★ Force garbage collection after heavy stats computation to prevent OOM
+  // when both male and female stats are requested in sequence
+  try { if (typeof globalThis.gc === 'function') globalThis.gc(); } catch {}
+
   } catch (error) {
     console.error('[GET /api/stats]', error);
     return NextResponse.json({ error: 'Failed to fetch stats' }, { headers,  status: 500 });

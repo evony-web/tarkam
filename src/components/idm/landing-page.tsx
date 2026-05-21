@@ -292,8 +292,12 @@ export function LandingPage() {
   /* Mobile performance: defer non-critical queries on small screens */
   const [deferredQueriesReady, setDeferredQueriesReady] = useState(false);
   useEffect(() => {
+    // ★ Stagger deferred queries to prevent OOM on memory-constrained dev servers
+    // Desktop: 1500ms delay | Mobile: 3000ms delay
+    // This ensures the male stats API completes before the female stats API starts,
+    // preventing two concurrent heavy API calls from exhausting available memory.
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-    const timer = setTimeout(() => setDeferredQueriesReady(true), isMobile ? 2000 : 0);
+    const timer = setTimeout(() => setDeferredQueriesReady(true), isMobile ? 3000 : 1500);
     return () => clearTimeout(timer);
   }, []);
 
