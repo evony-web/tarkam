@@ -580,9 +580,19 @@ export async function POST(
       } else {
         // Tarkam mode: champion is the player with most per-season points
         // Compute from PlayerPoint records (not lifetime Player.points)
+        // Filter by tournaments in the same division to avoid cross-division contamination
+        const divisionTournaments = await db.tournament.findMany({
+          where: { seasonId: tournament.seasonId, division: season.division || 'male' },
+          select: { id: true },
+        });
+        const divisionTournamentIds = divisionTournaments.map(t => t.id);
+
         const seasonPoints = await db.playerPoint.groupBy({
           by: ['playerId'],
-          where: { seasonId: tournament.seasonId },
+          where: {
+            seasonId: tournament.seasonId,
+            tournamentId: { in: divisionTournamentIds },
+          },
           _sum: { amount: true },
         });
 

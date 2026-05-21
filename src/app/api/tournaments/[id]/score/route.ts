@@ -61,7 +61,10 @@ async function updateClubStatsForPlayer(
         },
       });
     } else if (type === 'loss') {
-      const lossPoints = gameDiff > -Math.abs(gameDiff) ? 1 : 0; // +1 point if they won at least 1 game
+      // Award 1 point to losing team if they scored at least 1 game (gameDiff < 0 means they lost, but not 0-n)
+      // gameDiff is negative for a loss (e.g., -2 means they lost by 2 games)
+      // If they won at least 1 game, the score difference is less than total games played
+      const lossPoints = gameDiff < 0 && Math.abs(gameDiff) < 3 ? 1 : 0; // +1 point if close game
       await db.club.update({
         where: { id: clubEntry.id },
         data: {
@@ -345,8 +348,8 @@ export async function POST(
       await advanceUpperSemi(id, match2, winnerId, loserId);
     }
 
-    // Single elimination upper bracket advancement (not upper_semi — that has its own handler)
-    if (bracket === 'upper' && format !== 'group_stage' && format !== 'upper_semi') {
+    // Single elimination upper bracket advancement (not upper_semi, not swiss — those have their own handlers)
+    if (bracket === 'upper' && format !== 'group_stage' && format !== 'upper_semi' && format !== 'swiss') {
       const label = parseLabel(match2.groupLabel);
       const currentPos = label?.pos || 1;
 
@@ -368,16 +371,6 @@ export async function POST(
           await db.match.update({ where: { id: nextMatch.id }, data: { status: 'ready' } });
         }
       }
-    }
-
-    // Swiss match — check if current round complete and advance
-    if (bracket === 'swiss' && format === 'swiss') {
-      await handleSwissAdvancement(id, match2.round);
-    }
-
-    // Swiss playoff match advancement (SF1, SF2, Final, 3rd after Swiss rounds)
-    if (format === 'swiss' && bracket !== 'swiss') {
-      await advanceSwissPlayoff(id, match2, winnerId, loserId);
     }
 
     // Swiss match — check if current round complete and advance
@@ -632,9 +625,15 @@ async function advanceGroupStagePlayoff(
       where: { tournamentId, groupLabel: targetLabel },
     });
     if (targetMatch) {
+      // Fix: If the target slot already has a team but the other slot is null,
+      // fill the null slot instead (handles cases where L1 pre-seeded rank 3 doesn't exist
+      // and team1 is null — loser should fill team1 instead of team2)
+      const effectiveSlot = targetMatch[slot] ? slot :
+        (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
+         slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot);
       await db.match.update({
         where: { id: targetMatch.id },
-        data: { [slot]: loserId },
+        data: { [effectiveSlot]: loserId },
       });
       const updated = await db.match.findUnique({ where: { id: targetMatch.id } });
       if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
@@ -755,9 +754,14 @@ async function advanceUpperSemi(
       where: { tournamentId, groupLabel: targetLabel },
     });
     if (targetMatch) {
+      // Fix: If the target slot already has a team but the other slot is null,
+      // fill the null slot instead (handles edge cases with unseeded bracket positions)
+      const effectiveSlot = targetMatch[slot] ? slot :
+        (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
+         slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot);
       await db.match.update({
         where: { id: targetMatch.id },
-        data: { [slot]: loserId },
+        data: { [effectiveSlot]: loserId },
       });
       const updated = await db.match.findUnique({ where: { id: targetMatch.id } });
       if (updated?.team1Id && updated?.team2Id && updated.status === 'pending') {
@@ -1124,9 +1128,16 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
         });
         if (participation) {
           const winPts = 1; // +1 pt per win for ALL formats
+          // Calculate streak bonus (same as regular match win)
+          const newStreak = tp.player.streak + 1;
+          const oldStreakBonus = Math.floor(tp.player.streak / 3) * 2;
+          const newStreakBonus = Math.floor(newStreak / 3) * 2;
+          const streakBonus = newStreakBonus - oldStreakBonus;
+          const totalPts = winPts + streakBonus;
+
           await db.participation.update({
             where: { id: participation.id },
-            data: { pointsEarned: participation.pointsEarned + winPts },
+            data: { pointsEarned: participation.pointsEarned + totalPts },
             // NOTE: isWinner is NOT set here — set during finalization for Juara 1 only
           });
           await db.playerPoint.create({
@@ -1139,12 +1150,32 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
               seasonId: (await db.tournament.findUnique({ where: { id: tournamentId } }))!.seasonId,
             },
           });
+          const newStreak = tp.player.streak + 1;
+          const oldStreakBonus = Math.floor(tp.player.streak / 3) * 2;
+          const newStreakBonus = Math.floor(newStreak / 3) * 2;
+          const streakBonus = newStreakBonus - oldStreakBonus;
+
+          if (streakBonus > 0) {
+            await db.playerPoint.create({
+              data: {
+                playerId: tp.playerId,
+                amount: streakBonus,
+                reason: 'streak_bonus',
+                description: `Streak bonus ${newStreak} berturut-turut (BYE)`,
+                tournamentId,
+                seasonId: (await db.tournament.findUnique({ where: { id: tournamentId } }))!.seasonId,
+              },
+            });
+          }
+
           await db.player.update({
             where: { id: tp.playerId },
             data: {
               totalWins: tp.player.totalWins + 1,
               matches: tp.player.matches + 1,
-              points: tp.player.points + winPts,
+              streak: newStreak,
+              maxStreak: Math.max(newStreak, tp.player.maxStreak),
+              points: tp.player.points + winPts + streakBonus,
             },
           });
         }

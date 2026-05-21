@@ -222,6 +222,12 @@ export async function POST(
 
   // ===== SWISS =====
   else if (format === 'swiss') {
+    if (teamCount < 4) {
+      return NextResponse.json(
+        { error: 'Swiss format requires at least 4 teams for the playoff bracket' },
+        { status: 400 }
+      );
+    }
     const swissRounds = Math.ceil(Math.log2(teamCount)) + 1;
     const swissTeams = shuffle(tournament.teams);
     let matchNumber = 0;
@@ -497,6 +503,12 @@ export async function POST(
   //  16 teams → 4 groups (4+4+4+4) → Double Elim (8 teams)
   //
   else if (format === 'group_stage') {
+    if (teamCount < 4) {
+      return NextResponse.json(
+        { error: 'Group Stage format requires at least 4 teams' },
+        { status: 400 }
+      );
+    }
     const groupLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     let matchNumber = 0;
 
