@@ -542,8 +542,9 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return apiFetch(`/api/tournaments/${id}`, { method: 'DELETE', credentials: 'include' });
+    mutationFn: async ({ id, isCompleted }: { id: string; isCompleted?: boolean }) => {
+      const url = isCompleted ? `/api/tournaments/${id}?force=true` : `/api/tournaments/${id}`;
+      return apiFetch(url, { method: 'DELETE', credentials: 'include' });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-tournaments', seasonId] }); qc.invalidateQueries({ queryKey: ['admin-tournament', selectedId] }); setSelectedId(null); toast.success('Tournament berhasil dihapus!'); },
     onError: (e: Error) => { toast.error(e.message); },
@@ -870,13 +871,22 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                       onClick={() => openEditDialog(t)} title="Edit Tournament">
                       <Pencil className="w-3 h-3" />
                     </Button>
-                    {t.status !== 'completed' && (
+                    {t.status !== 'completed' ? (
                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                         onClick={() => setConfirmDialog({
                           open: true, title: 'Hapus Tournament?',
                           description: `Tournament "${t.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
-                          onConfirm: () => deleteMutation.mutate(t.id)
+                          onConfirm: () => deleteMutation.mutate({ id: t.id })
                         })} title="Hapus Tournament">
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                        onClick={() => setConfirmDialog({
+                          open: true, title: '⚠️ Hapus Tournament Completed?',
+                          description: `Tournament "${t.name}" SUDAH COMPLETED. Semua data pemain (points, W/L, streak, MVP) akan di-rollback. Pastikan ini yang kamu inginkan!`,
+                          onConfirm: () => deleteMutation.mutate({ id: t.id, isCompleted: true })
+                        })} title="Hapus Tournament (Force)">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
@@ -920,13 +930,22 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
                   onClick={() => openEditDialog(selected)} title="Edit Tournament">
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
-                {selected.status !== 'completed' && (
+                {selected.status !== 'completed' ? (
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
                     onClick={() => setConfirmDialog({
                       open: true, title: 'Hapus Tournament?',
                       description: `Tournament "${selected.name}" dan semua data terkait akan dihapus permanen. Stats pemain akan dikembalikan.`,
-                      onConfirm: () => deleteMutation.mutate(selected.id)
+                      onConfirm: () => deleteMutation.mutate({ id: selected.id })
                     })} title="Hapus Tournament">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                    onClick={() => setConfirmDialog({
+                      open: true, title: '⚠️ Hapus Tournament Completed?',
+                      description: `Tournament "${selected.name}" SUDAH COMPLETED. Semua data pemain (points, W/L, streak, MVP) akan di-rollback. Pastikan ini yang kamu inginkan!`,
+                      onConfirm: () => deleteMutation.mutate({ id: selected.id, isCompleted: true })
+                    })} title="Hapus Tournament (Force)">
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}
