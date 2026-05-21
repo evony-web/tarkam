@@ -110,13 +110,32 @@ export async function recalculateSeasonStats(playerIds: string[], seasonId: stri
       const seasonWins = seasonWinsResult._sum.amount || 0;
       const seasonMatches = seasonWins + seasonLosses;
 
+      // Calculate per-season points from PlayerPoint records (not lifetime player.points)
+      const seasonPointsResult = await db.playerPoint.aggregate({
+        _sum: { amount: true },
+        where: {
+          playerId,
+          seasonId,
+        },
+      });
+      const seasonPoints = seasonPointsResult._sum.amount || 0;
+
       // Get current player data for other fields
       const player = await db.player.findUnique({
         where: { id: playerId },
-        select: { points: true, streak: true, maxStreak: true, tier: true },
+        select: { streak: true, maxStreak: true, tier: true },
       });
 
       if (!player) continue;
+
+      // Count season MVPs from participation records
+      const seasonMvpCount = await db.participation.count({
+        where: {
+          playerId,
+          isMvp: true,
+          tournament: { seasonId },
+        },
+      });
 
       // Update or create PlayerSeasonStats
       await db.playerSeasonStats.upsert({
@@ -127,17 +146,18 @@ export async function recalculateSeasonStats(playerIds: string[], seasonId: stri
           playerId,
           seasonId,
           division,
-          points: player.points,
+          points: seasonPoints,
           totalWins: seasonWins,
-          totalMvp: 0, // Will be counted from participation records
+          totalMvp: seasonMvpCount,
           streak: player.streak,
           maxStreak: player.maxStreak,
           matches: seasonMatches,
           tier: player.tier,
         },
         update: {
-          points: player.points,
+          points: seasonPoints,
           totalWins: seasonWins,
+          totalMvp: seasonMvpCount,
           streak: player.streak,
           maxStreak: player.maxStreak,
           matches: seasonMatches,

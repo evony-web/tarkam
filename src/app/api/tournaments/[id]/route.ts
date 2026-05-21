@@ -1,7 +1,7 @@
 import { db, neonUpdateMany, neonTransaction, neonDeleteMany, isPostgreSQL } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 import { createAuditLog } from '@/lib/audit';
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { wibToUTC } from '@/lib/utils';
 import { recalculateStreaks, recalculateSeasonStats } from '@/lib/tournament/tournament-utils';
@@ -306,6 +306,10 @@ export async function DELETE(
 
     // Purge CDN cache so dashboard reflects tournament removal
     revalidateTag('league-data', 'max');
+    revalidateTag('stats-data', 'max');
+    revalidateTag('landing-stats', 'max');
+    revalidatePath('/api/stats');
+    revalidatePath('/');
 
     return NextResponse.json({
       success: true,
@@ -1462,6 +1466,10 @@ export async function PUT(
 
   // Purge CDN cache so dashboard reflects new status immediately
   revalidateTag('league-data', 'max');
+  revalidateTag('stats-data', 'max');
+  revalidateTag('landing-stats', 'max');
+  revalidatePath('/api/stats');
+  revalidatePath('/');
 
   return NextResponse.json(tournament);
   } catch (error) {

@@ -5,6 +5,7 @@ import { createAuditLog } from '@/lib/audit';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { recalculateStreaks, recalculateSeasonStats } from '@/lib/tournament/tournament-utils';
 
 // Input validation schema for score submission
@@ -13,6 +14,17 @@ const scoreSchema = z.object({
   score1: z.number().int().min(0, 'Score must be >= 0').max(99, 'Score too high'),
   score2: z.number().int().min(0, 'Score must be >= 0').max(99, 'Score too high'),
 });
+
+/** Purge CDN + Next.js caches so leaderboard & landing reflect new score data immediately */
+function purgeStatsCache() {
+  try {
+    revalidateTag('stats-data', 'max');
+    revalidateTag('league-data', 'max');
+    revalidateTag('landing-stats', 'max');
+    revalidatePath('/api/stats');
+    revalidatePath('/');
+  } catch {}
+}
 
 // ===== Helper: Parse groupLabel position (e.g., "U2-3" → round=2, pos=3, "L1-2" → round=1, pos=2) =====
 function parseLabel(label: string | null): { prefix: string; round: number; pos: number } | null {
@@ -329,11 +341,11 @@ export async function POST(
 
     // ===== BRACKET ADVANCEMENT (outside transaction for complex queries) =====
     const tournament2 = await db.tournament.findUnique({ where: { id } });
-    if (!tournament2) return NextResponse.json(result.updatedMatch);
+    if (!tournament2) { purgeStatsCache(); return NextResponse.json(result.updatedMatch); }
 
     const format = tournament2.format;
     const match2 = await db.match.findUnique({ where: { id: matchId } });
-    if (!match2) return NextResponse.json(result.updatedMatch);
+    if (!match2) { purgeStatsCache(); return NextResponse.json(result.updatedMatch); }
 
     const currentRound = match2.round;
     const bracket = match2.bracket;
@@ -344,6 +356,7 @@ export async function POST(
     if (bracket === 'group' && format === 'group_stage') {
       await checkAndSeedPlayoffs(id);
       await checkAllMatchesComplete(id);
+      purgeStatsCache();
       return NextResponse.json(result.updatedMatch);
     }
 
@@ -351,6 +364,7 @@ export async function POST(
     if (format === 'group_stage' && (bracket === 'upper' || bracket === 'lower' || bracket === 'grand_final') && match2.round >= 2) {
       await advanceGroupStagePlayoff(id, match2, winnerId, loserId);
       await checkAllMatchesComplete(id);
+      purgeStatsCache();
       return NextResponse.json(result.updatedMatch);
     }
 
@@ -416,6 +430,9 @@ export async function POST(
       details: `Update score: ${score1}-${score2}`,
       metadata: { tournamentId: id, matchId, score1, score2 },
     });
+
+    // Purge caches so leaderboard reflects new score immediately
+    purgeStatsCache();
 
     return NextResponse.json(result.updatedMatch);
 
@@ -1862,6 +1879,9 @@ export async function PUT(
         await db.tournament.update({ where: { id }, data: { status: 'main_event' } });
       }
     }
+
+    // Purge caches so leaderboard reflects undo immediately
+    purgeStatsCache();
 
     return NextResponse.json(result.updatedMatch);
   } catch (error: unknown) {
