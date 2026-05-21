@@ -202,3 +202,16 @@ Repair: 15 players had phantom counters fixed (totalLosses/matches synced with a
 Page load → HTTP 200, no console errors
 Lint → only pre-existing script/ errors (not app code)
 ```
+
+### Fase 5: Streak Data Fix ✅ DONE
+| # | Bug | Priority | Status | Detail Perbaikan |
+|---|-----|----------|--------|------------------|
+| 1 | Players dengan 0 losses tapi streak=0 (Zico, Ren, Predator: 3W 0L, streak harusnya 3) | 🔴 High | ✅ FIXED | Recalculate streak & maxStreak dari actual Match records. 18 players fixed |
+| 2 | maxStreak inflated (seed data / repair script artifacts) | 🟠 Medium | ✅ FIXED | zico: maxStreak 5→3, Ren: 5→3, players tanpa completed matches: maxStreak → 0 |
+
+**Detail Fix:**
+- Recalculate `streak` (current consecutive wins) dan `maxStreak` (longest ever) dari actual completed Match records
+- Players tanpa completed matches: streak=0, maxStreak=0
+- Players dengan losses terakhir: streak=0
+- Players yang masih menang berturut: streak = current win count
+- 18 players diperbaiki, termasuk Zico (0→3), Ren (0→3), Predator (0→3)
