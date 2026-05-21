@@ -94,8 +94,12 @@ export function HeroSection({
   const femaleMatches = typeof femaleData?.totalMatchCount === 'number' ? femaleData.totalMatchCount : undefined;
   const totalPlayers = malePlayers + femalePlayers;
   const totalClubs = maleClubs + femaleClubs;
-  // Only compute total when BOTH divisions have real data — avoids "0 Match" flash from stale cache
-  const totalMatches = (maleMatches !== undefined && femaleMatches !== undefined) ? maleMatches + femaleMatches : undefined;
+  // Show match count as soon as ANY division data is available — avoids long "—" delay
+  // waiting for the deferred female query. Previously required BOTH divisions to load,
+  // but femaleData is delayed 1.5-3s by deferredQueriesReady, causing match count to
+  // show "—" while "32 Pemain" and "22 Club" already display.
+  const totalMatches = (maleMatches ?? 0) + (femaleMatches ?? 0);
+  const hasAnyMatchData = maleMatches !== undefined || femaleMatches !== undefined;
 
   /* ─── Season Champions (latest season with champion, including active) ─── */
   const maleChampionSeason = !isSeasonDataPlaceholder ? maleData?.allSeasons?.filter(s => s.championPlayer).sort((a, b) => b.number - a.number)[0] : undefined;
@@ -498,7 +502,7 @@ export function HeroSection({
               <div className="hero-stats-dot" />
               <div className="flex items-center gap-1">
                 <Swords className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm/50" />
-                {totalMatches !== undefined ? (
+                {hasAnyMatchData ? (
                   <span className="text-xs sm:text-sm font-bold text-idm-gold-warm/80 tabular-nums">{totalMatches}</span>
                 ) : (
                   <span className="text-xs sm:text-sm font-bold text-idm-gold-warm/30 tabular-nums animate-pulse">—</span>

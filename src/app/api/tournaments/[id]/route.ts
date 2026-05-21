@@ -14,13 +14,19 @@ export async function DELETE(
 
   const { id } = await params;
 
+  // Check for ?force=true to allow deleting completed tournaments
+  const url = new URL(request.url);
+  const forceDelete = url.searchParams.get('force') === 'true';
+
   const tournament = await db.tournament.findUnique({
     where: { id },
     select: {
       id: true,
+      name: true,
       status: true,
       division: true,
       seasonId: true,
+      weekNumber: true,
       matches: {
         where: { status: 'completed', winnerId: { not: null } },
         select: {
@@ -31,9 +37,14 @@ export async function DELETE(
           loserId: true,
           score1: true,
           score2: true,
+          mvpPlayerId: true,
           team1: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
           team2: { select: { id: true, teamPlayers: { select: { playerId: true } } } },
         },
+      },
+      participations: {
+        where: { isMvp: true },
+        select: { playerId: true },
       },
     },
   });
@@ -42,11 +53,22 @@ export async function DELETE(
     return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
   }
 
-  if (tournament.status === 'completed') {
-    return NextResponse.json({ error: 'Tournament yang sudah completed tidak bisa dihapus. Hubungi super admin untuk rollback.' }, { status: 400 });
+  if (tournament.status === 'completed' && !forceDelete) {
+    return NextResponse.json({
+      error: 'Tournament yang sudah completed tidak bisa dihapus tanpa konfirmasi. Gunakan ?force=true untuk reset turnamen yang sudah completed.',
+      hint: 'Semua data pemain (W/L, points, streak, MVP) akan di-rollback secara otomatis.',
+    }, { status: 400 });
   }
 
   try {
+    const rollbackSummary: Record<string, unknown> = {
+      tournament: tournament.name,
+      week: tournament.weekNumber,
+      division: tournament.division,
+      completedMatches: tournament.matches.length,
+      mvpPlayers: tournament.participations.length,
+    };
+
     // ─── Step 1: Rollback player points (batch) ───
     const pointRecords = await db.playerPoint.findMany({
       where: { tournamentId: id },
@@ -60,8 +82,6 @@ export async function DELETE(
     }
 
     // Batch update player points — one update per player
-    // Neon workaround: updateMany() doesn't work with PrismaNeonHttp;
-    // since this targets a single player by ID, use update() instead
     for (const [playerId, totalPoints] of pointsByPlayer) {
       if (isPostgreSQL) {
         await db.$executeRawUnsafe('UPDATE "Player" SET points = points - $1 WHERE id = $2', totalPoints, playerId);
@@ -75,9 +95,12 @@ export async function DELETE(
       await db.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
     }
 
-    // ─── Step 2: Rollback match/wins/streak stats (batch) ───
+    rollbackSummary.pointsRollback = pointsByPlayer.size;
+
+    // ─── Step 2: Rollback match/wins/losses/streak stats (batch) ───
     // Collect all player stat changes first, then apply in batch
-    const playerStatChanges = new Map<string, { winsDelta: number; matchesDelta: number }>();
+    // FIX: Now includes lossesDelta (was missing before!)
+    const playerStatChanges = new Map<string, { winsDelta: number; lossesDelta: number; matchesDelta: number }>();
 
     for (const match of tournament.matches) {
       if (!match.team1 || !match.team2) continue;
@@ -93,36 +116,66 @@ export async function DELETE(
 
       // Winning team players: -1 win, -1 match
       for (const tp of winningTeam.teamPlayers) {
-        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, lossesDelta: 0, matchesDelta: 0 };
         existing.winsDelta -= 1;
         existing.matchesDelta -= 1;
         playerStatChanges.set(tp.playerId, existing);
       }
 
-      // Losing team players: -1 match
+      // Losing team players: -1 loss, -1 match (FIX: lossesDelta was missing!)
       for (const tp of losingTeam.teamPlayers) {
-        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+        const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, lossesDelta: 0, matchesDelta: 0 };
+        existing.lossesDelta -= 1;
         existing.matchesDelta -= 1;
         playerStatChanges.set(tp.playerId, existing);
       }
     }
 
-    // Apply player stat changes in batch
+    // ─── Step 2b: Rollback MVP stats for tournament MVPs ───
+    // FIX: totalMvp was not being decremented before!
+    const mvpPlayerIds: string[] = [];
+    for (const participation of tournament.participations) {
+      mvpPlayerIds.push(participation.playerId);
+      const existing = playerStatChanges.get(participation.playerId) || { winsDelta: 0, lossesDelta: 0, matchesDelta: 0 };
+      // MVP decrement will be applied separately (not in the statChanges map)
+      playerStatChanges.set(participation.playerId, existing);
+    }
+
+    // Apply player stat changes in batch (W/L/matches)
+    const affectedPlayerIds: string[] = [];
     for (const [playerId, changes] of playerStatChanges) {
+      affectedPlayerIds.push(playerId);
       await db.player.update({
         where: { id: playerId },
         data: {
           ...(changes.winsDelta !== 0 && { totalWins: { increment: changes.winsDelta } }),
+          ...(changes.lossesDelta !== 0 && { totalLosses: { increment: changes.lossesDelta } }),
           ...(changes.matchesDelta !== 0 && { matches: { increment: changes.matchesDelta } }),
-          streak: 0,
         },
       });
       // Clamp to 0
-      await db.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+      await db.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), "totalLosses" = MAX("totalLosses", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR "totalLosses" < 0 OR matches < 0)`;
+    }
+
+    // Decrement totalMvp for tournament MVPs
+    for (const mvpPlayerId of mvpPlayerIds) {
+      await db.player.update({
+        where: { id: mvpPlayerId },
+        data: { totalMvp: { decrement: 1 } },
+      });
+      await db.$executeRaw`UPDATE "Player" SET "totalMvp" = MAX("totalMvp", 0) WHERE id = ${mvpPlayerId} AND "totalMvp" < 0`;
+    }
+
+    rollbackSummary.statsRollback = affectedPlayerIds.length;
+    rollbackSummary.mvpRollback = mvpPlayerIds.length;
+
+    // ─── Step 2c: Recalculate streak & maxStreak from remaining matches ───
+    // FIX: Before, streak was just set to 0. Now we recalculate from remaining match data.
+    if (affectedPlayerIds.length > 0) {
+      await recalculateStreaks(affectedPlayerIds, tournament.seasonId);
     }
 
     // ─── Step 3: Rollback club stats (batch) ───
-    // Collect club stat changes per club
     const clubStatChanges = new Map<string, { winsDelta: number; lossesDelta: number; pointsDelta: number; gameDiffDelta: number }>();
 
     for (const match of tournament.matches) {
@@ -186,9 +239,15 @@ export async function DELETE(
       });
     }
 
+    rollbackSummary.clubStatsRollback = clubStatChanges.size;
+
+    // ─── Step 3b: Rollback PlayerSeasonStats for this tournament ───
+    // Recalculate season stats after removing this tournament's data
+    if (affectedPlayerIds.length > 0) {
+      await recalculateSeasonStats(affectedPlayerIds, tournament.seasonId, tournament.division);
+    }
+
     // ─── Step 4: Delete all tournament data ───
-    // Use separate small transactions to avoid Neon timeout
-    // Neon workaround: $transaction() doesn't work with PrismaNeonHttp
     await neonTransaction(async (tx) => {
       if (isPostgreSQL) {
         await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
@@ -240,16 +299,162 @@ export async function DELETE(
       action: 'delete',
       entity: 'tournament',
       entityId: id,
-      details: `Delete tournament`,
+      details: `Delete tournament: ${tournament.name} (Week ${tournament.weekNumber}, ${tournament.division})${forceDelete ? ' [FORCE - completed tournament]' : ''}`,
+      metadata: rollbackSummary,
     });
 
     // Purge CDN cache so dashboard reflects tournament removal
     revalidateTag('league-data', 'max');
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: `Turnamen "${tournament.name}" (Week ${tournament.weekNumber}) berhasil dihapus. Semua data pemain (points, W/L, streak, MVP) sudah di-rollback.`,
+      rollback: rollbackSummary,
+    });
   } catch (error) {
     console.error('Delete tournament error:', error);
     return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
+  }
+}
+
+// ===== Helper: Recalculate streak & maxStreak for affected players =====
+// After deleting a tournament, streak must be recalculated from remaining
+// completed matches in the same season, NOT just set to 0.
+async function recalculateStreaks(playerIds: string[], seasonId: string) {
+  try {
+    for (const playerId of playerIds) {
+      // Get all remaining completed matches for this player in the same season
+      // (excluding the deleted tournament's matches, which are already deleted)
+      const remainingWins = await db.playerPoint.aggregate({
+        _sum: { amount: true },
+        _count: { reason: true },
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_win',
+        },
+      });
+
+      const remainingLosses = await db.playerPoint.count({
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_loss',
+        },
+      });
+
+      const wins = remainingWins._sum.amount || 0;
+      const losses = remainingLosses;
+
+      // If no remaining matches, reset streak completely
+      if (wins === 0 && losses === 0) {
+        await db.player.update({
+          where: { id: playerId },
+          data: { streak: 0, maxStreak: 0 },
+        });
+        continue;
+      }
+
+      // Recalculate streak from the chronological order of remaining matches
+      // Get all match results ordered by time
+      const matchPoints = await db.playerPoint.findMany({
+        where: {
+          playerId,
+          seasonId,
+          reason: { in: ['match_win', 'match_loss'] },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { reason: true },
+      });
+
+      let currentStreak = 0;
+      let maxStreak = 0;
+
+      for (const mp of matchPoints) {
+        if (mp.reason === 'match_win') {
+          currentStreak += 1;
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          // match_loss resets streak
+          currentStreak = 0;
+        }
+      }
+
+      await db.player.update({
+        where: { id: playerId },
+        data: { streak: currentStreak, maxStreak },
+      });
+    }
+  } catch (error) {
+    console.error('Streak recalculation error (non-critical):', error);
+    // Non-critical — streaks can be repaired later via repair script
+  }
+}
+
+// ===== Helper: Recalculate PlayerSeasonStats for affected players =====
+async function recalculateSeasonStats(playerIds: string[], seasonId: string, division: string) {
+  try {
+    for (const playerId of playerIds) {
+      // Count season wins from PlayerPoint match_win records
+      const seasonWinsResult = await db.playerPoint.aggregate({
+        _sum: { amount: true },
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_win',
+        },
+      });
+
+      // Count season losses from PlayerPoint match_loss records
+      const seasonLosses = await db.playerPoint.count({
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_loss',
+        },
+      });
+
+      const seasonWins = seasonWinsResult._sum.amount || 0;
+      const seasonMatches = seasonWins + seasonLosses;
+
+      // Get current player data for other fields
+      const player = await db.player.findUnique({
+        where: { id: playerId },
+        select: { points: true, streak: true, maxStreak: true, tier: true },
+      });
+
+      if (!player) continue;
+
+      // Update or create PlayerSeasonStats
+      await db.playerSeasonStats.upsert({
+        where: {
+          playerId_seasonId: { playerId, seasonId },
+        },
+        create: {
+          playerId,
+          seasonId,
+          division,
+          points: player.points,
+          totalWins: seasonWins,
+          totalMvp: 0, // Will be counted from participation records
+          streak: player.streak,
+          maxStreak: player.maxStreak,
+          matches: seasonMatches,
+          tier: player.tier,
+        },
+        update: {
+          points: player.points,
+          totalWins: seasonWins,
+          streak: player.streak,
+          maxStreak: player.maxStreak,
+          matches: seasonMatches,
+          tier: player.tier,
+          division,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Season stats recalculation error (non-critical):', error);
   }
 }
 

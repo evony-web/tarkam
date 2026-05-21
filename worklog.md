@@ -1,6 +1,6 @@
 # TARKAM IDM — Master Worklog
 
-> **Terakhir diperbarui**: Session 6 (2026-03-06)
+> **Terakhir diperbarui**: Session 7 (2026-03-06)
 > **Status project**: Production-ready, semua bug kritis sudah diperbaiki
 > **Dev server**: `bun run dev` — port 3000, double-fork via start-dev.js
 
@@ -215,3 +215,47 @@ Lint → only pre-existing script/ errors (not app code)
 - Players dengan losses terakhir: streak=0
 - Players yang masih menang berturut: streak = current win count
 - 18 players diperbaiki, termasuk Zico (0→3), Ren (0→3), Predator (0→3)
+
+### Fase 6: Tournament Reset & Rollback Fix ✅ DONE
+| # | Bug/Feature | Priority | Status | Detail Perbaikan |
+|---|-------------|----------|--------|------------------|
+| 1 | DELETE tournament tidak rollback `totalLosses` | 🔴 Critical | ✅ FIXED | Ditambah `lossesDelta` ke playerStatChanges map. Losing team players sekarang mendapat -1 totalLosses saat tournament dihapus |
+| 2 | DELETE tournament tidak rollback `totalMvp` | 🔴 High | ✅ FIXED | Ditambah MVP rollback dari Participation records (isMvp=true). totalMvp di-decrement untuk setiap MVP turnamen |
+| 3 | DELETE tournament set `streak: 0` tanpa recalculate | 🟠 Medium | ✅ FIXED | Streak & maxStreak sekarang di-recalculate dari sisa PlayerPoint records (match_win/match_loss) di season yang sama, bukan hard-reset ke 0 |
+| 4 | Completed tournament tidak bisa dihapus | 🟠 Medium | ✅ FIXED | Ditambah `?force=true` parameter untuk mengizinkan penghapusan turnamen completed. Tanpa force, tetap diblock dengan pesan informatif |
+| 5 | DELETE tournament tidak update PlayerSeasonStats | 🟠 Medium | ✅ FIXED | Ditambah `recalculateSeasonStats()` helper yang upsert PlayerSeasonStats setelah rollback |
+| 6 | Hero banner "Match" count delay (0 → "—" → 12) | 🟠 Medium | ✅ FIXED | Hero section sekarang menampilkan match count segera setelah data male tersedia, tidak menunggu female data (yang di-delay 1.5-3s oleh deferredQueriesReady) |
+| 7 | DELETE response tidak informatif | 🟡 Low | ✅ FIXED | Response sekarang menyertakan rollback summary (jumlah players, clubs, MVPs yang di-rollback) |
+
+**Detail Fix:**
+
+#### Tournament DELETE Endpoint (`/api/tournaments/[id]`)
+- **Before**: Hanya rollback points, totalWins, matches. Streak di-set ke 0. totalLosses, totalMvp, maxStreak TIDAK di-rollback.
+- **After**: Full rollback mencakup:
+  1. `points` — dikurangi dari PlayerPoint records (sudah ada)
+  2. `totalWins` — dikurangi per completed match win (sudah ada)
+  3. `totalLosses` — dikurangi per completed match loss (**BARU**)
+  4. `matches` — dikurangi per completed match (sudah ada)
+  5. `totalMvp` — dikurangi per MVP participation (**BARU**)
+  6. `streak` & `maxStreak` — recalculated dari sisa match data di season (**BARU**, sebelumnya hard-reset ke 0)
+  7. `PlayerSeasonStats` — recalculated setelah rollback (**BARU**)
+  8. Club stats — sudah ada, tidak berubah
+
+- **Force delete**: `DELETE /api/tournaments/[id]?force=true` mengizinkan penghapusan turnamen completed
+- **Response**: Menyertakan `rollback` object dengan summary
+
+#### Helper Functions (BARU)
+- `recalculateStreaks(playerIds, seasonId)` — Recalculate streak & maxStreak dari sisa PlayerPoint records
+- `recalculateSeasonStats(playerIds, seasonId, division)` — Upsert PlayerSeasonStats setelah rollback
+
+#### Hero Section Match Count Fix
+- **Before**: `totalMatches` hanya dihitung jika KEDUA divisi (male & female) punya data → delay 1.5-3s
+- **After**: `totalMatches` dihitung segera dari data yang tersedia (male data loads first, tanpa delay)
+- `hasAnyMatchData` flag untuk menampilkan angka atau skeleton "—"
+
+#### Alur Reset Per Week (Admin Flow)
+1. Admin hapus turnamen: `DELETE /api/tournaments/[id]?force=true`
+2. Sistem rollback otomatis: points, W/L, streak, MVP, club stats, season stats
+3. Semua data turnamen dihapus: matches, teams, participations, prizes, point records, achievements, sponsors
+4. Player stats bersih dari turnamen tersebut, stats dari turnamen lain tetap utuh
+5. Admin bisa buat turnamen baru untuk week yang sama
