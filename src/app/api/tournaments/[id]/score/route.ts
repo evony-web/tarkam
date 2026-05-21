@@ -5,6 +5,7 @@ import { createAuditLog } from '@/lib/audit';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
+import { recalculateStreaks, recalculateSeasonStats } from '@/lib/tournament/tournament-utils';
 
 // Input validation schema for score submission
 const scoreSchema = z.object({
@@ -1622,6 +1623,7 @@ export async function PUT(
     const clubStatsQueue: { playerId: string; type: 'win' | 'loss' | 'draw'; gameDiff: number }[] = [];
     let tournamentDivision = '';
     let tournamentSeasonId = '';
+    const undoAffectedPlayerIds: string[] = []; // Collected inside transaction, used after for streak recalc
 
     // Neon workaround: $transaction() doesn't work with PrismaNeonHttp
     const result = await neonTransaction(async (tx) => {
@@ -1685,28 +1687,31 @@ export async function PUT(
       }
 
       // Reverse player stats
+      // FIX: undoAffectedPlayerIds is declared outside transaction for streak recalculation after
       if (match.winnerId && match.team1 && match.team2) {
         const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
         const losingTeam = match.team1Id === match.loserId ? match.team1 : match.team2;
 
         for (const tp of winningTeam.teamPlayers) {
+          undoAffectedPlayerIds.push(tp.playerId);
           await tx.player.update({
             where: { id: tp.playerId },
             data: {
               totalWins: { decrement: 1 },
               matches: { decrement: 1 },
-              streak: 0,
+              // streak & maxStreak will be recalculated after transaction
             },
           });
         }
         if (losingTeam) {
           for (const tp of losingTeam.teamPlayers) {
+            undoAffectedPlayerIds.push(tp.playerId);
             await tx.player.update({
               where: { id: tp.playerId },
               data: {
                 matches: { decrement: 1 },
                 totalLosses: { decrement: 1 },
-                streak: 0,
+                // streak & maxStreak will be recalculated after transaction
               },
             });
           }
@@ -1811,6 +1816,27 @@ export async function PUT(
           } catch (e) {
             console.error('Club stats draw reversal failed (non-critical):', e);
           }
+        }
+      }
+    }
+
+    // ★ FIX: Recalculate streak & maxStreak from remaining match data
+    // Previously, undo score just set streak=0 (and didn't touch maxStreak).
+    // This was wrong — if a player has wins in OTHER matches, their streak
+    // should be recalculated, not zeroed. maxStreak also needs recalculation.
+    if (undoAffectedPlayerIds.length > 0 && tournamentSeasonId) {
+      try {
+        await recalculateStreaks(undoAffectedPlayerIds, tournamentSeasonId);
+      } catch (streakError) {
+        console.error('Undo score streak recalculation error (non-critical):', streakError);
+      }
+
+      // ★ FIX: Recalculate PlayerSeasonStats for affected players
+      if (tournamentDivision) {
+        try {
+          await recalculateSeasonStats(undoAffectedPlayerIds, tournamentSeasonId, tournamentDivision);
+        } catch (statsError) {
+          console.error('Undo score season stats recalculation error (non-critical):', statsError);
         }
       }
     }

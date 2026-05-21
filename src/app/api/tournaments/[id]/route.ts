@@ -4,6 +4,7 @@ import { createAuditLog } from '@/lib/audit';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { wibToUTC } from '@/lib/utils';
+import { recalculateStreaks, recalculateSeasonStats } from '@/lib/tournament/tournament-utils';
 
 export async function DELETE(
   request: Request,
@@ -314,147 +315,6 @@ export async function DELETE(
   } catch (error) {
     console.error('Delete tournament error:', error);
     return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
-  }
-}
-
-// ===== Helper: Recalculate streak & maxStreak for affected players =====
-// After deleting a tournament, streak must be recalculated from remaining
-// completed matches in the same season, NOT just set to 0.
-async function recalculateStreaks(playerIds: string[], seasonId: string) {
-  try {
-    for (const playerId of playerIds) {
-      // Get all remaining completed matches for this player in the same season
-      // (excluding the deleted tournament's matches, which are already deleted)
-      const remainingWins = await db.playerPoint.aggregate({
-        _sum: { amount: true },
-        _count: { reason: true },
-        where: {
-          playerId,
-          seasonId,
-          reason: 'match_win',
-        },
-      });
-
-      const remainingLosses = await db.playerPoint.count({
-        where: {
-          playerId,
-          seasonId,
-          reason: 'match_loss',
-        },
-      });
-
-      const wins = remainingWins._sum.amount || 0;
-      const losses = remainingLosses;
-
-      // If no remaining matches, reset streak completely
-      if (wins === 0 && losses === 0) {
-        await db.player.update({
-          where: { id: playerId },
-          data: { streak: 0, maxStreak: 0 },
-        });
-        continue;
-      }
-
-      // Recalculate streak from the chronological order of remaining matches
-      // Get all match results ordered by time
-      const matchPoints = await db.playerPoint.findMany({
-        where: {
-          playerId,
-          seasonId,
-          reason: { in: ['match_win', 'match_loss'] },
-        },
-        orderBy: { createdAt: 'asc' },
-        select: { reason: true },
-      });
-
-      let currentStreak = 0;
-      let maxStreak = 0;
-
-      for (const mp of matchPoints) {
-        if (mp.reason === 'match_win') {
-          currentStreak += 1;
-          maxStreak = Math.max(maxStreak, currentStreak);
-        } else {
-          // match_loss resets streak
-          currentStreak = 0;
-        }
-      }
-
-      await db.player.update({
-        where: { id: playerId },
-        data: { streak: currentStreak, maxStreak },
-      });
-    }
-  } catch (error) {
-    console.error('Streak recalculation error (non-critical):', error);
-    // Non-critical — streaks can be repaired later via repair script
-  }
-}
-
-// ===== Helper: Recalculate PlayerSeasonStats for affected players =====
-async function recalculateSeasonStats(playerIds: string[], seasonId: string, division: string) {
-  try {
-    for (const playerId of playerIds) {
-      // Count season wins from PlayerPoint match_win records
-      const seasonWinsResult = await db.playerPoint.aggregate({
-        _sum: { amount: true },
-        where: {
-          playerId,
-          seasonId,
-          reason: 'match_win',
-        },
-      });
-
-      // Count season losses from PlayerPoint match_loss records
-      const seasonLosses = await db.playerPoint.count({
-        where: {
-          playerId,
-          seasonId,
-          reason: 'match_loss',
-        },
-      });
-
-      const seasonWins = seasonWinsResult._sum.amount || 0;
-      const seasonMatches = seasonWins + seasonLosses;
-
-      // Get current player data for other fields
-      const player = await db.player.findUnique({
-        where: { id: playerId },
-        select: { points: true, streak: true, maxStreak: true, tier: true },
-      });
-
-      if (!player) continue;
-
-      // Update or create PlayerSeasonStats
-      await db.playerSeasonStats.upsert({
-        where: {
-          playerId_seasonId: { playerId, seasonId },
-        },
-        create: {
-          playerId,
-          seasonId,
-          division,
-          points: player.points,
-          totalWins: seasonWins,
-          totalMvp: 0, // Will be counted from participation records
-          streak: player.streak,
-          maxStreak: player.maxStreak,
-          matches: seasonMatches,
-          tier: player.tier,
-        },
-        update: {
-          points: player.points,
-          totalWins: seasonWins,
-          streak: player.streak,
-          maxStreak: player.maxStreak,
-          matches: seasonMatches,
-          tier: player.tier,
-          division,
-        },
-      });
-    }
-  } catch (error) {
-    console.error('Season stats recalculation error (non-critical):', error);
   }
 }
 
@@ -928,9 +788,10 @@ export async function PUT(
             revertErrors.push(phaseError instanceof Error ? phaseError.message : 'Unknown Phase 2a error');
           }
 
-          // 2b. Rollback player wins/matches/streak stats + club stats
+          // 2b. Rollback player wins/losses/matches/streak stats + club stats
+          // FIX: Added lossesDelta (was missing — losing team players' totalLosses was NOT decremented)
           // Compute player stat deltas from already-fetched completedMatches
-          const playerStatChanges = new Map<string, { winsDelta: number; matchesDelta: number }>();
+          const playerStatChanges = new Map<string, { winsDelta: number; lossesDelta: number; matchesDelta: number }>();
           for (const match of completedMatches) {
             if (!match.team1 || !match.team2 || !match.winnerId) continue;
             const winningTeam = match.team1Id === match.winnerId ? match.team1 : match.team2;
@@ -939,13 +800,14 @@ export async function PUT(
               : (match.team1Id === match.winnerId ? match.team2 : match.team1);
             if (!losingTeam) continue;
             for (const tp of winningTeam.teamPlayers) {
-              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, lossesDelta: 0, matchesDelta: 0 };
               existing.winsDelta -= 1;
               existing.matchesDelta -= 1;
               playerStatChanges.set(tp.playerId, existing);
             }
             for (const tp of losingTeam.teamPlayers) {
-              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, matchesDelta: 0 };
+              const existing = playerStatChanges.get(tp.playerId) || { winsDelta: 0, lossesDelta: 0, matchesDelta: 0 };
+              existing.lossesDelta -= 1; // FIX: Decrement losses for losing team players
               existing.matchesDelta -= 1;
               playerStatChanges.set(tp.playerId, existing);
             }
@@ -994,17 +856,19 @@ export async function PUT(
           try {
             // Neon workaround: $transaction() doesn't work with PrismaNeonHttp
             await neonTransaction(async (tx) => {
-              // Apply player stat changes
+              // Apply player stat changes (wins, losses, matches)
+              // FIX: Added totalLosses decrement + totalLosses clamping in raw SQL
               for (const [playerId, changes] of playerStatChanges) {
                 await tx.player.update({
                   where: { id: playerId },
                   data: {
                     ...(changes.winsDelta !== 0 && { totalWins: { increment: changes.winsDelta } }),
+                    ...(changes.lossesDelta !== 0 && { totalLosses: { increment: changes.lossesDelta } }),
                     ...(changes.matchesDelta !== 0 && { matches: { increment: changes.matchesDelta } }),
-                    streak: 0,
                   },
                 });
-                await tx.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR matches < 0)`;
+                // Clamp all stats to >= 0 (added totalLosses to the check)
+                await tx.$executeRaw`UPDATE "Player" SET "totalWins" = MAX("totalWins", 0), "totalLosses" = MAX("totalLosses", 0), matches = MAX(matches, 0) WHERE id = ${playerId} AND ("totalWins" < 0 OR "totalLosses" < 0 OR matches < 0)`;
               }
 
               // Apply club stat changes
@@ -1023,6 +887,30 @@ export async function PUT(
           } catch (phaseError) {
             console.error('Phase 2b (player+club stat rollback) error:', phaseError);
             revertErrors.push(phaseError instanceof Error ? phaseError.message : 'Unknown Phase 2b error');
+          }
+
+          // ★ FIX: Recalculate streak & maxStreak from remaining match data
+          // Previously, Phase 2b just set streak=0 (and didn't touch maxStreak at all).
+          // This was wrong — if a player has wins in OTHER tournaments, their streak
+          // should be recalculated, not zeroed. maxStreak also needs recalculation.
+          const affectedPlayerIds = Array.from(playerStatChanges.keys());
+          if (affectedPlayerIds.length > 0) {
+            try {
+              await recalculateStreaks(affectedPlayerIds, currentTournament.seasonId);
+            } catch (streakError) {
+              console.error('Phase 2b streak recalculation error (non-critical):', streakError);
+              // Non-critical — streaks can be repaired later
+            }
+
+            // ★ FIX: Recalculate PlayerSeasonStats for affected players
+            // Previously, the PUT revert path didn't update season stats at all,
+            // causing stale data in the PlayerSeasonStats aggregation table.
+            try {
+              await recalculateSeasonStats(affectedPlayerIds, currentTournament.seasonId, currentTournament.division);
+            } catch (statsError) {
+              console.error('Phase 2b season stats recalculation error (non-critical):', statsError);
+              // Non-critical — season stats can be repaired later
+            }
           }
 
           // 2c. Reset participation pointsEarned from match points + bracket reset

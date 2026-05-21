@@ -3,6 +3,154 @@
  * Helper functions for bracket generation and tournament management
  */
 
+import { db } from '@/lib/db';
+
+/**
+ * Recalculate streak & maxStreak for affected players from remaining match data.
+ * Used after rolling back tournament stages or undoing match scores.
+ * Instead of just setting streak=0, this properly recalculates from remaining
+ * PlayerPoint match_win/match_loss records in chronological order.
+ */
+export async function recalculateStreaks(playerIds: string[], seasonId: string) {
+  try {
+    for (const playerId of playerIds) {
+      // Get all remaining completed matches for this player in the same season
+      const remainingWins = await db.playerPoint.aggregate({
+        _sum: { amount: true },
+        _count: { reason: true },
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_win',
+        },
+      });
+
+      const remainingLosses = await db.playerPoint.count({
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_loss',
+        },
+      });
+
+      const wins = remainingWins._sum.amount || 0;
+      const losses = remainingLosses;
+
+      // If no remaining matches, reset streak completely
+      if (wins === 0 && losses === 0) {
+        await db.player.update({
+          where: { id: playerId },
+          data: { streak: 0, maxStreak: 0 },
+        });
+        continue;
+      }
+
+      // Recalculate streak from the chronological order of remaining matches
+      const matchPoints = await db.playerPoint.findMany({
+        where: {
+          playerId,
+          seasonId,
+          reason: { in: ['match_win', 'match_loss'] },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { reason: true },
+      });
+
+      let currentStreak = 0;
+      let maxStreak = 0;
+
+      for (const mp of matchPoints) {
+        if (mp.reason === 'match_win') {
+          currentStreak += 1;
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          // match_loss resets streak
+          currentStreak = 0;
+        }
+      }
+
+      await db.player.update({
+        where: { id: playerId },
+        data: { streak: currentStreak, maxStreak },
+      });
+    }
+  } catch (error) {
+    console.error('Streak recalculation error (non-critical):', error);
+    // Non-critical — streaks can be repaired later via repair script
+  }
+}
+
+/**
+ * Recalculate PlayerSeasonStats for affected players.
+ * Used after rolling back tournament stages or undoing match scores.
+ * Ensures the season stats aggregation table stays consistent with actual data.
+ */
+export async function recalculateSeasonStats(playerIds: string[], seasonId: string, division: string) {
+  try {
+    for (const playerId of playerIds) {
+      // Count season wins from PlayerPoint match_win records
+      const seasonWinsResult = await db.playerPoint.aggregate({
+        _sum: { amount: true },
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_win',
+        },
+      });
+
+      // Count season losses from PlayerPoint match_loss records
+      const seasonLosses = await db.playerPoint.count({
+        where: {
+          playerId,
+          seasonId,
+          reason: 'match_loss',
+        },
+      });
+
+      const seasonWins = seasonWinsResult._sum.amount || 0;
+      const seasonMatches = seasonWins + seasonLosses;
+
+      // Get current player data for other fields
+      const player = await db.player.findUnique({
+        where: { id: playerId },
+        select: { points: true, streak: true, maxStreak: true, tier: true },
+      });
+
+      if (!player) continue;
+
+      // Update or create PlayerSeasonStats
+      await db.playerSeasonStats.upsert({
+        where: {
+          playerId_seasonId: { playerId, seasonId },
+        },
+        create: {
+          playerId,
+          seasonId,
+          division,
+          points: player.points,
+          totalWins: seasonWins,
+          totalMvp: 0, // Will be counted from participation records
+          streak: player.streak,
+          maxStreak: player.maxStreak,
+          matches: seasonMatches,
+          tier: player.tier,
+        },
+        update: {
+          points: player.points,
+          totalWins: seasonWins,
+          streak: player.streak,
+          maxStreak: player.maxStreak,
+          matches: seasonMatches,
+          tier: player.tier,
+          division,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Season stats recalculation error (non-critical):', error);
+  }
+}
+
 /**
  * Calculate total rounds needed for a single elimination bracket
  */
