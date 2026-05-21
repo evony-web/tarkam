@@ -1,6 +1,7 @@
-// Local development schema (SQLite)
-// This file is used for local development only.
-// Production uses schema.prisma with PostgreSQL.
+// ─── Production Schema (PostgreSQL / Neon) ───
+// This schema is always committed as "postgresql" for Vercel deployment.
+// Local dev uses `node scripts/switch-provider.mjs sqlite` to temporarily
+// switch to SQLite, generate the client, then restore back to PostgreSQL.
 
 generator client {
   provider = "prisma-client-js"
