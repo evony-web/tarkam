@@ -333,7 +333,7 @@ export function LandingPage() {
     queryKey: ['stats', 'male', selectedSeasonId],
     queryFn: async () => {
       const url = `/api/stats?division=male${selectedSeasonId ? `&seasonId=${selectedSeasonId}` : ''}`;
-      const res = await fetch(url); return res.json();
+      const res = await fetch(url); if (!res.ok) throw new Error(`Stats API error: ${res.status}`); return res.json();
     },
     staleTime: 120000, // 2min — reduced polling frequency to lower INP impact
     refetchInterval: 300000, // 5min polling — reduced from 2min for INP optimization
@@ -348,7 +348,7 @@ export function LandingPage() {
     queryKey: ['stats', 'female', selectedSeasonId],
     queryFn: async () => {
       const url = `/api/stats?division=female${selectedSeasonId ? `&seasonId=${selectedSeasonId}` : ''}`;
-      const res = await fetch(url); return res.json();
+      const res = await fetch(url); if (!res.ok) throw new Error(`Stats API error: ${res.status}`); return res.json();
     },
     enabled: deferredQueriesReady,
     staleTime: 120000, // 2min — reduced polling frequency to lower INP impact

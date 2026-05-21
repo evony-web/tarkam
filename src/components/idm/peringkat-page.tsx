@@ -26,6 +26,7 @@ export function PeringkatPage() {
     queryKey: ['stats', 'male'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=male');
+      if (!res.ok) throw new Error(`Stats API error: ${res.status}`);
       return res.json();
     },
     staleTime: 120000,
@@ -42,6 +43,7 @@ export function PeringkatPage() {
     queryKey: ['stats', 'female'],
     queryFn: async () => {
       const res = await fetch('/api/stats?division=female');
+      if (!res.ok) throw new Error(`Stats API error: ${res.status}`);
       return res.json();
     },
     staleTime: 120000,
