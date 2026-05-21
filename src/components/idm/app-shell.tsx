@@ -41,9 +41,7 @@ const viewLoading = (
   </div>
 );
 
-const Dashboard = dynamic(() => import('./dashboard').then(m => ({ default: m.Dashboard })), {
-  loading: () => viewLoading,
-});
+// Dashboard component removed — dashboard view now shows AdminPanel directly
 const LeagueView = dynamic(() => import('./league-view').then(m => ({ default: m.LeagueView })), {
   loading: () => viewLoading,
 });
@@ -56,9 +54,7 @@ const MatchDayCenter = dynamic(() => import('./match-day-center').then(m => ({ d
 const RegistrationForm = dynamic(() => import('./registration-form').then(m => ({ default: m.RegistrationForm })), {
   loading: () => <div className="max-w-md mx-auto"><div className="skeleton-shimmer h-96 rounded-2xl" /></div>,
 });
-const CommunityDashboard = dynamic(() => import('./community-dashboard').then(m => ({ default: m.CommunityDashboard })), {
-  loading: () => viewLoading,
-});
+// CommunityDashboard removed — dashboard view now shows AdminPanel directly
 
 const MarketplaceView = dynamic(() => import('./marketplace-view').then(m => ({ default: m.MarketplaceView })), {
   loading: () => viewLoading,
@@ -240,7 +236,7 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
               {/* Week progress bar */}
               <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className={`h-full rounded-full bg-gradient-to-r ${currentView === 'community' ? 'from-idm-gold-warm to-idm-amber' : division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} transition-all duration-700`}
+                  className={`h-full rounded-full bg-gradient-to-r ${division === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'} transition-all duration-700`}
                   style={{ width: `${seasonProgress.percentage || 0}%` }}
                 />
               </div>
@@ -328,8 +324,8 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             <div className="mx-4 mb-3 p-2.5 rounded-2xl bg-card/60 border border-border/50">
               {playerAuth.isAuthenticated && playerAuth.account && (
                 <div className="flex items-center gap-2 mb-1.5">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${currentView === 'community' ? 'bg-idm-gold-warm/15' : division === 'male' ? 'bg-idm-male/15' : 'bg-idm-female/15'}`}>
-                    <UserCircle className={`w-3.5 h-3.5 ${currentView === 'community' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${division === 'male' ? 'bg-idm-male/15' : 'bg-idm-female/15'}`}>
+                    <UserCircle className={`w-3.5 h-3.5 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
                   </div>
                   <span className="text-[11px] text-foreground font-medium truncate flex-1">{playerAuth.account.player.gamertag}</span>
                   <div className="flex items-center gap-0.5 shrink-0">
@@ -403,9 +399,9 @@ function DesktopSidebar({ onOpenAccountModal, onOpenAdminModal }: { onOpenAccoun
             </div>
           )}
           {playerAuth.isAuthenticated && !adminAuth.isAuthenticated && (
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${currentView === 'community' ? 'bg-idm-gold-warm/10 border border-idm-gold-warm/25' : division === 'male' ? 'bg-idm-male/10 border border-idm-male/20' : 'bg-idm-female/10 border border-idm-female/20'}`}
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${division === 'male' ? 'bg-idm-male/10 border border-idm-male/20' : 'bg-idm-female/10 border border-idm-female/20'}`}
               title={playerAuth.account?.player.gamertag}>
-              <UserCircle className={`w-3.5 h-3.5 ${currentView === 'community' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
+              <UserCircle className={`w-3.5 h-3.5 ${division === 'male' ? 'text-idm-male' : 'text-idm-female'}`} />
             </div>
           )}
           {!playerAuth.isAuthenticated && !adminAuth.isAuthenticated && (
@@ -528,7 +524,7 @@ export function AppShell() {
   }, [setAdminAuth, setPlayerAuth, clearAdminAuth, clearPlayerAuth]);
 
   /* ═══ Define which views are "public" (landing-style layout) vs "dashboard" (sidebar layout) ═══ */
-  const publicViews: AppView[] = ['players', 'highlights', 'community', 'peringkat', 'bracket', 'hasil'];
+  const publicViews: AppView[] = ['players', 'highlights', 'peringkat', 'bracket', 'hasil'];
   const isPublicView = publicViews.includes(currentView);
 
   // Landing page is standalone - no sidebar/header
@@ -545,17 +541,26 @@ export function AppShell() {
     );
   }
 
+  // "community" view redirects to landing — CommunityDashboard removed
+  if ((currentView as AppView) === 'community') {
+    return (
+      <AdminRedirectGuard onRedirect={() => setCurrentView('landing')}>
+        <LandingPage />
+        <DonationPopup show={donationPopup.show} message={donationPopup.message} onClose={hideDonationPopup} />
+      </AdminRedirectGuard>
+    );
+  }
+
   // ★ Public views use the landing-page-style layout (NO sidebar/dashboard feel)
   if (isPublicView) {
     const renderPublicView = () => {
       switch (currentView) {
-        case 'community': return <CommunityDashboard />;
         case 'players': return <PlayersPage />;
         case 'highlights': return <HighlightsPage />;
         case 'peringkat': return <PeringkatPage />;
         case 'bracket': return <BracketPage />;
         case 'hasil': return <HasilPage />;
-        default: return <CommunityDashboard />;
+        default: return <PlayersPage />;
       }
     };
 
@@ -583,16 +588,15 @@ export function AppShell() {
 
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard': return <CommunityDashboard />;
+      case 'dashboard': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminRedirectGuard onRedirect={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }}><LandingPage /></AdminRedirectGuard>;
       case 'matchday': return <MatchDayCenter />;
       case 'league': return <LeagueView />;
       case 'admin': return adminAuth.isAuthenticated ? <AdminPanel /> : <AdminRedirectGuard onRedirect={() => { setAccountModalDefaultTab('admin'); setAccountModalOpen(true); setCurrentView('landing'); }}><LandingPage /></AdminRedirectGuard>;
       case 'register': return <RegistrationForm />;
-
       case 'marketplace': return <MarketplaceView onLoginRequired={() => { setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }} />;
       case 'bracket': return <BracketPage />;
       case 'hasil': return <HasilPage />;
-      default: return <CommunityDashboard />;
+      default: return adminAuth.isAuthenticated ? <AdminPanel /> : <LandingPage />;
     }
   };
 
@@ -601,9 +605,9 @@ export function AppShell() {
       {/* Mobile Header */}
       <header className={`lg:hidden sticky top-0 z-40 ${dt.glassStrong} px-3 py-2 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          {currentView !== 'landing' && currentView !== 'community' && currentView !== 'dashboard' && (
+          {currentView !== 'landing' && currentView !== 'dashboard' && (
             <button
-              onClick={() => { hapticTap(); setCurrentView('community'); }}
+              onClick={() => { hapticTap(); setCurrentView('landing'); }}
               className="w-8 h-8 flex items-center justify-center text-idm-gold-warm hover:bg-idm-gold-warm/10 rounded-lg transition-colors"
               aria-label="Kembali"
             >
@@ -614,7 +618,7 @@ export function AppShell() {
             <Image src="/logo1.webp" alt="IDM" width={28} height={28} className="w-full h-full object-cover" priority />
           </div>
           <span className="text-gradient-fury text-sm font-bold">
-            Tarkam IDM{currentView !== 'landing' && currentView !== 'community' && currentView !== 'dashboard' && (
+            Tarkam IDM{currentView !== 'landing' && currentView !== 'dashboard' && (
               <span className="text-idm-gold-warm"> · {{
                 matchday: 'Arena Live',
                 marketplace: 'Marketplace',
@@ -646,7 +650,7 @@ export function AppShell() {
             <Button
               variant="ghost"
               size="icon"
-              className={`h-9 w-9 relative ${playerAuth.isAuthenticated ? (currentView === 'community' ? 'text-idm-gold-warm' : division === 'male' ? 'text-idm-male' : 'text-idm-female') : adminAuth.isAuthenticated ? 'text-idm-gold-warm drop-shadow-[0_0_4px_rgba(239,249,35,0.3)]' : 'text-idm-gold-warm/80'}`}
+              className={`h-9 w-9 relative ${playerAuth.isAuthenticated ? (division === 'male' ? 'text-idm-male' : 'text-idm-female') : adminAuth.isAuthenticated ? 'text-idm-gold-warm drop-shadow-[0_0_4px_rgba(239,249,35,0.3)]' : 'text-idm-gold-warm/80'}`}
               onClick={() => { hapticTap(); setAccountModalDefaultTab('peserta'); setAccountModalOpen(true); }}
               title={playerAuth.isAuthenticated ? `Akun: ${playerAuth.account?.player.gamertag}` : adminAuth.isAuthenticated ? `Admin: ${adminAuth.admin?.username}` : 'Login'}
             >
@@ -690,7 +694,7 @@ export function AppShell() {
             /* Mobile: edge-to-edge (no horizontal padding) for community/dashboard views
                to eliminate the 3-layer background gap issue.
                iOS style: content touches screen edges, cards have their own internal padding. */
-            const isFullBleed = currentView === 'dashboard' || currentView === 'community' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'hasil' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
+            const isFullBleed = currentView === 'dashboard' || currentView === 'marketplace' || currentView === 'bracket' || currentView === 'hasil' || currentView === 'matchday' || currentView === 'league' || currentView === 'players' || currentView === 'highlights' ;
             const contentClass = `pt-2 ${isFullBleed ? 'px-0' : 'px-3'} pb-28 sm:pt-6 sm:px-4 sm:pb-28 lg:p-8 lg:pb-8 ${currentView === 'admin' ? 'max-w-[2200px]' : isFullBleed ? 'max-w-7xl' : 'max-w-[1600px]'} mx-auto page-transition-enter`;
             const content = <div key={currentView} className={contentClass}>{renderView()}</div>;
             return isMobile

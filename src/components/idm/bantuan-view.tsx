@@ -7,7 +7,7 @@ import {
   BookOpen, Heart, Phone, ExternalLink, ArrowRight, Info,
   ArrowLeft, Calendar, Users, Radio
 } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, type AppView } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 /* ═══════════════════════════════════════════════════════
@@ -136,8 +136,8 @@ const faqData = [
 const quickLinks = [
   { icon: Gamepad2, label: 'Daftar Peserta', desc: 'Bergabung sebagai peserta Tarkam', view: 'register' as const, color: 'text-emerald-400' },
   { icon: Trophy, label: 'Peraturan Liga', desc: 'Baca peraturan lengkap liga', view: 'league' as const, color: 'text-idm-gold-warm' },
-  { icon: Users, label: 'Leaderboard', desc: 'Lihat peringkat pemain', view: 'community' as const, color: 'text-cyan-400' },
-  { icon: Radio, label: 'Arena Live', desc: 'Jadwal & hasil pertandingan', view: 'dashboard' as const, color: 'text-rose-400' },
+  { icon: Users, label: 'Leaderboard', desc: 'Lihat peringkat pemain', view: 'peringkat' as const, color: 'text-cyan-400' },
+  { icon: Radio, label: 'Arena Live', desc: 'Jadwal & hasil pertandingan', view: 'hasil' as const, color: 'text-rose-400' },
 ];
 
 /* ═══════════════════════════════════════════════════════
@@ -172,18 +172,11 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
    BANTUAN VIEW — Help Center
    ═══════════════════════════════════════════════════════ */
 export function BantuanView() {
-  const { setCurrentView, setDivision, setInitialDashboardTab, division } = useAppStore();
+  const { setCurrentView } = useAppStore();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const handleQuickLink = (view: string) => {
-    if (view === 'community') {
-      setDivision('male');
-      setInitialDashboardTab('rankings');
-    }
-    if (view === 'dashboard') {
-      setDivision(division || 'male');
-    }
-    setCurrentView(view as 'register' | 'league' | 'community' | 'dashboard');
+    setCurrentView(view as AppView);
   };
 
   return (
@@ -198,7 +191,7 @@ export function BantuanView() {
         <div className="relative z-10 p-6 sm:p-10">
           {/* Back button for mobile FAB navigation */}
           <button
-            onClick={() => setCurrentView('dashboard')}
+            onClick={() => setCurrentView('admin')}
             className="lg:hidden flex items-center gap-1.5 mb-4 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

@@ -23,10 +23,8 @@ import dynamic from 'next/dynamic';
    Using min-h ensures placeholder never clips content; actual height fills naturally */
 const TournamentHub = dynamic(() => import('./landing/tournament-hub').then(m => ({ default: m.TournamentHub })), { ssr: false, loading: () => <div className="min-h-[320px] sm:min-h-[420px]" /> });
 const DonorLeaderboardSection = dynamic(() => import('./landing/donor-leaderboard-section').then(m => ({ default: m.DonorLeaderboardSection })), { ssr: false, loading: () => <div className="min-h-[400px] sm:min-h-[500px]" /> });
-const PlayersSection = dynamic(() => import('./landing/players-section').then(m => ({ default: m.PlayersSection })), { ssr: false, loading: () => <div className="min-h-[360px] sm:min-h-[480px]" /> });
-const HighlightsSection = dynamic(() => import('./landing/highlights-section').then(m => ({ default: m.HighlightsSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[360px]" /> });
-const SeasonChampionSection = dynamic(() => import('./landing/season-champion-section').then(m => ({ default: m.SeasonChampionSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
-const ExperiencesSection = dynamic(() => import('./landing/experiences-section').then(m => ({ default: m.ExperiencesSection })), { ssr: false, loading: () => <div className="min-h-[280px] sm:min-h-[380px]" /> });
+// Removed: PlayersSection — no longer used on landing page (players have their own page via nav)
+// Removed: HighlightsSection, SeasonChampionSection, ExperiencesSection — no longer used on landing page
 const ClubsSection = dynamic(() => import('./landing/clubs-section').then(m => ({ default: m.ClubsSection })), { ssr: false, loading: () => <div className="min-h-[300px] sm:min-h-[400px]" /> });
 const SponsorsSection = dynamic(() => import('./landing/sponsors-section').then(m => ({ default: m.SponsorsSection })), { ssr: false, loading: () => null });
 const LandingFooter = dynamic(() => import('./landing/landing-footer').then(m => ({ default: m.LandingFooter })), { ssr: false, loading: () => null });
@@ -429,7 +427,7 @@ export function LandingPage() {
 
   const enterApp = (division: 'male' | 'female') => {
     setDivision(division);
-    setCurrentView('dashboard');
+    setCurrentView('admin');
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
@@ -445,10 +443,7 @@ export function LandingPage() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
-  const enterCommunity = () => {
-    setCurrentView('community');
-    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-  };
+  // enterCommunity removed — community view now redirects to landing
 
   /* Nav scroll state — optimized for INP:
      - Use refs to skip setState when value hasn't changed (prevents unnecessary re-renders)
@@ -572,24 +567,17 @@ export function LandingPage() {
         });
         break;
       case 'champion':
-        // Navigate to community dashboard, then scroll to champions section
+        // Navigate to highlights page (Juara)
         queueMicrotask(() => {
-          setCurrentView('community');
-          setTimeout(() => {
-            const el = document.getElementById('section-champions');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 500);
+          setCurrentView('highlights');
         });
         break;
       case 'club': {
         const clubName = params.get('name');
         if (clubName) {
           queueMicrotask(() => {
-            setCurrentView('community');
-            setTimeout(() => {
-              // Trigger club profile opening via custom event
-              window.dispatchEvent(new CustomEvent('tarkam:open-club', { detail: { name: clubName } }));
-            }, 500);
+            // Trigger club profile opening via custom event on landing page
+            window.dispatchEvent(new CustomEvent('tarkam:open-club', { detail: { name: clubName } }));
           });
         }
         break;
@@ -775,7 +763,7 @@ export function LandingPage() {
         cmsSections={cmsSections}
         cmsSettings={cms}
         onEnterApp={enterApp}
-        onEnterCommunity={enterCommunity}
+        onEnterCommunity={() => setCurrentView('landing')}
         onRegister={() => { setRegistrationDefaultDivision(null); setRegistrationModalOpen(true); }}
         onViewBracket={enterBracket}
         onVideoPlay={openVideoModal}
