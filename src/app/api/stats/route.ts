@@ -422,9 +422,10 @@ export async function GET(request: Request) {
         })
       : Promise.resolve([] as any[]),
 
-    // Total tournament match count (actual Match records, not LeagueMatch)
+    // Total tournament match count (only COMPLETED matches — pending/ready not counted)
     db.match.count({
       where: {
+        status: 'completed',
         tournament: { seasonId: { in: allSeasons.map((s: { id: string }) => s.id) } },
       },
     }),
