@@ -750,7 +750,7 @@ export function AppShell() {
 
       {/* Footer — desktop only */}
       <footer className="shrink-0 py-3 text-center text-[11px] text-muted-foreground/60 border-t border-border/40 hidden lg:block">
-        <span className="text-gradient-fury font-semibold">Tarkam IDM</span> — Fan Made Edition © 2026
+        <span className="text-gradient-fury font-semibold">Tarkam IDM</span> — Fan Made Edition © {new Date().getFullYear()}
       </footer>
     </div>
   );

@@ -9,12 +9,12 @@ import {
 } from '@/components/ui/dialog';
 import { AnimatedSection, SectionHeader } from './shared';
 import { formatCurrency, parseWitaDate, formatWIBWeekdayShort, formatWIBTime } from '@/lib/utils';
-import type { StatsData } from '@/types/stats';
+import type { StatsData, LeagueData } from '@/types/stats';
 
 interface TournamentHubProps {
   maleData: StatsData | undefined;
   femaleData: StatsData | undefined;
-  leagueData: any;
+  leagueData: LeagueData | undefined;
   cmsSections: Record<string, any>;
   cmsSettings?: Record<string, string>;
   onEnterApp: (division: 'male' | 'female') => void;

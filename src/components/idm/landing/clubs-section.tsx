@@ -5,7 +5,7 @@ import { SectionHeader } from './shared';
 import { CardSkeleton } from '../ui/skeleton';
 
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
-import type { StatsData } from '@/types/stats';
+import type { StatsData, LeagueData } from '@/types/stats';
 
 interface LeagueClub {
   id: string;
@@ -38,11 +38,7 @@ interface ClubsSectionProps {
   femaleData: StatsData | undefined;
   isDataLoading: boolean;
   cmsSections: Record<string, any>;
-  leagueData: {
-    hasData: boolean;
-    clubs?: LeagueClub[];
-    stats?: { totalClubs: number };
-  } | undefined;
+  leagueData: LeagueData | undefined;
   setSelectedClub: (club: StatsData['clubs'][0] & { division?: string; members?: any[] } | null) => void;
   showAllClubs: boolean;
   setShowAllClubs: (show: boolean) => void;
@@ -68,9 +64,9 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
   const allSeasons = maleData?.allSeasons || femaleData?.allSeasons || [];
   const uniqueSeasonNumbers = [...new Set(allSeasons.map(s => s.number))];
   const seasonsForSelector = uniqueSeasonNumbers.map(num => {
-    const maleSeason = allSeasons.find(s => s.number === num);
-    return maleSeason!;
-  }).sort((a, b) => b.number - a.number); // S2 first, S1 second
+    const season = allSeasons.find(s => s.number === num);
+    return season!;
+  }).filter(Boolean).sort((a, b) => b.number - a.number); // S2 first, S1 second
 
   return (<>
       {/* ========== CLUB — Premium Card Layout ========== */}
@@ -205,8 +201,22 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
               const leagueClubs = isHistorical
                 ? [
                     ...(maleData?.clubs || []).map((c, i) => ({ ...c, memberCount: c._count?.members || 0, maleMemberCount: (c as any).maleCount || 0, femaleMemberCount: (c as any).femaleCount || 0, malePoints: (c as any).malePoint || 0, femalePoints: (c as any).femalePoint || 0, members: [], _key: `m-${c.id}-${i}` })),
-                    ...(femaleData?.clubs || []).map((c, i) => ({ ...c, memberCount: c._count?.members || 0, maleMemberCount: (c as any).maleCount || 0, femaleMemberCount: (c as any).femaleCount || 0, malePoints: (c as any).femalePoint || 0, femalePoints: (c as any).femalePoint || 0, members: [], _key: `f-${c.id}-${i}` })),
-                  ].filter((club, idx, arr) => arr.findIndex(c => c.id === club.id) === idx)  // Dedupe by ID (ClubProfile.id or Club.id)
+                    ...(femaleData?.clubs || []).map((c, i) => ({ ...c, memberCount: c._count?.members || 0, maleMemberCount: (c as any).maleCount || 0, femaleMemberCount: (c as any).femaleCount || 0, malePoints: (c as any).malePoint || 0, femalePoints: (c as any).femalePoint || 0, members: [], _key: `f-${c.id}-${i}` })),
+                  ].reduce((acc: any[], club) => {
+                    const existing = acc.find(c => c.id === club.id);
+                    if (existing) {
+                      // Merge: sum member counts, keep both division badges
+                      existing.maleMemberCount += club.maleMemberCount || 0;
+                      existing.femaleMemberCount += club.femaleMemberCount || 0;
+                      existing.memberCount += club.memberCount || 0;
+                      existing.malePoints += club.malePoints || 0;
+                      existing.femalePoints += club.femalePoints || 0;
+                      existing.points += club.points || 0;
+                    } else {
+                      acc.push({ ...club });
+                    }
+                    return acc;
+                  }, [])  // Merge by ID (ClubProfile.id or Club.id)
                 : (leagueData?.clubs || []).map((c, i) => ({ ...c, _key: `l-${c.id}-${i}` }));
               const sortedClubs = [...leagueClubs].sort((a, b) => isHistorical ? ((a as any).rank ?? 999) - ((b as any).rank ?? 999) || b.points - a.points : a.name.localeCompare(b.name));
 

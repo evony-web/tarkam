@@ -195,6 +195,7 @@ export async function GET(request: Request) {
     batchClubMembers,
     allPlayersForDonorMatching,
     allDivSeasonsForStats,
+    totalMatchCount,
   ] = await Promise.all([
 
     // Total players
@@ -409,6 +410,13 @@ export async function GET(request: Request) {
           select: { id: true, number: true },
         })
       : Promise.resolve([] as any[]),
+
+    // Total tournament match count (actual Match records, not LeagueMatch)
+    db.match.count({
+      where: {
+        tournament: { seasonId: { in: allSeasons.map((s: { id: string }) => s.id) } },
+      },
+    }),
   ]);
 
   // ═══ Build lookup maps from batched results ═══
@@ -834,7 +842,7 @@ export async function GET(request: Request) {
         const maleScore = members.filter((m: any) => m.division === 'male').reduce((sum: number, m: any) => sum + m.points, 0);
         const femaleScore = members.filter((m: any) => m.division === 'female').reduce((sum: number, m: any) => sum + m.points, 0);
 
-        championClub.members = members.sort((a: any, b: any) => b.points - a.points).slice(0, 5);
+        championClub.members = members.sort((a: any, b: any) => b.points - a.points).slice(0, 3);
         championClub.totalPoints = totalPoints;
         championClub.maleScore = maleScore;
         championClub.femaleScore = femaleScore;
@@ -1229,7 +1237,7 @@ export async function GET(request: Request) {
         totalAmount: data.totalAmount,
         donationCount: data.donationCount,
         player: buildPlayerInfo(name),
-      })).slice(0, 5);
+      })).slice(0, 3);
 
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
@@ -1272,7 +1280,7 @@ export async function GET(request: Request) {
         totalAmount: data.totalAmount,
         donationCount: data.donationCount,
         player: buildPlayerInfo(name),
-      })).slice(0, 5);
+      })).slice(0, 3);
 
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
@@ -1303,7 +1311,7 @@ export async function GET(request: Request) {
       totalAmount: data.totalAmount,
       donationCount: data.donationCount,
       player: buildPlayerInfo(name),
-    })).slice(0, 5);
+    })).slice(0, 3);
 
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
@@ -1430,12 +1438,13 @@ export async function GET(request: Request) {
       : null,
     totalPlayers,
     approvedPlayerCount,
+    totalMatchCount,
     totalPrizePool,
     malePrizePool,
     femalePrizePool,
     activeTournamentPrizePool,
     seasonDonationTotal,
-    topPlayers: topPlayers.slice(0, 30).map(({ clubMembers, totalLosses, maxStreak, matches: _matches, seasonLosses, lifetimePoints, city, division: _division, ...p }: any) => p),
+    topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, totalLosses, maxStreak, matches: _matches, seasonLosses, lifetimePoints, city, division: _division, ...p }: any) => p),
     skinMap,
     clubs: flatClubs.slice(0, 10).map(({ bannerImage, ...c }: any) => c),
     recentMatches: flatRecentMatches,
@@ -1449,17 +1458,17 @@ export async function GET(request: Request) {
       _count: t._count,
     })),
     weeklyChampions: weeklyChampions.slice(0, 10),
-    leagueMatches: flatLeagueMatches.slice(0, 20),
+    leagueMatches: flatLeagueMatches.slice(0, 10),
     topDonors,
     weeklyTopDonors,
-    mvpHallOfFame: mvpHallOfFame.slice(0, 10),
+    mvpHallOfFame: mvpHallOfFame.slice(0, 5),
     seasonProgress: {
       totalWeeks: SEASON_TOTAL_WEEKS,
       completedWeeks,
       percentage: SEASON_TOTAL_WEEKS > 0 ? Math.round((completedWeeks / SEASON_TOTAL_WEEKS) * 100) : 0,
     },
     weeklyTopPerformers,
-    sultanOfWeekly: sultanOfWeekly.slice(-10),
+    sultanOfWeekly: sultanOfWeekly.slice(-5),
   }, {
     headers: STATS_CACHE_HEADERS,
   });

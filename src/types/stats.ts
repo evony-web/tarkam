@@ -273,6 +273,8 @@ export interface StatsData {
   totalPlayers: number;
   /** Count of players with approved/assigned status in the active tournament */
   approvedPlayerCount: number;
+  /** Total tournament match count (actual Match records) */
+  totalMatchCount?: number;
   totalPrizePool: number;
   malePrizePool: number;
   femalePrizePool: number;
@@ -410,4 +412,49 @@ export interface PlayerSkinInfo {
   expiresAt?: string | null;
   /** Permanent donor heart badge count (independent of skin expiry) */
   donorBadgeCount?: number;
+}
+
+/** League club data returned from /api/league */
+export interface LeagueClub {
+  id: string;
+  name: string;
+  logo: string | null;
+  bannerImage: string | null;
+  wins: number;
+  losses: number;
+  points: number;
+  gameDiff: number;
+  _count?: { members: number };
+}
+
+/** League data returned from /api/league — shared across landing page components */
+export interface LeagueData {
+  hasData: boolean;
+  preSeason?: boolean;
+  reason?: string;
+  season?: { id: string; name: string; number: number };
+  tarkamChampion?: {
+    id: string;
+    name: string;
+    logo: string | null;
+    seasonNumber: number;
+    malePoints: number;
+    femalePoints: number;
+    totalPoints: number;
+    members: {
+      id: string;
+      gamertag: string;
+      division: string;
+      tier: string;
+      points: number;
+      role: string;
+      avatar?: string | null;
+    }[];
+  } | null;
+  stats?: {
+    totalClubs: number;
+    totalMatches: number;
+    completedMatches: number;
+  };
+  clubs?: LeagueClub[];
 }

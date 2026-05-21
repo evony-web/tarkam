@@ -41,7 +41,10 @@ export function SponsorsSection() {
 
   const sponsors = data?.sponsors ?? [];
 
-  // Don't render anything if no sponsors or still loading with no prior data
+  // Intentional null return: when there are no sponsors, this section is omitted.
+  // This is acceptable because the sponsors section is at the bottom of the page,
+  // so there is no perceptible layout shift. The parent already handles this via
+  // dynamic import with `loading: () => null`.
   if (!isLoading && sponsors.length === 0) return null;
 
   // Still loading and no data yet — show skeleton

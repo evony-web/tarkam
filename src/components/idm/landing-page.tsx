@@ -423,7 +423,7 @@ export function LandingPage() {
   const cmsSiteTitle = cms.site_title || 'Tarkam IDM';
   const cmsHeroTitle = cms.hero_title || 'Idol Meta';
   const cmsHeroSubtitle = cms.hero_subtitle || 'Fan Made Edition';
-  const cmsFooterText = cms.footer_text || '© 2026 TARKAM IDM — Idol Meta Fan Made Edition.';
+  const cmsFooterText = cms.footer_text || `© ${new Date().getFullYear()} TARKAM IDM — Idol Meta Fan Made Edition.`;
   const cmsFooterTagline = cms.footer_tagline || 'Dance. Compete. Dominate.';
 
   const enterApp = (division: 'male' | 'female') => {

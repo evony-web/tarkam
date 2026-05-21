@@ -514,7 +514,10 @@ export function DonorLeaderboardSection({
     if (femaleData?.topDonors?.length) mergeDonors(seasonMap, femaleData.topDonors, 'female');
 
     // ── PER-WEEK: Build a map of weekNumber → donors ──
-    const weekDonorsMap = new Map<number, DivisionDonor[]>();
+    // Use intermediate maps to avoid O(n²) rebuild when multiple sultans share a week.
+    // Previously, weekDonorsMap stored DivisionDonor[] which required rebuilding the map
+    // from the array on each subsequent sultan — now we keep maps and convert once at the end.
+    const weekDonorMaps = new Map<number, ReturnType<typeof buildDonorMap>>();
     const weekSultansMap = new Map<number, SultanOfWeekly[]>();
 
     // Group sultans by week
@@ -527,37 +530,25 @@ export function DonorLeaderboardSection({
     // Build per-week donor lists from sultanOfWeekly.allDonors
     for (const sultan of allSultans) {
       if (!sultan.allDonors?.length) continue;
-      const existingMap = weekDonorsMap.has(sultan.weekNumber)
-        ? (() => {
-            // Rebuild the map from the existing DivisionDonor array
-            const map = buildDonorMap();
-            const existingDonors = weekDonorsMap.get(sultan.weekNumber)!;
-            for (const d of existingDonors) {
-              map.set(d.donorName.toLowerCase().trim(), {
-                donorName: d.donorName,
-                totalAmount: d.totalAmount,
-                donationCount: d.donationCount,
-                maleAmount: d.maleAmount,
-                femaleAmount: d.femaleAmount,
-                player: d.player,
-              });
-            }
-            return map;
-          })()
-        : buildDonorMap();
-
+      const existingMap = weekDonorMaps.get(sultan.weekNumber) || buildDonorMap();
       mergeDonorList(existingMap, sultan.allDonors, sultan.tournamentDivision as 'male' | 'female');
-      weekDonorsMap.set(sultan.weekNumber, toDivisionDonors(existingMap));
+      weekDonorMaps.set(sultan.weekNumber, existingMap);
     }
 
     // Fallback for weeks that have no allDonors but have weeklyTopDonors
-    if (!weekDonorsMap.has(latestWeekNumber)) {
+    if (!weekDonorMaps.has(latestWeekNumber)) {
       const fallbackMap = buildDonorMap();
       if (maleData?.weeklyTopDonors?.length) mergeDonors(fallbackMap, maleData.weeklyTopDonors, 'male');
       if (femaleData?.weeklyTopDonors?.length) mergeDonors(fallbackMap, femaleData.weeklyTopDonors, 'female');
       if (fallbackMap.size > 0) {
-        weekDonorsMap.set(latestWeekNumber, toDivisionDonors(fallbackMap));
+        weekDonorMaps.set(latestWeekNumber, fallbackMap);
       }
+    }
+
+    // Convert intermediate maps to final sorted DivisionDonor arrays
+    const weekDonorsMap = new Map<number, DivisionDonor[]>();
+    for (const [week, map] of weekDonorMaps) {
+      weekDonorsMap.set(week, toDivisionDonors(map));
     }
 
     return {

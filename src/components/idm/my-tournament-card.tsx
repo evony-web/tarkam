@@ -152,7 +152,7 @@ export function MyTournamentCard() {
       return res.json();
     },
     enabled: isLoggedIn && !!playerGamertag,
-    refetchInterval: 300000,
+    refetchInterval: autoData?.liveMatch ? 30000 : 300000,
     staleTime: 30000,
   });
 

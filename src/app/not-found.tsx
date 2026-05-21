@@ -84,7 +84,7 @@ export default function NotFound() {
 
         {/* Footer */}
         <p className="text-[10px] text-muted-foreground/40">
-          © 2026 TARKAM IDM — Idol Meta
+          © {new Date().getFullYear()} TARKAM IDM — Idol Meta
         </p>
       </div>
     </div>

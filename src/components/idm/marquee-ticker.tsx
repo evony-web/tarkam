@@ -4,7 +4,7 @@ import React, { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from 'next-themes';
 import { hexToRgba, formatCurrency } from '@/lib/utils';
-import type { StatsData } from '@/types/stats';
+import type { StatsData, LeagueData } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════════════
    TARKAM IDM — ESPN-STYLE MARQUEE TICKER
@@ -78,11 +78,16 @@ function resolveAccent(hex: string, isLight: boolean): string {
 }
 
 /* ========== Pre-computed card style cache ========== */
-// Avoids re-computing hexToRgba on every render
+// Avoids re-computing hexToRgba on every render.
+// Guard: if cache exceeds 100 entries, clear it to prevent unbounded memory growth.
+const MAX_STYLE_CACHE_SIZE = 100;
 const styleCache = new Map<string, { bg: string; border: string; shadow: string; timeColor: string; timeBg: string }>();
 function getCardStyles(accent: string) {
   const cached = styleCache.get(accent);
   if (cached) return cached;
+  if (styleCache.size >= MAX_STYLE_CACHE_SIZE) {
+    styleCache.clear();
+  }
   const styles = {
     bg: `linear-gradient(135deg, ${hexToRgba(accent, 0x08)} 0%, ${hexToRgba(accent, 0x03)} 100%)`,
     border: hexToRgba(accent, 0x20),
@@ -167,7 +172,7 @@ function Separator() {
 interface UnifiedMarqueeProps {
   maleData?: StatsData;
   femaleData?: StatsData;
-  leagueData?: any;
+  leagueData?: LeagueData;
 }
 
 /* ========== Unified Marquee — CSS animation (compositor thread) ========== */

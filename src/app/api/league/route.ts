@@ -174,6 +174,21 @@ export async function GET() {
     },
   }));
 
+  // Tournament matches — the actual match data for Tarkam mode
+  const tournamentMatches = await withDbRetry(() => db.match.findMany({
+    where: { tournament: { seasonId: { in: allSeasonIds } } },
+    orderBy: { matchNumber: 'asc' },
+    select: {
+      id: true, round: true, matchNumber: true, bracket: true, groupLabel: true,
+      format: true, score1: true, score2: true, status: true,
+      team1Id: true, team2Id: true, winnerId: true, mvpPlayerId: true,
+      scheduledAt: true, completedAt: true,
+      team1: { select: { id: true, name: true } },
+      team2: { select: { id: true, name: true } },
+      mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true } },
+    },
+  }));
+
   // All playoff matches
   const playoffMatches = await withDbRetry(() => db.playoffMatch.findMany({
     where: { seasonId: { in: allSeasonIds } },
@@ -214,8 +229,8 @@ export async function GET() {
 
   // Stats — derive week progress from tournaments (Tarkam mode) with league match fallback
   const totalClubs = dedupedClubs.length;
-  const totalMatches = leagueMatches.length;
-  const completedMatches = leagueMatches.filter(m => m.status === 'completed').length;
+  const totalMatches = leagueMatches.length + tournamentMatches.length;
+  const completedMatches = leagueMatches.filter(m => m.status === 'completed').length + tournamentMatches.filter(m => m.status === 'completed').length;
   const liveMatches = leagueMatches.filter(m => m.status === 'live').length;
 
   // Count tournaments per week for progress calculation
@@ -257,6 +272,14 @@ export async function GET() {
       status: m.status, format: m.format,
       club1: { id: m.club1.id, name: m.club1.profile.name, logo: m.club1.profile.logo },
       club2: { id: m.club2.id, name: m.club2.profile.name, logo: m.club2.profile.logo },
+    })),
+    tournamentMatches: tournamentMatches.map(m => ({
+      id: m.id, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket, groupLabel: m.groupLabel,
+      format: m.format, score1: m.score1, score2: m.score2, status: m.status,
+      team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+      team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+      mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, gamertag: m.mvpPlayer.gamertag, avatar: m.mvpPlayer.avatar, tier: m.mvpPlayer.tier } : null,
+      scheduledAt: m.scheduledAt, completedAt: m.completedAt,
     })),
     topPlayers: topPlayers.map(p => ({
       id: p.id, gamertag: p.gamertag, division: p.division,

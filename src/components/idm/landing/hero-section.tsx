@@ -7,7 +7,7 @@ import { Star, Eye, ArrowRight, Users, Trophy, Swords, PenLine, X, Music, Gem } 
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import { ClubLogoImage } from '@/components/idm/club-logo-image';
 import { getAvatarUrl, hexToRgba } from '@/lib/utils';
-import type { StatsData, SultanPlayer } from '@/types/stats';
+import type { StatsData, SultanPlayer, LeagueData } from '@/types/stats';
 
 /* ═══════════════════════════════════════════════════════════════
    TARKAM IDM — TARKAM ARENA HERO
@@ -19,7 +19,7 @@ import type { StatsData, SultanPlayer } from '@/types/stats';
 interface HeroSectionProps {
   maleData: StatsData | undefined;
   femaleData: StatsData | undefined;
-  leagueData: any;
+  leagueData: LeagueData | undefined;
   cmsSections: Record<string, any>;
   cmsSettings: Record<string, string>;
   onEnterApp: (division: 'male' | 'female') => void;
@@ -59,8 +59,9 @@ export function HeroSection({
   const heroBgMobile = cmsSettings.hero_bg_mobile || '';
   const heroBgVideo = cmsSettings.hero_bg_video || '';
 
-  /* ─── Bracket division picker modal state ─── */
-  const [showBracketPicker, setShowBracketPicker] = useState(false);
+  /* ─── Division picker modal state (shared by Daftar & Bracket CTA) ─── */
+  const [showDivisionPicker, setShowDivisionPicker] = useState(false);
+  const [pickerAction, setPickerAction] = useState<'register' | 'bracket'>('register');
 
   /* ─── YouTube iframe facade — defer loading until after LCP ─── */
   // ★ OPTIMIZED: Disable YouTube on mobile entirely — heavy JS (500KB+) blocks main thread causing high INP
@@ -87,8 +88,8 @@ export function HeroSection({
   const femalePlayers = femaleData?.totalPlayers || 0;
   const maleClubs = maleData?.clubs?.length || 0;
   const femaleClubs = femaleData?.clubs?.length || 0;
-  const maleMatches = (maleData?.recentMatches?.length || 0) + (maleData?.upcomingMatches?.length || 0);
-  const femaleMatches = (femaleData?.recentMatches?.length || 0) + (femaleData?.upcomingMatches?.length || 0);
+  const maleMatches = maleData?.totalMatchCount || (maleData?.recentMatches?.length || 0) + (maleData?.upcomingMatches?.length || 0);
+  const femaleMatches = femaleData?.totalMatchCount || (femaleData?.recentMatches?.length || 0) + (femaleData?.upcomingMatches?.length || 0);
   const totalPlayers = malePlayers + femalePlayers;
   const totalClubs = maleClubs + femaleClubs;
   const totalMatches = maleMatches + femaleMatches;
@@ -433,9 +434,9 @@ export function HeroSection({
 
           {/* ═══════════════ CTA BUTTONS ═══════════════ */}
           <div className={`flex flex-col sm:flex-row items-center justify-center gap-[18px] sm:gap-4 mx-auto mb-6 sm:mb-10 ${(hasMaleSultan || championClub || hasFemaleSultan) ? '' : 'hero-enter-5'}`}>
-            {/* Daftar Tarkam — Primary CTA → Registration */}
+            {/* Daftar Tarkam — Primary CTA → Division Picker */}
             <button
-              onClick={() => onRegister('male')}
+              onClick={() => { setPickerAction('register'); setShowDivisionPicker(true); }}
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Pulse glow ring */}
@@ -457,7 +458,7 @@ export function HeroSection({
 
             {/* Lihat Bracket — Secondary CTA → Show division picker modal */}
             <button
-              onClick={() => setShowBracketPicker(true)}
+              onClick={() => { setPickerAction('bracket'); setShowDivisionPicker(true); }}
               className="btn-press hero-cta-breath group relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-idm-gold-warm/50 focus-visible:ring-offset-2 focus-visible:ring-offset-deep"
             >
               {/* Glow on hover */}
@@ -524,14 +525,14 @@ export function HeroSection({
         />
       </section>
 
-      {/* ══════ BRACKET DIVISION PICKER MODAL ══════ */}
-      {showBracketPicker && typeof document !== 'undefined' && createPortal(
+      {/* ══════ DIVISION PICKER MODAL (shared by Daftar & Bracket) ══════ */}
+      {showDivisionPicker && typeof document !== 'undefined' && createPortal(
         <div
           className="modal-backdrop modal-backdrop-enter z-[9999] p-3 sm:p-4"
-          onClick={() => setShowBracketPicker(false)}
+          onClick={() => setShowDivisionPicker(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Pilih Divisi Bracket"
+          aria-label={`Pilih Divisi ${pickerAction === 'register' ? 'Pendaftaran' : 'Bracket'}`}
         >
           <div
             className="modal-container modal-container-md modal-enter-slide"
@@ -541,15 +542,15 @@ export function HeroSection({
             <div className="modal-header justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-idm-gold-warm/10">
-                  <Eye className="w-5 h-5 text-idm-gold-warm" />
+                  {pickerAction === 'register' ? <PenLine className="w-5 h-5 text-idm-gold-warm" /> : <Eye className="w-5 h-5 text-idm-gold-warm" />}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="modal-header-title text-gradient-fury">Lihat Bracket</h2>
-                  <p className="modal-header-subtitle">Pilih divisi untuk melihat bracket</p>
+                  <h2 className="modal-header-title text-gradient-fury">{pickerAction === 'register' ? 'Daftar Tarkam' : 'Lihat Bracket'}</h2>
+                  <p className="modal-header-subtitle">Pilih divisi {pickerAction === 'register' ? 'untuk mendaftar' : 'untuk melihat bracket'}</p>
                 </div>
               </div>
               <button
-                onClick={() => setShowBracketPicker(false)}
+                onClick={() => setShowDivisionPicker(false)}
                 aria-label="Tutup"
                 className="modal-close"
               >
@@ -562,7 +563,11 @@ export function HeroSection({
               <div className="grid grid-cols-2 gap-4">
                 {/* Cowo Division Card */}
                 <button
-                  onClick={() => { setShowBracketPicker(false); onViewBracket('male'); }}
+                  onClick={() => {
+                    setShowDivisionPicker(false);
+                    if (pickerAction === 'register') onRegister('male');
+                    else onViewBracket('male');
+                  }}
                   className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-male/20 bg-idm-male/5 hover:border-idm-male/50 hover:bg-idm-male/10 transition-all duration-300 cursor-pointer active:scale-95"
                 >
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-male/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -577,7 +582,11 @@ export function HeroSection({
 
                 {/* Cewe Division Card */}
                 <button
-                  onClick={() => { setShowBracketPicker(false); onViewBracket('female'); }}
+                  onClick={() => {
+                    setShowDivisionPicker(false);
+                    if (pickerAction === 'register') onRegister('female');
+                    else onViewBracket('female');
+                  }}
                   className="group relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border-2 border-idm-female/20 bg-idm-female/5 hover:border-idm-female/50 hover:bg-idm-female/10 transition-all duration-300 cursor-pointer active:scale-95"
                 >
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-idm-female/15 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -592,7 +601,7 @@ export function HeroSection({
               </div>
 
               <p className="text-[10px] text-muted-foreground/50 text-center mt-1">
-                Pilih divisi untuk melihat bracket pertandingan
+                Pilih divisi {pickerAction === 'register' ? 'untuk mendaftar turnamen' : 'untuk melihat bracket pertandingan'}
               </p>
             </div>
           </div>

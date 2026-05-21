@@ -72,7 +72,10 @@ export function LandingFooter({ cmsSettings, className }: LandingFooterProps) {
   const logoUrl = cmsSettings.logo_url || '/logo1.webp';
   const siteTitle = cmsSettings.site_title || 'TARKAM IDM';
   const tagline = cmsSettings.footer_tagline || 'Idol Meta Fan Made Edition.';
-  const footerText = cmsSettings.footer_text || '© 2026 TARKAM IDM — Idol Meta Fan Made Edition.';
+  // Dynamic year: replace any hardcoded year in CMS text with current year
+  const currentYear = new Date().getFullYear();
+  const rawFooterText = cmsSettings.footer_text || `© ${currentYear} TARKAM IDM — Idol Meta Fan Made Edition.`;
+  const footerText = rawFooterText.replace(/©\s*\d{4}/, `© ${currentYear}`);
 
   /* ── Social URLs ── */
   const discordUrl = cmsSettings.social_discord_url || '';

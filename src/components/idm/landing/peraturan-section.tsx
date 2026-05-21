@@ -97,8 +97,11 @@ export function PeraturanSection({ cmsSettings }: PeraturanSectionProps) {
     enabled: !cmsSettings || Object.keys(cmsSettings).length === 0,
   });
 
+  // ★ CMS props come with full keys (e.g. "peraturan_subtitle").
+  // API response map also uses full keys. Don't strip the prefix —
+  // access with full key consistently.
   const settingsMap = cmsSettings && Object.keys(cmsSettings).length > 0
-    ? Object.fromEntries(Object.entries(cmsSettings).map(([k, v]) => [k.replace('peraturan_', ''), v]))
+    ? cmsSettings
     : settingsData?.map || {};
 
   /* ── Parsed items from CMS ── */
