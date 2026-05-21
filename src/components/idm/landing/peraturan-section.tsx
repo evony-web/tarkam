@@ -60,17 +60,17 @@ function RuleCard({ icon: Icon, title, items }: {
     <Card className="overflow-hidden border border-idm-gold-warm/10 bg-idm-gold-warm/[0.03] hover:border-idm-gold-warm/20 transition-colors">
       <div className="h-1 bg-gradient-to-r from-idm-gold-warm/60 via-idm-gold-warm to-idm-gold-warm/60" />
       <CardContent className="p-0 relative z-10">
-        <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border/50">
-          <div className="w-5 h-5 rounded bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
-            <Icon className="w-3 h-3 text-idm-gold-warm" />
+        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border/50">
+          <div className="w-6 h-6 rounded bg-idm-gold-warm/15 flex items-center justify-center shrink-0">
+            <Icon className="w-3.5 h-3.5 text-idm-gold-warm" />
           </div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider">{title}</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider">{title}</h3>
         </div>
-        <div className="p-4 space-y-2">
+        <div className="p-5 space-y-2.5">
           {items.map((item, i) => (
-            <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30">
-              <span className="text-[11px] text-muted-foreground font-medium">{item.label}</span>
-              <span className={`text-xs font-bold ${item.highlight ? 'text-idm-gold-warm' : 'text-foreground'}`}>{item.value}</span>
+            <div key={i} className="flex items-center justify-between py-2.5 px-4 rounded-lg bg-muted/30">
+              <span className="text-xs text-muted-foreground font-medium">{item.label}</span>
+              <span className={`text-sm font-bold ${item.highlight ? 'text-idm-gold-warm' : 'text-foreground'}`}>{item.value}</span>
             </div>
           ))}
         </div>
@@ -130,7 +130,7 @@ export function PeraturanSection({ cmsSettings }: PeraturanSectionProps) {
       {/* Subtle glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-48 bg-idm-gold-warm/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-4xl mx-auto">
+      <div className="relative z-10 max-w-5xl mx-auto">
         <SectionHeader
           icon={BookOpen}
           label="Peraturan"
@@ -147,7 +147,7 @@ export function PeraturanSection({ cmsSettings }: PeraturanSectionProps) {
         </div>
 
         {/* Rules Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
           {/* Scoring Format */}
           <div className="reveal reveal-fade-up reveal-delay-1">
             <RuleCard
