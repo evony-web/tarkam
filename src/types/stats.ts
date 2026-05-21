@@ -271,6 +271,8 @@ export interface StatsData {
   /** All seasons for this division (for season selector) */
   allSeasons: SeasonInfo[];
   activeTournament: ActiveTournament | null;
+  /** Latest completed tournament with bracket data (fallback for bracket display when activeTournament has no matches) */
+  latestBracketTournament: ActiveTournament | null;
   totalPlayers: number;
   /** Count of players with approved/assigned status in the active tournament */
   approvedPlayerCount: number;

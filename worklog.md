@@ -259,3 +259,32 @@ Lint → only pre-existing script/ errors (not app code)
 3. Semua data turnamen dihapus: matches, teams, participations, prizes, point records, achievements, sponsors
 4. Player stats bersih dari turnamen tersebut, stats dari turnamen lain tetap utuh
 5. Admin bisa buat turnamen baru untuk week yang sama
+
+### Fase 7: Bracket Visibility After Finalization ✅ DONE
+| # | Bug | Priority | Status | Detail Perbaikan |
+|---|-----|----------|--------|------------------|
+| 1 | Admin panel: bracket hilang setelah finalisasi (status `completed` tidak termasuk di render condition) | 🔴 High | ✅ FIXED | Tambah `completed` ke bracket render condition di tournament-manager.tsx |
+| 2 | Stats API: match data di-strip untuk tournament completed (hanya kirim id/name/weekNumber/status) | 🔴 High | ✅ FIXED | Completed tournament sekarang menyertakan full match data + teams untuk bracket display |
+| 3 | Public bracket: bracket kosong ketika turnamen completed dan turnamen baru dibuat | 🔴 High | ✅ FIXED | Tambah `latestBracketTournament` field ke stats API + BracketContent fallback logic |
+
+**Detail Fix:**
+
+#### Admin Panel — Bracket Render Condition (`tournament-manager.tsx`)
+- **Before**: Bracket hanya tampil untuk status `bracket_generation`, `main_event`, `finalization`
+- **After**: Tambah `completed` → bracket tetap terlihat untuk review setelah finalisasi
+- Admin actions (Re-generate, Mulai Event, dll) sudah ter-gate oleh status check, jadi tidak muncul di completed
+
+#### Stats API — Completed Tournament Match Data (`/api/stats/route.ts`)
+- **Before**: `activeTournament` untuk status `completed` hanya mengirim `{ id, name, weekNumber, status, division }` — TANPA match data
+- **After**: Completed tournament mengirim full match data + teams + format/scheduledAt/prizePool, tapi TANPA participations/donations (tidak perlu untuk bracket display)
+- **New field**: `latestBracketTournament` — Fallback query yang mencari latest completed tournament WITH matches, hanya di-query ketika `activeTournament` tidak ada atau tidak punya matches
+
+#### BracketContent — Fallback Logic (`match-day-center.tsx`)
+- **Before**: Hanya pakai `data.activeTournament.matches` → kosong ketika tournament completed tanpa match data, atau ketika tournament baru tanpa matches
+- **After**: Fallback ke `data.latestBracketTournament.matches` ketika activeTournament tidak punya matches
+- Format selector dan sponsor section juga menggunakan bracketTournament (fallback-aware)
+
+#### MatchDayContent — Fallback Logic (`match-day-center.tsx`)
+- **Before**: `const tournamentMatches = t?.matches || []` — hanya pakai activeTournament
+- **After**: `const bracketT = t?.matches?.length ? t : data.latestBracketTournament` — fallback ke completed tournament bracket
+- Sponsor dan match meta sections juga menggunakan bracketT

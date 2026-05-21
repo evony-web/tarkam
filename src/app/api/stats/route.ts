@@ -171,6 +171,40 @@ export async function GET(request: Request) {
     });
   })();
 
+  // ═══ Latest Bracket Tournament ═══
+  // If activeTournament has no matches (e.g. new tournament in setup/registration),
+  // we still want to show the completed tournament's bracket for historical viewing.
+  // Only query this when needed: activeTournament exists but has no matches.
+  const latestBracketTournament = (!activeTournament || (activeTournament as any).matches?.length === 0)
+    ? await db.tournament.findFirst({
+        where: {
+          seasonId: { in: [activeSeasonId, clubSeasonId] },
+          status: 'completed',
+          matches: { some: {} },
+        },
+        orderBy: { weekNumber: 'desc' },
+        include: {
+          matches: {
+            select: {
+              id: true, round: true, matchNumber: true, bracket: true, groupLabel: true,
+              format: true, score1: true, score2: true, status: true,
+              team1Id: true, team2Id: true, winnerId: true, mvpPlayerId: true,
+              scheduledAt: true, completedAt: true,
+              team1: { select: { id: true, name: true } },
+              team2: { select: { id: true, name: true } },
+              mvpPlayer: { select: { id: true, gamertag: true, avatar: true, tier: true } },
+            },
+          },
+          teams: {
+            select: {
+              id: true, name: true, power: true, isWinner: true, rank: true,
+              teamPlayers: { select: { playerId: true, tier: true } },
+            },
+          },
+        },
+      })
+    : null;
+
   // ★ Pre-compute completed season numbers for batched stats query
   const completedSeasonNumbers: number[] = Array.from(new Set(
     allSeasons.filter((s: any) => s.championClubId && s.status === 'completed').map((s: any) => s.number as number)
@@ -1420,13 +1454,45 @@ export async function GET(request: Request) {
     allSeasons: allSeasonsInfo,
     seasonForClubs, // Season that has clubs — used by admin club management
     activeTournament: activeTournament
-      ? activeTournament.status === 'completed'
-        ? { id: activeTournament.id, name: activeTournament.name, weekNumber: activeTournament.weekNumber, status: activeTournament.status, division: division as 'male' | 'female' }
-        : {
+      ? (() => {
+          const base = {
             id: activeTournament.id,
             name: activeTournament.name,
             weekNumber: activeTournament.weekNumber,
             status: activeTournament.status,
+            division: division as 'male' | 'female',
+          };
+          // Always include match data so brackets remain visible after finalization
+          const matches = (activeTournament.matches as any[])?.map((m: any) => ({
+            id: m.id, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket, groupLabel: m.groupLabel,
+            format: m.format, score1: m.score1, score2: m.score2, status: m.status,
+            team1Id: m.team1Id, team2Id: m.team2Id, winnerId: m.winnerId, mvpPlayerId: m.mvpPlayerId,
+            scheduledAt: m.scheduledAt, completedAt: m.completedAt,
+            team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+            team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+            mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, gamertag: m.mvpPlayer.gamertag, avatar: m.mvpPlayer.avatar, tier: m.mvpPlayer.tier } : null,
+          }));
+          if (activeTournament.status === 'completed') {
+            // Completed: include full match data + teams for bracket display, skip participations/donations
+            return {
+              ...base,
+              format: activeTournament.format,
+              seasonId: activeTournament.seasonId,
+              prizePool: activeTournament.prizePool,
+              location: activeTournament.location,
+              scheduledAt: activeTournament.scheduledAt,
+              finalizedAt: activeTournament.finalizedAt,
+              completedAt: activeTournament.completedAt,
+              teams: (activeTournament.teams as any[])?.map((t: any) => ({
+                id: t.id, name: t.name, power: t.power, isWinner: t.isWinner, rank: t.rank,
+                teamPlayers: t.teamPlayers?.map((tp: any) => ({ playerId: tp.playerId, tier: tp.tier })),
+              })),
+              matches,
+            };
+          }
+          // Non-completed: full response
+          return {
+            ...base,
             format: activeTournament.format,
             defaultMatchFormat: activeTournament.defaultMatchFormat,
             seasonId: activeTournament.seasonId,
@@ -1438,28 +1504,19 @@ export async function GET(request: Request) {
             completedAt: activeTournament.completedAt,
             createdAt: activeTournament.createdAt,
             updatedAt: activeTournament.updatedAt,
-            division: division as 'male' | 'female',
-            // Trimmed sub-collections for response size reduction
             teams: (activeTournament.teams as any[])?.map((t: any) => ({
               id: t.id, name: t.name, power: t.power, isWinner: t.isWinner, rank: t.rank,
               teamPlayers: t.teamPlayers?.map((tp: any) => ({ playerId: tp.playerId, tier: tp.tier })),
             })),
-            matches: (activeTournament.matches as any[])?.map((m: any) => ({
-              id: m.id, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket, groupLabel: m.groupLabel,
-              format: m.format, score1: m.score1, score2: m.score2, status: m.status,
-              team1Id: m.team1Id, team2Id: m.team2Id, winnerId: m.winnerId, mvpPlayerId: m.mvpPlayerId,
-              scheduledAt: m.scheduledAt, completedAt: m.completedAt,
-              team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
-              team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
-              mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, gamertag: m.mvpPlayer.gamertag, avatar: m.mvpPlayer.avatar, tier: m.mvpPlayer.tier } : null,
-            })),
+            matches,
             participations: (activeTournament.participations as any[])?.map((p: any) => ({
               id: p.id, playerId: p.playerId, status: p.status, tierOverride: p.tierOverride,
               pointsEarned: p.pointsEarned, isMvp: p.isMvp, isWinner: p.isWinner,
               player: { id: p.player.id, gamertag: p.player.gamertag },
             })),
             donations: activeTournament.donations?.length ? [{ count: activeTournament.donations.length, total: activeTournament.donations.reduce((s: number, d: any) => s + d.amount, 0) }] : [],
-          }
+          };
+        })()
       : null,
     totalPlayers,
     approvedPlayerCount,
@@ -1468,6 +1525,29 @@ export async function GET(request: Request) {
     malePrizePool,
     femalePrizePool,
     activeTournamentPrizePool,
+    latestBracketTournament: latestBracketTournament
+      ? {
+          id: latestBracketTournament.id,
+          name: latestBracketTournament.name,
+          weekNumber: latestBracketTournament.weekNumber,
+          status: latestBracketTournament.status,
+          format: latestBracketTournament.format,
+          division: division as 'male' | 'female',
+          teams: (latestBracketTournament.teams as any[])?.map((t: any) => ({
+            id: t.id, name: t.name, power: t.power, isWinner: t.isWinner, rank: t.rank,
+            teamPlayers: t.teamPlayers?.map((tp: any) => ({ playerId: tp.playerId, tier: tp.tier })),
+          })),
+          matches: (latestBracketTournament.matches as any[])?.map((m: any) => ({
+            id: m.id, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket, groupLabel: m.groupLabel,
+            format: m.format, score1: m.score1, score2: m.score2, status: m.status,
+            team1Id: m.team1Id, team2Id: m.team2Id, winnerId: m.winnerId, mvpPlayerId: m.mvpPlayerId,
+            scheduledAt: m.scheduledAt, completedAt: m.completedAt,
+            team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+            team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+            mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, gamertag: m.mvpPlayer.gamertag, avatar: m.mvpPlayer.avatar, tier: m.mvpPlayer.tier } : null,
+          })),
+        }
+      : null,
     seasonDonationTotal,
     topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, division: _division, ...p }: any) => p),
     skinMap,

@@ -2008,7 +2008,7 @@ export function TournamentManager({ division, dt, stats, setConfirmDialog }: Tou
             )}
 
             {/* ===== BRACKET / MATCHES ===== */}
-            {(selected.status === 'bracket_generation' || selected.status === 'main_event' || selected.status === 'finalization') && selected.matches?.length > 0 && (
+            {(selected.status === 'bracket_generation' || selected.status === 'main_event' || selected.status === 'finalization' || selected.status === 'completed') && selected.matches?.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-purple-500 flex items-center gap-1.5">🏆 Bracket & Pertandingan</p>

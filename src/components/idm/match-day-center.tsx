@@ -492,7 +492,9 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
   }
 
   const t = data.activeTournament;
-  const tournamentMatches = t?.matches || [];
+  // Use latestBracketTournament fallback when activeTournament has no matches
+  const bracketT = t?.matches?.length ? t : data.latestBracketTournament;
+  const tournamentMatches = bracketT?.matches || [];
   const selectedMatch = tournamentMatches[selectedMatchIdx] || tournamentMatches[0];
 
   const divisionAccentColor = divisionProp === 'male' ? '#2E9FFF' : '#FF2D78';
@@ -678,11 +680,11 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
               )}
 
               {/* Match Meta */}
-              {t && (
+              {bracketT && (
                 <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{t.scheduledAt ? (parseWitaDate(t.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(t.scheduledAt)!) : 'TBD') : 'TBD'}</span>
-                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {t.weekNumber}</span>
-                  <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(t.prizePool)}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{bracketT.scheduledAt ? (parseWitaDate(bracketT.scheduledAt) ? formatWIBWeekdayShort(parseWitaDate(bracketT.scheduledAt)!) : 'TBD') : 'TBD'}</span>
+                  <span className="flex items-center gap-1"><Flame className="w-3 h-3" />Week {bracketT.weekNumber}</span>
+                  <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{formatCurrency(bracketT.prizePool)}</span>
                 </div>
               )}
             </div>
@@ -694,10 +696,10 @@ export function MatchDayContent({ divisionProp }: { divisionProp: 'male' | 'fema
       <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
 
       {/* Tournament Sponsor Info */}
-      {t?.id && (
+      {bracketT?.id && (
         <div className="space-y-3">
-          <PresentedBy tournamentId={t.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={t.id} />
+          <PresentedBy tournamentId={bracketT.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={bracketT.id} />
         </div>
       )}
 
@@ -844,10 +846,17 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
   });
 
   const [bracketTypeManual, setBracketTypeManual] = useState<string | null>(null);
-  const tournamentFormat = data?.activeTournament?.format;
-  const bracketType = bracketTypeManual || tournamentFormat || 'swiss';
 
-  const tournamentMatches = data?.activeTournament?.matches || [];
+  // Use latestBracketTournament as fallback when activeTournament has no matches
+  // (e.g. new tournament in setup/registration while completed tournament has bracket data)
+  const activeMatches = data?.activeTournament?.matches || [];
+  const fallbackMatches = data?.latestBracketTournament?.matches || [];
+  const bracketTournament = activeMatches.length > 0
+    ? data?.activeTournament
+    : data?.latestBracketTournament;
+  const tournamentMatches = activeMatches.length > 0 ? activeMatches : fallbackMatches;
+  const tournamentFormat = bracketTournament?.format;
+  const bracketType = bracketTypeManual || tournamentFormat || 'swiss';
 
   if (isLoading) {
     return (
@@ -862,10 +871,10 @@ export function BracketContent({ divisionProp }: { divisionProp: 'male' | 'femal
     <div className="space-y-4 rounded-2xl overflow-hidden" style={{ borderTop: `3px solid ${divisionAccentColor}` }}>
       {/* Sponsor Banner — above bracket */}
       <SponsorBanner placement="bracket_top" className="flex items-center justify-center gap-4 flex-wrap" />
-      {data?.activeTournament?.id && (
+      {bracketTournament?.id && (
         <div className="space-y-3">
-          <PresentedBy tournamentId={data.activeTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
-          <SponsoredPrizes tournamentId={data.activeTournament.id} />
+          <PresentedBy tournamentId={bracketTournament.id} className="flex items-center gap-2 text-xs text-muted-foreground" />
+          <SponsoredPrizes tournamentId={bracketTournament.id} />
         </div>
       )}
 
