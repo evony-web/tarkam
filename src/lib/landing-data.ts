@@ -48,6 +48,7 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
       sultanOfWeekly: [],
       totalPlayers: 0,
       approvedPlayerCount: 0,
+      totalMatchCount: 0,
       topPlayers: [],
       clubs: [],
       skinMap: {},
@@ -107,6 +108,7 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
     batchClubProfiles,
     batchClubMembers,
     allPlayersForDonorMatching,
+    totalMatchCount,
   ] = await Promise.all([
     // Total players
     withDbRetry(() => db.player.count({ where: { division: divisionFilter, isActive: true, registrationStatus: 'approved' } })),
@@ -240,6 +242,15 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
           include: { profile: { select: { id: true, name: true, logo: true } } },
           take: 1,
         },
+      },
+    })),
+
+    // ★ Total tournament match count (only COMPLETED matches) — included in SSR
+    // so the hero banner shows match count instantly, not after client-side fetch
+    withDbRetry(() => db.match.count({
+      where: {
+        status: 'completed',
+        tournament: { seasonId: { in: allSeasons.map(s => s.id) } },
       },
     })),
   ]);
@@ -824,6 +835,7 @@ async function fetchLandingStatsInner(division: 'male' | 'female') {
     mvpHallOfFame,
     totalPlayers,
     approvedPlayerCount,
+    totalMatchCount,
     totalPrizePool,
     malePrizePool,
     femalePrizePool,
