@@ -419,9 +419,9 @@ export async function PUT(
               if (matchCount > 0) {
                 console.warn(`Safety check: Found ${matchCount} orphaned matches when reverting to ${body.status}, cleaning up`);
                 if (isPostgreSQL) {
-                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
                 } else {
-                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
                 }
                 if (isPostgreSQL) {
                   await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
@@ -470,9 +470,9 @@ export async function PUT(
               if (matchCount > 0) {
                 console.warn(`Safety check: Found ${matchCount} orphaned matches when reverting to ${body.status}, cleaning up`);
                 if (isPostgreSQL) {
-                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
                 } else {
-                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
                 }
                 if (isPostgreSQL) {
                   await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
@@ -749,7 +749,7 @@ export async function PUT(
           // Pre-compute match point data for Phase 2c participation reset
           // (Phase 2a will delete these records, so we must capture before)
           const matchPointsForParticipation = await db.playerPoint.findMany({
-            where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } },
+            where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } },
             select: { playerId: true, amount: true },
           });
           const matchEarningsByPlayer = new Map<string, number>();
@@ -762,7 +762,7 @@ export async function PUT(
             // Neon workaround: $transaction() + updateMany() don't work with PrismaNeonHttp
             await neonTransaction(async (tx) => {
               const matchPointRecords = await tx.playerPoint.findMany({
-                where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } },
+                where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } },
                 select: { playerId: true, amount: true },
               });
               const matchPointsByPlayer = new Map<string, number>();
@@ -782,9 +782,9 @@ export async function PUT(
                 await tx.$executeRaw`UPDATE "Player" SET points = MAX(points, 0) WHERE id = ${playerId} AND points < 0`;
               }
               if (isPostgreSQL) {
-                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
               } else {
-                await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
               }
             });
           } catch (phaseError) {
@@ -1004,10 +1004,10 @@ export async function PUT(
             await neonTransaction(async (tx) => {
               // Delete match point records (if any remain)
               if (isPostgreSQL) {
-                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
               } else {
                 await tx.playerPoint.deleteMany({
-                  where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } },
+                  where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } },
                 });
               }
 
@@ -1138,18 +1138,18 @@ export async function PUT(
               if (orphanedMatchCount > 0) {
                 console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches, cleaning up`);
                 if (isPostgreSQL) {
-                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
                   await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
                 } else {
-                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
                   await tx.match.deleteMany({ where: { tournamentId: id } });
                 }
               }
               // Reset all match-related player points
               if (isPostgreSQL) {
-                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
               } else {
-                await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
               }
               // Ensure participations are in correct state for approval/registration
               // Neon workaround: updateMany() → neonUpdateMany on PostgreSQL
@@ -1189,10 +1189,10 @@ export async function PUT(
               if (orphanedMatchCount > 0) {
                 console.warn(`Orphaned data cleanup: Found ${orphanedMatchCount} remaining matches before bracket_generation, cleaning up`);
                 if (isPostgreSQL) {
-                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+                  await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
                   await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
                 } else {
-                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+                  await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
                   await tx.match.deleteMany({ where: { tournamentId: id } });
                 }
               }
@@ -1389,10 +1389,10 @@ export async function PUT(
           // Attempt cleanup of any remaining orphaned data before status change
           if (orphanedMatches > 0) {
             if (isPostgreSQL) {
-              await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+              await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
               await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
             } else {
-              await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+              await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
               await tx.match.deleteMany({ where: { tournamentId: id } });
             }
           }
@@ -1428,10 +1428,10 @@ export async function PUT(
         const orphanedMatches = await tx.match.count({ where: { tournamentId: id } });
         if (orphanedMatches > 0) {
           if (isPostgreSQL) {
-            await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'streak_bonus'] }], tx);
+            await neonDeleteMany('PlayerPoint', [{ column: 'tournamentId', operator: '=', value: id }, { column: 'reason', operator: 'IN', value: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] }], tx);
             await neonDeleteMany('Match', [{ column: 'tournamentId', operator: '=', value: id }], tx);
           } else {
-            await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'streak_bonus'] } } });
+            await tx.playerPoint.deleteMany({ where: { tournamentId: id, reason: { in: ['participation', 'match_win', 'match_draw', 'match_loss', 'streak_bonus'] } } });
             await tx.match.deleteMany({ where: { tournamentId: id } });
           }
         }
