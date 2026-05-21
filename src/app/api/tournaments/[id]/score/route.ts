@@ -636,12 +636,16 @@ async function advanceGroupStagePlayoff(
       where: { tournamentId, groupLabel: targetLabel },
     });
     if (targetMatch) {
-      // Fix: If the target slot already has a team but the other slot is null,
-      // fill the null slot instead (handles cases where L1 pre-seeded rank 3 doesn't exist
-      // and team1 is null — loser should fill team1 instead of team2)
-      const effectiveSlot = targetMatch[slot] ? slot :
-        (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
-         slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot);
+      // ★ FIX: Only redirect to the other slot when the TARGET slot is already occupied
+      // AND the other slot is empty. When BOTH slots are empty, always use the original
+      // slot from the advancement map — the map knows which position the team belongs to.
+      // Previously, when both slots were empty, the loser was redirected (e.g. team1Id→team2Id),
+      // then a winner from another match would write to the original slot, OVERWRITING the loser.
+      // This caused teams to "disappear" and be declared WO in lower bracket semifinals/finals.
+      const effectiveSlot = targetMatch[slot]
+        ? (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
+           slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot)
+        : slot; // Target slot empty → use original slot (no redirect)
       await db.match.update({
         where: { id: targetMatch.id },
         data: { [effectiveSlot]: loserId },
@@ -765,11 +769,13 @@ async function advanceUpperSemi(
       where: { tournamentId, groupLabel: targetLabel },
     });
     if (targetMatch) {
-      // Fix: If the target slot already has a team but the other slot is null,
-      // fill the null slot instead (handles edge cases with unseeded bracket positions)
-      const effectiveSlot = targetMatch[slot] ? slot :
-        (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
-         slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot);
+      // ★ FIX: Only redirect to the other slot when the TARGET slot is already occupied
+      // AND the other slot is empty. When BOTH slots are empty, always use the original
+      // slot from the advancement map — the map knows which position the team belongs to.
+      const effectiveSlot = targetMatch[slot]
+        ? (slot === 'team2Id' && !targetMatch.team1Id ? 'team1Id' :
+           slot === 'team1Id' && !targetMatch.team2Id ? 'team2Id' : slot)
+        : slot; // Target slot empty → use original slot (no redirect)
       await db.match.update({
         where: { id: targetMatch.id },
         data: { [effectiveSlot]: loserId },
