@@ -183,7 +183,9 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
           {/* Card list */}
           <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
             {displayedPlayers?.map((p, idx) => {
-              const losses = p.matches - p.totalWins;
+              // Use per-season wins if available, fallback to lifetime totalWins
+              const displayWins = p.seasonWins ?? p.totalWins;
+              const displayLosses = p.totalLosses ?? Math.max(0, (p.matches || 0) - (p.totalWins || 0));
               const playerDivision = (p.division || 'male') as 'male' | 'female';
               const playerDt = getDivisionTheme(playerDivision);
               const playerSkins = skinMap[p.id];
@@ -247,11 +249,11 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
                       {/* W/L — Visible on sm+ */}
                       <div className="hidden sm:flex items-center gap-2">
                         <div className="text-center min-w-[20px]">
-                          <p className="text-xs text-green-500 font-semibold">{p.totalWins}</p>
+                          <p className="text-xs text-green-500 font-semibold">{displayWins}</p>
                           <p className="text-[10px] text-muted-foreground">W</p>
                         </div>
                         <div className="text-center min-w-[20px]">
-                          <p className="text-xs text-red-500 font-semibold">{losses > 0 ? losses : 0}</p>
+                          <p className="text-xs text-red-500 font-semibold">{displayLosses > 0 ? displayLosses : 0}</p>
                           <p className="text-[10px] text-muted-foreground">L</p>
                         </div>
                       </div>

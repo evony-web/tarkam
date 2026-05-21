@@ -96,6 +96,7 @@ export interface LeaderboardEntry {
   tier: PlayerTierType
   totalPoints: number
   totalWins: number
+  totalLosses?: number
   totalMVPs: number
   winStreak: number
 }

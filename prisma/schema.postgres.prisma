@@ -23,11 +23,12 @@ model Player {
   tier      String   @default("B") // "S" | "A" | "B"
   avatar    String?
   points    Int      @default(0)
-  totalWins Int      @default(0)
-  totalMvp  Int      @default(0)
-  streak    Int      @default(0) // current win streak
-  maxStreak Int      @default(0)
-  matches   Int      @default(0)
+  totalWins   Int      @default(0)
+  totalLosses Int      @default(0)
+  totalMvp    Int      @default(0)
+  streak      Int      @default(0) // current win streak
+  maxStreak   Int      @default(0)
+  matches     Int      @default(0)
   isActive  Boolean  @default(true)
 
   // Registration fields

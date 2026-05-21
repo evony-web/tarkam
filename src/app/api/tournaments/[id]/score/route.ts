@@ -294,6 +294,7 @@ export async function POST(
             where: { id: tp.playerId },
             data: {
               matches: tp.player.matches + 1,
+              totalLosses: tp.player.totalLosses + 1,
               streak: 0,
               // points unchanged — 0 pts for losing
             },
@@ -1117,6 +1118,11 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
     });
 
     // Award Swiss win points for BYE (1 pt per player on the bye team, same as all formats)
+    // Fetch tournament once for seasonId (avoid repeated DB calls inside loop)
+    const byeTournament = await db.tournament.findUnique({ where: { id: tournamentId } });
+    const byeSeasonId = byeTournament?.seasonId;
+    if (!byeSeasonId) return;
+
     const byeTeamRecord = await db.team.findUnique({
       where: { id: byeTeam },
       include: { teamPlayers: { include: { player: true } } },
@@ -1147,13 +1153,9 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
               reason: 'match_win',
               description: `BYE win SR${nextRound}`,
               tournamentId,
-              seasonId: (await db.tournament.findUnique({ where: { id: tournamentId } }))!.seasonId,
+              seasonId: byeSeasonId,
             },
           });
-          const newStreak = tp.player.streak + 1;
-          const oldStreakBonus = Math.floor(tp.player.streak / 3) * 2;
-          const newStreakBonus = Math.floor(newStreak / 3) * 2;
-          const streakBonus = newStreakBonus - oldStreakBonus;
 
           if (streakBonus > 0) {
             await db.playerPoint.create({
@@ -1163,7 +1165,7 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
                 reason: 'streak_bonus',
                 description: `Streak bonus ${newStreak} berturut-turut (BYE)`,
                 tournamentId,
-                seasonId: (await db.tournament.findUnique({ where: { id: tournamentId } }))!.seasonId,
+                seasonId: byeSeasonId,
               },
             });
           }
@@ -1175,7 +1177,7 @@ async function generateNextSwissRound(tournamentId: string, completedRound: numb
               matches: tp.player.matches + 1,
               streak: newStreak,
               maxStreak: Math.max(newStreak, tp.player.maxStreak),
-              points: tp.player.points + winPts + streakBonus,
+              points: tp.player.points + totalPts,
             },
           });
         }
@@ -1694,6 +1696,7 @@ export async function PUT(
               where: { id: tp.playerId },
               data: {
                 matches: { decrement: 1 },
+                totalLosses: { decrement: 1 },
                 streak: 0,
               },
             });

@@ -161,7 +161,7 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
             )}
             {filtered.map((p: {
               rank: number; id: string; gamertag: string; name: string; tier: string;
-              points: number; totalWins: number; totalMvp: number; streak: number;
+              points: number; totalWins: number; totalLosses: number; totalMvp: number; streak: number;
               maxStreak: number; matches: number; tournamentCount: number; club: string | null;
             }, index) => (
               <div key={p.id} className="stagger-item-fast" style={{ animationDelay: `${index * 50}ms` }}>
@@ -206,6 +206,8 @@ export function RankingPanel({ division, dt, setConfirmDialog }: RankingPanelPro
                             <span className="flex items-center gap-0.5"><Zap className="w-3 h-3" />{p.points} poin</span>
                             <span>•</span>
                             <span>{p.totalWins} win</span>
+                            <span>•</span>
+                            <span>{p.totalLosses ?? Math.max(0, p.matches - p.totalWins)} loss</span>
                             <span>•</span>
                             <span>{p.totalMvp} MVP</span>
                             <span>•</span>

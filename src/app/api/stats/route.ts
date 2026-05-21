@@ -123,6 +123,7 @@ export async function GET(request: Request) {
     approvedPlayerCount,
     seasonDonations,
     seasonPointsRaw,
+    seasonWinsRaw,
     allDivisionPlayers,
     clubs,
     recentMatches,
@@ -170,6 +171,13 @@ export async function GET(request: Request) {
       _sum: { amount: true },
     }),
 
+    // Per-season wins — count match_win records per player for this season
+    db.playerPoint.groupBy({
+      by: ['playerId'],
+      where: { seasonId: activeSeasonId, reason: 'match_win' },
+      _count: { reason: true },
+    }),
+
     // All active players for this division (needed for leaderboard even if no season points)
     db.player.findMany({
       where: { division: divisionFilter, isActive: true, registrationStatus: 'approved' },
@@ -181,6 +189,7 @@ export async function GET(request: Request) {
         tier: true,
         points: true,
         totalWins: true,
+        totalLosses: true,
         totalMvp: true,
         streak: true,
         maxStreak: true,
@@ -309,6 +318,7 @@ export async function GET(request: Request) {
         tier: true,
         points: true,
         totalWins: true,
+        totalLosses: true,
         totalMvp: true,
         streak: true,
         division: true,
@@ -358,21 +368,31 @@ export async function GET(request: Request) {
   // Build a map of playerId → per-season points from PlayerPoint aggregation
   const seasonPointsMap = new Map(seasonPointsRaw.map((sp: { playerId: string; _sum: { amount: number | null } }) => [sp.playerId, sp._sum.amount || 0]));
 
+  // Build a map of playerId → per-season wins from PlayerPoint match_win records
+  const seasonWinsMap = new Map(seasonWinsRaw.map((sw: { playerId: string; _count: { reason: number } }) => [sw.playerId, sw._count.reason || 0]));
+
   // Merge: players with season points first (sorted by per-season points), then those without
   const topPlayers = (allDivisionPlayers as any[])
     .map(p => {
       const activeClub = p.clubMembers?.[0]?.profile;
+      const seasonWins = seasonWinsMap.get(p.id) || 0;
+      const seasonPoints = seasonPointsMap.get(p.id) || 0;
+      // Streak bonus points: +2 per 3 consecutive wins
+      // Per-season streak bonus = seasonPoints - seasonWins (remaining points are from streak/prize)
+      const seasonLosses = Math.max(0, (p.totalLosses || 0)); // Lifetime losses (no per-season tracking yet)
       return {
         ...p,
-        points: seasonPointsMap.get(p.id) || 0, // Override lifetime points with per-season points
-        seasonPoints: seasonPointsMap.get(p.id) || 0,
+        points: seasonPoints, // Override lifetime points with per-season points
+        seasonPoints,
         lifetimePoints: p.points,
+        seasonWins, // Per-season wins from PlayerPoint records
+        seasonLosses, // Lifetime losses (best available until per-season match tracking is added)
         club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : undefined,
       };
     })
     .sort((a: any, b: any) => {
       if (b.seasonPoints !== a.seasonPoints) return b.seasonPoints - a.seasonPoints;
-      if (b.totalWins !== a.totalWins) return b.totalWins - a.totalWins;
+      if (b.seasonWins !== a.seasonWins) return b.seasonWins - a.seasonWins;
       return b.totalMvp - a.totalMvp;
     });
 

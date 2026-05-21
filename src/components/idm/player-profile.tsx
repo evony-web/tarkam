@@ -34,10 +34,14 @@ interface PlayerProfileProps {
     tier: string;
     points: number;
     totalWins: number;
+    totalLosses?: number;
     totalMvp: number;
     streak: number;
     maxStreak: number;
     matches: number;
+    seasonWins?: number;
+    seasonPoints?: number;
+    lifetimePoints?: number;
     club?: string | { id: string; name: string; logo?: string | null } | null;
     division?: string;
     city?: string;
@@ -171,11 +175,18 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
   // Merge enriched data: prefer API data when available (authoritative source)
   // Use `??` so that 0 from API is used correctly (0 is not nullish)
   const totalWins = enrichedPlayerData?.totalWins ?? player.totalWins;
+  const totalLosses = enrichedPlayerData?.totalLosses ?? player.totalLosses ?? 0;
   const matches = enrichedPlayerData?.matches ?? player.matches;
   const maxStreak = enrichedPlayerData?.maxStreak ?? player.maxStreak;
   const streak = enrichedPlayerData?.streak ?? player.streak;
   const totalMvp = enrichedPlayerData?.totalMvp ?? player.totalMvp;
-  const points = enrichedPlayerData?.points ?? player.points;
+
+  // Points: prefer caller's data (may be season-specific from leaderboard)
+  // The API returns lifetime points, but the caller may pass season-specific points
+  // If the caller passes seasonPoints or points that differ from lifetime, prefer caller's
+  const lifetimePoints = enrichedPlayerData?.points ?? player.lifetimePoints ?? player.points;
+  const seasonPoints = player.seasonPoints ?? (player.points !== lifetimePoints ? player.points : lifetimePoints);
+  const points = seasonPoints; // Default to season points for display
 
   // Skins: use skinMap for ALL players, fall back to logged-in user's skins for self
   const isMe = playerAuth.isAuthenticated && playerAuth.account && playerAuth.account.player.id === player.id;
@@ -217,7 +228,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
 
   const winRate = matches > 0 ? Math.round((totalWins / matches) * 100) : 0;
   const mvpRate = matches > 0 ? Math.round((totalMvp / matches) * 100) : 0;
-  const losses = matches - totalWins;
+  const losses = totalLosses > 0 ? totalLosses : Math.max(0, matches - totalWins);
   // Only show rank badges when the player has actual competitive results (points or wins)
   // Without this check, ALL players show "Juara" badges when no matches have been played
   // because the topPlayers array order is arbitrary when all points = 0
@@ -639,7 +650,7 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
 
             {/* ═══ Main Stats Grid — Dance Tournament HUD Style ═══ */}
             <div className="grid grid-cols-4 gap-2 mb-4">
-              <StatBlock icon={Trophy} label="Poin" value={points} color={dt.text} highlight size="large" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Trophy} label="Poin" value={points} sub={lifetimePoints !== points ? `${lifetimePoints} total` : undefined} color={dt.text} highlight size="large" playerDivision={playerDivision as 'male' | 'female'} />
               <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${totalWins}W/${losses}L`} color="text-green-500" playerDivision={playerDivision as 'male' | 'female'} />
               <StatBlock icon={Crown} label="MVP" value={totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" playerDivision={playerDivision as 'male' | 'female'} />
               <StatBlock icon={Activity} label="Match" value={matches} color="text-blue-400" playerDivision={playerDivision as 'male' | 'female'} />

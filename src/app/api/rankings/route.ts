@@ -58,6 +58,7 @@ export async function GET(request: Request) {
       avatar: p.avatar,
       points: p.points,
       totalWins: p.totalWins,
+      totalLosses: p.totalLosses,
       totalMvp: p.totalMvp,
       streak: p.streak,
       maxStreak: p.maxStreak,

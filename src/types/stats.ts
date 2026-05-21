@@ -73,6 +73,11 @@ export interface TopPlayer {
   tier: string;
   points: number;
   totalWins: number;
+  totalLosses?: number;
+  seasonWins?: number;
+  seasonLosses?: number;
+  seasonPoints?: number;
+  lifetimePoints?: number;
   streak: number;
   maxStreak: number;
   totalMvp: number;
