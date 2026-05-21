@@ -1,6 +1,6 @@
 # TARKAM IDM — Master Worklog
 
-> **Terakhir diperbarui**: Session 5 (2026-03-05)
+> **Terakhir diperbarui**: Session 6 (2026-03-06)
 > **Status project**: Production-ready, semua bug kritis sudah diperbaiki
 > **Dev server**: `bun run dev` — port 3000, double-fork via start-dev.js
 
@@ -43,6 +43,17 @@
 | 14 | Donor leaderboard O(n²) rebuild | 🟡 Low | ✅ FIXED | weekDonorsMap pakai Map objects |
 | 15 | .mp4 video files as avatars | 🟡 Low | ✅ N/A | Sudah ditangani oleh `isVideoUrl()` + `AvatarMedia` component |
 
+### Fase 4: Peringkat Data Consistency Fix ✅ DONE
+| # | Bug | Priority | Status | Detail Perbaikan |
+|---|-----|----------|--------|------------------|
+| 1 | Leaderboard menampilkan `totalLosses` (lifetime) bukan per-season | 🔴 Critical | ✅ FIXED | Tambah `seasonLosses` dari PlayerPoint `match_loss` records. Leaderboard sekarang pakai `seasonLosses ?? totalLosses` |
+| 2 | Modal profil menampilkan 2L padahal match TBD (belum ada skor) | 🔴 Critical | ✅ FIXED | Modal sekarang hitung W/L dari match history data (actual results), bukan DB counter. TBD matches TIDAK dihitung sebagai loss |
+| 3 | Tidak ada per-season loss tracking | 🔴 High | ✅ FIXED | Score route sekarang buat `match_loss` PlayerPoint records (amount: 0) untuk setiap loss. Stats API hitung `seasonLosses` dari records ini |
+| 4 | `seasonWins` dihitung dengan `_count` bukan `_sum` | 🟠 Medium | ✅ FIXED | Ada historical records yang aggregate (amount=N), jadi pakai `_sum.amount` bukan `_count.reason` |
+| 5 | `seasonLosses` di-strip dari API response | 🟠 Medium | ✅ FIXED | topPlayers `.map()` destructuring menghapus `seasonLosses` — dihapus dari destructure list |
+| 6 | Player counter phantom data (totalLosses/matches salah) | 🟠 Medium | ✅ FIXED | Script `repair-player-counters.ts` recalculate dari actual Match records. 15 players fixed |
+| 7 | Backfill match_loss records untuk data historis | 🟠 Medium | ✅ FIXED | Script `backfill-match-losses.ts` buat 36 match_loss records dari 12 completed matches |
+
 ---
 
 ## 📁 FILE YANG PERNAH DIMODIFIKASI
@@ -50,9 +61,13 @@
 ### Backend (API Routes)
 | File | Perubahan |
 |------|-----------|
-| `src/app/api/stats/route.ts` | +totalMatchCount, +malePoint/femalePoint/maleCount/femaleCount, **RESTORE matches/totalLosses/maxStreak/lifetimePoints/city di topPlayers** (sebelumnya di-trim) |
+| `src/app/api/stats/route.ts` | +totalMatchCount, +malePoint/femalePoint/maleCount/femaleCount, **RESTORE matches/totalLosses/maxStreak/lifetimePoints/city di topPlayers** (sebelumnya di-trim), **+seasonLosses query dari PlayerPoint match_loss**, **seasonWins pakai _sum.amount bukan _count.reason**, **+seasonLossesMap + seasonMatches field**, **fix seasonLosses tidak di-strip dari response** |
 | `src/app/api/league/route.ts` | +tournamentMatches query, totalMatches = league + tournament |
 | `src/app/api/cms/settings/route.ts` | Tidak diubah (sudah benar) |
+| `src/app/api/tournaments/[id]/score/route.ts` | **+match_loss PlayerPoint record creation** saat player kalah (amount: 0, untuk per-season loss tracking) |
+| `src/app/api/admin/backfill-match-losses/route.ts` | **NEW** — One-time backfill endpoint untuk membuat match_loss records dari data historis |
+| `scripts/backfill-match-losses.ts` | **NEW** — Backfill script (bun run scripts/backfill-match-losses.ts) |
+| `scripts/repair-player-counters.ts` | **NEW** — Repair script untuk sync totalWins/totalLosses/matches dengan actual Match records |
 
 ### Frontend Components
 | File | Perubahan |
@@ -64,6 +79,8 @@
 | `src/components/idm/landing/hero-section.tsx` | +totalMatchCount usage, +division picker modal for Daftar |
 | `src/components/idm/landing/landing-footer.tsx` | Dynamic year (sudah benar, tidak diubah) |
 | `src/components/idm/landing-page.tsx` | +PeraturanSection import, removed dead imports |
+| `src/components/idm/player-profile.tsx` | **+matchHistoryStats override** — hitung W/L dari match history data (hanya completed matches). **+seasonWins/seasonLosses/seasonMatches dari caller** (prefer season data over lifetime). **+displayWins/displayLosses/displayMatches/displayWinRate** — final display values pakai match history → season data → lifetime fallback |
+| `src/components/idm/community-dashboard/community-leaderboard.tsx` | **displayLosses pakai `seasonLosses ?? totalLosses`** bukan hanya `totalLosses` |
 
 ### State & Navigation
 | File | Perubahan |
@@ -156,14 +173,18 @@ type AppView = 'landing' | 'peringkat' | 'hasil' | 'bracket' | 'juara' | 'pemain
 - Empty Juara page & Peringkat page — mungkin butuh data atau komponen baru
 - Female data delay — kadang data female sedikit terlambat load
 
-### Data Flow: Leaderboard vs Player Profile Modal (SUDAH FIX)
-- **Leaderboard** (`/api/stats` topPlayers): Mengirim `points` (season), `seasonPoints`, `lifetimePoints`, `totalWins`, `totalLosses`, `matches`, `maxStreak`, `streak`, `totalMvp`, `city`
-- **Modal enrichment** (`/api/players/[id]`): Mengirim lifetime data dari tabel Player
-- **Merge logic di player-profile.tsx**:
-  - `totalWins`, `totalLosses`, `matches`, `maxStreak`, `streak`, `totalMvp` → prefer enrichment API (authoritative)
+### Data Flow: Leaderboard vs Player Profile Modal (SUDAH FIX - Session 6)
+- **Leaderboard** (`/api/stats` topPlayers): Mengirim `points` (season), `seasonPoints`, `lifetimePoints`, `totalWins`, `totalLosses`, `matches`, `maxStreak`, `streak`, `totalMvp`, `city`, **`seasonWins`** (dari _sum.amount PlayerPoint match_win), **`seasonLosses`** (dari _count PlayerPoint match_loss), **`seasonMatches`** (seasonWins + seasonLosses)
+- **Leaderboard display**: `displayWins = seasonWins ?? totalWins`, `displayLosses = seasonLosses ?? totalLosses` — per-season data preferred
+- **Modal enrichment** (`/api/players/[id]`): Mengirim lifetime data dari tabel Player (sekarang sudah diperbaiki oleh repair script)
+- **Modal match history** (`/api/players/[id]/matches`): Mengirim actual match results — TBD/upcoming matches have `result: null`, completed matches have `result: 'win'|'loss'`
+- **Merge logic di player-profile.tsx** (UPDATED):
+  - Priority 1: **matchHistoryStats** — hitung W/L dari actual match results (paling akurat, TBD tidak dihitung sebagai loss)
+  - Priority 2: **season data dari caller** (seasonWins, seasonLosses, seasonMatches dari leaderboard)
+  - Priority 3: **lifetime data** dari enrichment API (fallback)
   - `points` (display) → seasonPoints dari caller (leaderboard), bukan lifetime
   - `lifetimePoints` → dari enrichment API, ditampilkan sebagai subtitle "X total"
-- **Root cause perbedaan data (FIXED)**: Sebelumnya `/api/stats` topPlayers trimming menghapus `matches`, `totalLosses`, `maxStreak`, `lifetimePoints`, `city` → modal fallback ke enrichment API yang bisa return data berbeda (lifetime vs season). Sekarang field-field tersebut dikembalikan sehingga modal punya data lengkap dari caller sebelum enrichment tiba.
+- **Score route**: Saat submit skor, buat `match_win` PlayerPoint (amount: 1) untuk pemenang DAN `match_loss` PlayerPoint (amount: 0) untuk yang kalah. Keduanya punya seasonId untuk per-season tracking.
 
 ---
 
@@ -171,9 +192,13 @@ type AppView = 'landing' | 'peringkat' | 'hasil' | 'bracket' | 'juara' | 'pemain
 
 ```
 /api/stats?division=male  → totalMatchCount: 20, clubs: 10, totalPlayers: 20
+  Zico: seasonWins=3, seasonLosses=0, seasonMatches=3, totalWins=3, totalLosses=0, matches=3 ✓
+  afroki: seasonWins=2, seasonLosses=2, seasonMatches=4, totalWins=2, totalLosses=2, matches=4 ✓
 /api/stats?division=female → totalMatchCount: 6, clubs: 10, totalPlayers: 12
 /api/league → hasData: true, totalClubs: 14, totalMatches: 26, tournamentMatches: 26
 /api/cms/settings → peraturan_* keys tersedia dan terbaca oleh peraturan-section
+Backfill: 36 match_loss records created from 12 completed matches
+Repair: 15 players had phantom counters fixed (totalLosses/matches synced with actual Match data)
 Page load → HTTP 200, no console errors
 Lint → only pre-existing script/ errors (not app code)
 ```

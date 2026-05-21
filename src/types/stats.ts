@@ -76,6 +76,7 @@ export interface TopPlayer {
   totalLosses?: number;
   seasonWins?: number;
   seasonLosses?: number;
+  seasonMatches?: number;
   seasonPoints?: number;
   lifetimePoints?: number;
   streak: number;

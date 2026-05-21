@@ -183,9 +183,9 @@ export const CommunityLeaderboard = React.memo(function CommunityLeaderboard({
           {/* Card list */}
           <div className="space-y-2 sm:max-h-[680px] sm:overflow-y-auto custom-scrollbar pr-0.5">
             {displayedPlayers?.map((p, idx) => {
-              // Use per-season wins if available, fallback to lifetime totalWins
+              // Use per-season wins/losses if available, fallback to lifetime values
               const displayWins = p.seasonWins ?? p.totalWins;
-              const displayLosses = p.totalLosses ?? Math.max(0, (p.matches || 0) - (p.totalWins || 0));
+              const displayLosses = p.seasonLosses ?? p.totalLosses ?? Math.max(0, (p.matches || 0) - (p.totalWins || 0));
               const playerDivision = (p.division || 'male') as 'male' | 'female';
               const playerDt = getDivisionTheme(playerDivision);
               const playerSkins = skinMap[p.id];

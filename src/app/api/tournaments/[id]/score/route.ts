@@ -300,6 +300,15 @@ export async function POST(
             },
           });
 
+          // Create match_loss PlayerPoint record (amount: 0, for per-season loss tracking)
+          await tx.playerPoint.create({
+            data: {
+              playerId: tp.playerId, amount: 0, reason: 'match_loss',
+              description: `Kalah match ${matchLabel}`, tournamentId: id, matchId,
+              seasonId: match.tournament.seasonId,
+            },
+          });
+
           // Queue club stats update (outside transaction to keep transactions short)
           clubStatsQueue.push({ playerId: tp.playerId, type: 'loss', gameDiff: -gameDiff });
         }

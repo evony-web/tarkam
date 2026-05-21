@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { AvatarMedia } from '@/components/ui/avatar-media';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import {
@@ -40,6 +40,8 @@ interface PlayerProfileProps {
     maxStreak: number;
     matches: number;
     seasonWins?: number;
+    seasonLosses?: number;
+    seasonMatches?: number;
     seasonPoints?: number;
     lifetimePoints?: number;
     club?: string | { id: string; name: string; logo?: string | null } | null;
@@ -172,11 +174,29 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
     gcTime: 60_000,
   });
 
-  // Merge enriched data: prefer API data when available (authoritative source)
-  // Use `??` so that 0 from API is used correctly (0 is not nullish)
-  const totalWins = enrichedPlayerData?.totalWins ?? player.totalWins;
-  const totalLosses = enrichedPlayerData?.totalLosses ?? player.totalLosses ?? 0;
-  const matches = enrichedPlayerData?.matches ?? player.matches;
+  // ═══ W/L Data Strategy ═══
+  // The caller (leaderboard) passes season-specific data: seasonWins, seasonLosses, seasonMatches.
+  // These are computed from PlayerPoint records and are more accurate than lifetime DB counters.
+  // We prefer season-specific data for display consistency with the leaderboard.
+  //
+  // For historical data where seasonLosses is not available (pre-migration),
+  // we fall back to lifetime values from the enrichment API.
+
+  // Per-season wins/losses from caller (leaderboard) — most accurate source
+  const seasonWinsFromCaller = player.seasonWins;
+  const seasonLossesFromCaller = player.seasonLosses;
+  const seasonMatchesFromCaller = player.seasonMatches;
+
+  // Lifetime data from enrichment API (fallback)
+  const lifetimeWins = enrichedPlayerData?.totalWins ?? player.totalWins;
+  const lifetimeLosses = enrichedPlayerData?.totalLosses ?? player.totalLosses ?? 0;
+  const lifetimeMatches = enrichedPlayerData?.matches ?? player.matches;
+
+  // Use per-season data when available, fall back to lifetime
+  const totalWins = seasonWinsFromCaller ?? lifetimeWins;
+  const totalLosses = seasonLossesFromCaller ?? lifetimeLosses;
+  const matches = seasonMatchesFromCaller ?? lifetimeMatches;
+
   const maxStreak = enrichedPlayerData?.maxStreak ?? player.maxStreak;
   const streak = enrichedPlayerData?.streak ?? player.streak;
   const totalMvp = enrichedPlayerData?.totalMvp ?? player.totalMvp;
@@ -228,6 +248,8 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
 
   const winRate = matches > 0 ? Math.round((totalWins / matches) * 100) : 0;
   const mvpRate = matches > 0 ? Math.round((totalMvp / matches) * 100) : 0;
+  // Calculate losses consistently: if we have season data, losses = seasonLosses
+  // If not, derive from matches - wins (but only if it makes sense)
   const losses = totalLosses > 0 ? totalLosses : Math.max(0, matches - totalWins);
   // Only show rank badges when the player has actual competitive results (points or wins)
   // Without this check, ALL players show "Juara" badges when no matches have been played
@@ -294,6 +316,31 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
   // in-game performance metrics or per-match score trends.
   const hasMatchHistory = matches > 0;
   const avatarSrc = getAvatarUrl(player.gamertag, playerDivision as 'male' | 'female', player.avatar);
+
+  // ═══ Override header stats from match history when available ═══
+  // When match history data loads, compute W/L from actual match results.
+  // This is more accurate than DB counters because:
+  // 1. TBD/upcoming matches are NOT counted as losses
+  // 2. Only completed matches with scores are counted
+  // 3. This matches what the match history section shows
+  const matchHistoryStats = useMemo(() => {
+    if (!matchHistoryData) return null;
+    const allResults: Array<'win' | 'loss' | 'upcoming' | null> = [
+      ...(matchHistoryData.tournamentMatches || []).map((m: any) => m.result),
+      ...(matchHistoryData.leagueMatches || []).map((m: any) => m.result),
+    ];
+    const completedWins = allResults.filter((r: string | null) => r === 'win').length;
+    const completedLosses = allResults.filter((r: string | null) => r === 'loss').length;
+    const completedMatches = completedWins + completedLosses;
+    return { wins: completedWins, losses: completedLosses, matches: completedMatches };
+  }, [matchHistoryData]);
+
+  // Final display values: prefer match history stats (most accurate),
+  // then season data from caller, then lifetime data as fallback
+  const displayWins = matchHistoryStats?.wins ?? totalWins;
+  const displayLosses = matchHistoryStats?.losses ?? losses;
+  const displayMatches = matchHistoryStats?.matches ?? matches;
+  const displayWinRate = displayMatches > 0 ? Math.round((displayWins / displayMatches) * 100) : 0;
 
   // Portal target — render modal directly into document.body to avoid
   // parent overflow/transform breaking position:fixed centering.
@@ -651,9 +698,9 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
             {/* ═══ Main Stats Grid — Dance Tournament HUD Style ═══ */}
             <div className="grid grid-cols-4 gap-2 mb-4">
               <StatBlock icon={Trophy} label="Poin" value={points} sub={lifetimePoints !== points ? `${lifetimePoints} total` : undefined} color={dt.text} highlight size="large" playerDivision={playerDivision as 'male' | 'female'} />
-              <StatBlock icon={Target} label="Win Rate" value={`${winRate}%`} sub={`${totalWins}W/${losses}L`} color="text-green-500" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Target} label="Win Rate" value={`${displayWinRate}%`} sub={`${displayWins}W/${displayLosses}L`} color="text-green-500" playerDivision={playerDivision as 'male' | 'female'} />
               <StatBlock icon={Crown} label="MVP" value={totalMvp} sub={`${mvpRate}% rasio`} color="text-yellow-500" playerDivision={playerDivision as 'male' | 'female'} />
-              <StatBlock icon={Activity} label="Match" value={matches} color="text-blue-400" playerDivision={playerDivision as 'male' | 'female'} />
+              <StatBlock icon={Activity} label="Match" value={displayMatches} color="text-blue-400" playerDivision={playerDivision as 'male' | 'female'} />
             </div>
 
             {/* ═══ Performance Overview — based on actual record only ═══ */}
@@ -662,15 +709,15 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
                 <div className="flex items-center gap-2 mb-3">
                   <BarChart3 className={`w-4 h-4 ${dt.text}`} />
                   <span className="text-xs font-semibold">Ringkasan Performa</span>
-                  <Badge className={`${dt.casinoBadge} text-[8px] ml-auto`}>{matches} MATCH</Badge>
+                  <Badge className={`${dt.casinoBadge} text-[8px] ml-auto`}>{displayMatches} MATCH</Badge>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="p-3 sm:p-4 rounded-lg bg-green-500/5 border border-green-500/10">
-                    <p className="text-lg font-bold text-green-500">{totalWins}</p>
+                    <p className="text-lg font-bold text-green-500">{displayWins}</p>
                     <p className="text-[9px] text-muted-foreground uppercase">Wins</p>
                   </div>
                   <div className="p-3 sm:p-4 rounded-lg bg-red-500/5 border border-red-500/10">
-                    <p className="text-lg font-bold text-red-500">{losses}</p>
+                    <p className="text-lg font-bold text-red-500">{displayLosses}</p>
                     <p className="text-[9px] text-muted-foreground uppercase">Losses</p>
                   </div>
                   <div className="p-3 sm:p-4 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
@@ -690,16 +737,16 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
             <div className="mb-4">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="text-muted-foreground font-medium">Win Rate</span>
-                <span className={`font-black ${dt.text}`}>{winRate}%</span>
+                <span className={`font-black ${dt.text}`}>{displayWinRate}%</span>
               </div>
               <div className={`h-2.5 rounded-full ${dt.bgSubtle} overflow-hidden`}>
                 <div
                   className={`h-full rounded-full transition-[width] duration-700 ease-out ${
-                    winRate >= 60
+                    displayWinRate >= 60
                       ? `bg-gradient-to-r ${playerDivision === 'male' ? 'from-idm-male to-idm-male-light' : 'from-idm-female to-idm-female-light'}`
-                      : winRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                      : displayWinRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
-                  style={{ width: `${winRate}%` }}
+                  style={{ width: `${displayWinRate}%` }}
                 />
               </div>
             </div>
@@ -782,11 +829,11 @@ export function PlayerProfile({ player, onClose, rank, skinMap, preferredSkinTyp
                 <div className={`p-4 sm:p-5 rounded-2xl ${dt.bgSubtle} border ${dt.borderSubtle}`}>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="text-center">
-                      <p className="text-2xl font-black text-green-500">{totalWins}</p>
+                      <p className="text-2xl font-black text-green-500">{displayWins}</p>
                       <p className="text-[9px] text-muted-foreground uppercase">Wins</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-black text-red-500">{losses}</p>
+                      <p className="text-2xl font-black text-red-500">{displayLosses}</p>
                       <p className="text-[9px] text-muted-foreground uppercase">Losses</p>
                     </div>
                   </div>

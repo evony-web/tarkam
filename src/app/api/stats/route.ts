@@ -183,6 +183,7 @@ export async function GET(request: Request) {
     seasonDonations,
     seasonPointsRaw,
     seasonWinsRaw,
+    seasonLossesRaw,
     allDivisionPlayers,
     clubs,
     recentMatches,
@@ -231,10 +232,20 @@ export async function GET(request: Request) {
       _sum: { amount: true },
     }),
 
-    // Per-season wins — count match_win records per player for this season
+    // Per-season wins — sum match_win amounts per player for this season
+    // Uses _sum instead of _count because some historical records aggregate
+    // multiple wins into a single record (amount=N) instead of N records (amount=1 each)
     db.playerPoint.groupBy({
       by: ['playerId'],
       where: { seasonId: activeSeasonId, reason: 'match_win' },
+      _sum: { amount: true },
+    }),
+
+    // Per-season losses — count match_loss records per player for this season
+    // match_loss records always have amount=0, so we count records (each = 1 loss)
+    db.playerPoint.groupBy({
+      by: ['playerId'],
+      where: { seasonId: activeSeasonId, reason: 'match_loss' },
       _count: { reason: true },
     }),
 
@@ -446,7 +457,11 @@ export async function GET(request: Request) {
   const seasonPointsMap = new Map(seasonPointsRaw.map((sp: { playerId: string; _sum: { amount: number | null } }) => [sp.playerId, sp._sum.amount || 0]));
 
   // Build a map of playerId → per-season wins from PlayerPoint match_win records
-  const seasonWinsMap = new Map(seasonWinsRaw.map((sw: { playerId: string; _count: { reason: number } }) => [sw.playerId, sw._count.reason || 0]));
+  // Uses _sum.amount because some historical records aggregate wins (amount=N)
+  const seasonWinsMap = new Map(seasonWinsRaw.map((sw: { playerId: string; _sum: { amount: number | null } }) => [sw.playerId, sw._sum.amount || 0]));
+
+  // Build a map of playerId → per-season losses from PlayerPoint match_loss records
+  const seasonLossesMap = new Map(seasonLossesRaw.map((sl: { playerId: string; _count: { reason: number } }) => [sl.playerId, sl._count.reason || 0]));
 
   // ★ Fallback: when no PlayerPoint records exist for this season,
   // use lifetime points instead of showing 0 for all players.
@@ -462,16 +477,20 @@ export async function GET(request: Request) {
       const seasonPoints = seasonPointsMap.get(p.id) || 0;
       // When no PlayerPoint records exist for this season, fall back to lifetime points
       const displayPoints = hasSeasonPoints ? seasonPoints : (p.points || 0);
-      // Streak bonus points: +2 per 3 consecutive wins
-      // Per-season streak bonus = seasonPoints - seasonWins (remaining points are from streak/prize)
-      const seasonLosses = Math.max(0, (p.totalLosses || 0)); // Lifetime losses (no per-season tracking yet)
+      // Per-season losses from PlayerPoint match_loss records
+      // Fallback: if no match_loss records exist (pre-migration data), compute from
+      // seasonMatches - seasonWins where seasonMatches = seasonWins + seasonLosses from PlayerPoint
+      const seasonLosses = seasonLossesMap.get(p.id) || 0;
+      // Season matches = seasonWins + seasonLosses (only from PlayerPoint records)
+      const seasonMatches = seasonWins + seasonLosses;
       return {
         ...p,
         points: displayPoints, // Use per-season points when available, lifetime points as fallback
         seasonPoints,
         lifetimePoints: p.points,
         seasonWins, // Per-season wins from PlayerPoint records
-        seasonLosses, // Lifetime losses (best available until per-season match tracking is added)
+        seasonLosses, // Per-season losses from PlayerPoint records
+        seasonMatches, // Per-season match count (wins + losses)
         club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : undefined,
       };
     })
@@ -1449,7 +1468,7 @@ export async function GET(request: Request) {
     femalePrizePool,
     activeTournamentPrizePool,
     seasonDonationTotal,
-    topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, seasonLosses, division: _division, ...p }: any) => p),
+    topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, division: _division, ...p }: any) => p),
     skinMap,
     clubs: flatClubs.slice(0, 10).map(({ bannerImage, ...c }: any) => c),
     recentMatches: flatRecentMatches,
