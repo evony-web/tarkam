@@ -88,11 +88,14 @@ export function HeroSection({
   const femalePlayers = femaleData?.totalPlayers || 0;
   const maleClubs = maleData?.clubs?.length || 0;
   const femaleClubs = femaleData?.clubs?.length || 0;
-  const maleMatches = maleData?.totalMatchCount || (maleData?.recentMatches?.length || 0) + (maleData?.upcomingMatches?.length || 0);
-  const femaleMatches = femaleData?.totalMatchCount || (femaleData?.recentMatches?.length || 0) + (femaleData?.upcomingMatches?.length || 0);
+  // totalMatchCount may be undefined in stale React Query cache (added in later version).
+  // Only use it when explicitly present (number); never fall through to 0 from undefined.
+  const maleMatches = typeof maleData?.totalMatchCount === 'number' ? maleData.totalMatchCount : undefined;
+  const femaleMatches = typeof femaleData?.totalMatchCount === 'number' ? femaleData.totalMatchCount : undefined;
   const totalPlayers = malePlayers + femalePlayers;
   const totalClubs = maleClubs + femaleClubs;
-  const totalMatches = maleMatches + femaleMatches;
+  // Only compute total when BOTH divisions have real data — avoids "0 Match" flash from stale cache
+  const totalMatches = (maleMatches !== undefined && femaleMatches !== undefined) ? maleMatches + femaleMatches : undefined;
 
   /* ─── Season Champions (latest season with champion, including active) ─── */
   const maleChampionSeason = !isSeasonDataPlaceholder ? maleData?.allSeasons?.filter(s => s.championPlayer).sort((a, b) => b.number - a.number)[0] : undefined;
@@ -495,7 +498,11 @@ export function HeroSection({
               <div className="hero-stats-dot" />
               <div className="flex items-center gap-1">
                 <Swords className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-idm-gold-warm/50" />
-                <span className="text-xs sm:text-sm font-bold text-idm-gold-warm/80 tabular-nums">{totalMatches}</span>
+                {totalMatches !== undefined ? (
+                  <span className="text-xs sm:text-sm font-bold text-idm-gold-warm/80 tabular-nums">{totalMatches}</span>
+                ) : (
+                  <span className="text-xs sm:text-sm font-bold text-idm-gold-warm/30 tabular-nums animate-pulse">—</span>
+                )}
                 <span className="text-[9px] sm:text-[10px] text-idm-gold-warm/40 uppercase tracking-wider font-semibold">Match</span>
               </div>
             </div>
