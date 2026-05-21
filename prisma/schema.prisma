@@ -1,18 +1,14 @@
-// ──── Dual-Environment Schema ────
-// This schema is ALWAYS committed as "postgresql" for Vercel/Neon.
-// Local dev uses SQLite — the switch-provider.mjs script handles this:
-//   - `bun run dev` → auto-switches to sqlite, generates client, restores to postgresql
-//   - Vercel build → uses postgresql directly
-// NEVER change the provider manually — use: node scripts/switch-provider.mjs <sqlite|postgresql>
+// Local development schema (SQLite)
+// This file is used for local development only.
+// Production uses schema.prisma with PostgreSQL.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -51,10 +47,9 @@ model Player {
   pointRecords     PlayerPoint[]
   achievements     PlayerAchievement[]
   account          Account?
-  championSeasons   Season[]      @relation("SeasonPlayerChampion")
-  sultanSeasons     Season[]      @relation("SeasonSultan")
-  sultanTournaments Tournament[]  @relation("TournamentSultan")
-  marketplaceItems  MarketplaceItem[]
+  championSeasons  Season[]      @relation("SeasonPlayerChampion")
+  sultanSeasons    Season[]      @relation("SeasonSultan")
+  marketplaceItems MarketplaceItem[]
   seasonStats      PlayerSeasonStats[]
   donations        Donation[]
 
@@ -138,12 +133,10 @@ model Tournament {
   scheduledAt        DateTime?
   finalizedAt        DateTime?
   completedAt        DateTime?
-  sultanPlayerId     String?   // Manual override: Sultan of the Week (top penyawer per tournament)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   season              Season              @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  sultanPlayer        Player?             @relation("TournamentSultan", fields: [sultanPlayerId], references: [id], onDelete: SetNull)
   teams               Team[]
   matches             Match[]
   participations      Participation[]
