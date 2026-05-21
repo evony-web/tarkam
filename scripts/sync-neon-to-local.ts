@@ -13,7 +13,7 @@ import { neon } from '@neondatabase/serverless';
 import { PrismaClient } from '@prisma/client';
 
 // ── Neon Connection (READ ONLY) ──
-const NEON_URL = 'postgresql://neondb_owner:npg_epghiw6q0vVa@ep-red-lab-a174k45q-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+const NEON_URL = process.env.NEON_DATABASE_URL || 'postgresql://neondb_owner:npg_epghiw6q0vVa@ep-red-lab-a174k45q-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
 const sql = neon(NEON_URL);
 
 // ── Local SQLite Connection ──
