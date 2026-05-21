@@ -18,9 +18,6 @@ export { PageTransition, SectionReveal, StaggerContainer, staggerItem, AnimatedC
 // Mobile Interactions
 export { usePullToRefresh, useSwipe, useHaptic, PullToRefresh, Swipeable } from './mobile-interactions';
 
-// Social Feed
-export { SocialFeed, LiveMatchBanner, CountdownTimer } from './social-feed';
-
 // Navigation
 export { BackToTop } from './back-to-top';
 export { ScrollProgress } from './scroll-progress';

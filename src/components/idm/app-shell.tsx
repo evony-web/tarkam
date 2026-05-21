@@ -41,7 +41,6 @@ const viewLoading = (
   </div>
 );
 
-// Dashboard component removed — dashboard view now shows AdminPanel directly
 const LeagueView = dynamic(() => import('./league-view').then(m => ({ default: m.LeagueView })), {
   loading: () => viewLoading,
 });
@@ -54,7 +53,6 @@ const MatchDayCenter = dynamic(() => import('./match-day-center').then(m => ({ d
 const RegistrationForm = dynamic(() => import('./registration-form').then(m => ({ default: m.RegistrationForm })), {
   loading: () => <div className="max-w-md mx-auto"><div className="skeleton-shimmer h-96 rounded-2xl" /></div>,
 });
-// CommunityDashboard removed — dashboard view now shows AdminPanel directly
 
 const MarketplaceView = dynamic(() => import('./marketplace-view').then(m => ({ default: m.MarketplaceView })), {
   loading: () => viewLoading,
@@ -538,16 +536,6 @@ export function AppShell() {
           onClose={hideDonationPopup}
         />
       </>
-    );
-  }
-
-  // "community" view redirects to landing — CommunityDashboard removed
-  if ((currentView as AppView) === 'community') {
-    return (
-      <AdminRedirectGuard onRedirect={() => setCurrentView('landing')}>
-        <LandingPage />
-        <DonationPopup show={donationPopup.show} message={donationPopup.message} onClose={hideDonationPopup} />
-      </AdminRedirectGuard>
     );
   }
 

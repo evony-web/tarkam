@@ -443,8 +443,6 @@ export function LandingPage() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
-  // enterCommunity removed — community view now redirects to landing
-
   /* Nav scroll state — optimized for INP:
      - Use refs to skip setState when value hasn't changed (prevents unnecessary re-renders)
      - rAF throttle already in place, now also guards against no-op state updates */
@@ -763,7 +761,6 @@ export function LandingPage() {
         cmsSections={cmsSections}
         cmsSettings={cms}
         onEnterApp={enterApp}
-        onEnterCommunity={() => setCurrentView('landing')}
         onRegister={() => { setRegistrationDefaultDivision(null); setRegistrationModalOpen(true); }}
         onViewBracket={enterBracket}
         onVideoPlay={openVideoModal}

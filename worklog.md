@@ -41,3 +41,27 @@ Stage Summary:
 - All navigation updated: community→landing, dashboard→admin
 - Lint passes (only pre-existing script errors remain)
 - Dev server running, HTTP 200 confirmed, no errors
+---
+Task ID: 1
+Agent: main
+Task: Clean up unused dashboard/community components and dead code
+
+Work Log:
+- Explored entire project structure to identify used vs unused components
+- Identified 26+ dead files that are never imported or rendered
+- Deleted 3 dead dashboard view files: dashboard.tsx (735+ lines), champions-page.tsx, clubs-page.tsx
+- Deleted 23 unused standalone components: the-dream, cta, gallery, ticker, mvp, sawer, bantuan-view, footer, champions, login-page, ranking-panel, activity-feed, tournament-view, participant-grid, player-comparison, club-peserta, gallery-section, hero, splash-screen, player-search, my-account-card, player-quick-search, countdown-timer
+- Deleted dead UI component: ui/social-feed.tsx
+- Cleaned up store.ts: removed "community", "champions", "clubs" from AppView type
+- Cleaned up app-shell.tsx: removed community redirect block and dead comments
+- Cleaned up use-shell-theme.ts: removed community view check
+- Cleaned up ui/index.ts: removed SocialFeed export
+- Removed dead onEnterCommunity prop from HeroSection and landing-page.tsx
+- Verified: lint passes (only pre-existing script errors), app compiles and loads successfully
+
+Stage Summary:
+- 27 files deleted (~2000+ lines of dead code removed)
+- 4 files modified (store.ts, app-shell.tsx, use-shell-theme.ts, ui/index.ts, hero-section.tsx, landing-page.tsx)
+- AppView type cleaned: removed 3 dead view keys (community, champions, clubs)
+- Admin panel and home button preserved untouched
+- All active features intact: beranda, peringkat, hasil, bracket, juara, pemain, admin panel

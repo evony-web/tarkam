@@ -23,7 +23,6 @@ interface HeroSectionProps {
   cmsSections: Record<string, any>;
   cmsSettings: Record<string, string>;
   onEnterApp: (division: 'male' | 'female') => void;
-  onEnterCommunity: () => void;
   onRegister: (division: 'male' | 'female') => void;
   onViewBracket: (division: 'male' | 'female') => void;
   onVideoPlay?: (url: string, title: string) => void;
@@ -43,7 +42,6 @@ export function HeroSection({
   cmsSections,
   cmsSettings,
   onEnterApp,
-  onEnterCommunity,
   onRegister,
   onViewBracket,
   onVideoPlay,
