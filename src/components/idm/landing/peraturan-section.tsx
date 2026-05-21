@@ -130,7 +130,7 @@ export function PeraturanSection({ cmsSettings }: PeraturanSectionProps) {
       {/* Subtle glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-48 bg-idm-gold-warm/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto">
+      <div className="relative z-10 w-full">
         <SectionHeader
           icon={BookOpen}
           label="Peraturan"
