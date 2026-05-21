@@ -1449,7 +1449,7 @@ export async function GET(request: Request) {
     femalePrizePool,
     activeTournamentPrizePool,
     seasonDonationTotal,
-    topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, totalLosses, maxStreak, matches: _matches, seasonLosses, lifetimePoints, city, division: _division, ...p }: any) => p),
+    topPlayers: topPlayers.slice(0, 20).map(({ clubMembers, seasonLosses, division: _division, ...p }: any) => p),
     skinMap,
     clubs: flatClubs.slice(0, 10).map(({ bannerImage, ...c }: any) => c),
     recentMatches: flatRecentMatches,

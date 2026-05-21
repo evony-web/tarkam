@@ -1,6 +1,6 @@
 # TARKAM IDM — Master Worklog
 
-> **Terakhir diperbarui**: Session 4 (2026-03-05)
+> **Terakhir diperbarui**: Session 5 (2026-03-05)
 > **Status project**: Production-ready, semua bug kritis sudah diperbaiki
 > **Dev server**: `bun run dev` — port 3000, double-fork via start-dev.js
 
@@ -50,7 +50,7 @@
 ### Backend (API Routes)
 | File | Perubahan |
 |------|-----------|
-| `src/app/api/stats/route.ts` | +totalMatchCount query, +malePoint/femalePoint/maleCount/femaleCount di flatClubs, trimmed response sizes |
+| `src/app/api/stats/route.ts` | +totalMatchCount, +malePoint/femalePoint/maleCount/femaleCount, **RESTORE matches/totalLosses/maxStreak/lifetimePoints/city di topPlayers** (sebelumnya di-trim) |
 | `src/app/api/league/route.ts` | +tournamentMatches query, totalMatches = league + tournament |
 | `src/app/api/cms/settings/route.ts` | Tidak diubah (sudah benar) |
 
@@ -155,6 +155,15 @@ type AppView = 'landing' | 'peringkat' | 'hasil' | 'bracket' | 'juara' | 'pemain
 - Neon quota exceeded → tidak bisa sync data ke production DB (butuh project baru)
 - Empty Juara page & Peringkat page — mungkin butuh data atau komponen baru
 - Female data delay — kadang data female sedikit terlambat load
+
+### Data Flow: Leaderboard vs Player Profile Modal (SUDAH FIX)
+- **Leaderboard** (`/api/stats` topPlayers): Mengirim `points` (season), `seasonPoints`, `lifetimePoints`, `totalWins`, `totalLosses`, `matches`, `maxStreak`, `streak`, `totalMvp`, `city`
+- **Modal enrichment** (`/api/players/[id]`): Mengirim lifetime data dari tabel Player
+- **Merge logic di player-profile.tsx**:
+  - `totalWins`, `totalLosses`, `matches`, `maxStreak`, `streak`, `totalMvp` → prefer enrichment API (authoritative)
+  - `points` (display) → seasonPoints dari caller (leaderboard), bukan lifetime
+  - `lifetimePoints` → dari enrichment API, ditampilkan sebagai subtitle "X total"
+- **Root cause perbedaan data (FIXED)**: Sebelumnya `/api/stats` topPlayers trimming menghapus `matches`, `totalLosses`, `maxStreak`, `lifetimePoints`, `city` → modal fallback ke enrichment API yang bisa return data berbeda (lifetime vs season). Sekarang field-field tersebut dikembalikan sehingga modal punya data lengkap dari caller sebelum enrichment tiba.
 
 ---
 
