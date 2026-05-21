@@ -46,6 +46,12 @@ export async function POST(
       continue;
     }
 
+    // ★ FIX: Validate division match — female player cannot register in male tournament and vice versa
+    if (tournament.division && player.division && tournament.division !== player.division) {
+      results.errors.push(`Player ${player.gamertag || pid} is ${player.division} division but tournament is ${tournament.division}`);
+      continue;
+    }
+
     // Check if already registered
     const existing = await db.participation.findUnique({
       where: { playerId_tournamentId: { playerId: pid, tournamentId: id } },

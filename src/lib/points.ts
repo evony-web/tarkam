@@ -51,6 +51,7 @@ export async function awardPoints(params: {
 /**
  * Recalculate all player points from scratch using PlayerPoint audit trail.
  * This is a safety net for data integrity.
+ * Also fixes totalWins, totalLosses, matches, and streak values.
  */
 export async function recalculateAllPoints(division?: string) {
   const where: Record<string, string> = {};
@@ -67,6 +68,7 @@ export async function recalculateAllPoints(division?: string) {
   }[] = [];
 
   for (const player of players) {
+    // Step 1: Recalculate lifetime points from audit trail
     const pointRecords = await db.playerPoint.findMany({
       where: { playerId: player.id },
     });
@@ -74,10 +76,49 @@ export async function recalculateAllPoints(division?: string) {
     const calculatedPoints = pointRecords.reduce((sum, r) => sum + r.amount, 0);
     const diff = calculatedPoints - player.points;
 
-    if (diff !== 0) {
+    // Step 2: Recalculate totalWins from match_win records
+    const matchWinRecords = pointRecords.filter(r => r.reason === 'match_win');
+    const calculatedWins = matchWinRecords.length;
+
+    // Step 3: Recalculate totalLosses from matches where player's team lost
+    // Count matches the player participated in (from participations) minus wins
+    const playerParticipations = await db.participation.findMany({
+      where: { playerId: player.id, status: { in: ['approved', 'assigned'] } },
+      select: { tournamentId: true },
+    });
+    const tournamentIds = playerParticipations.map(p => p.tournamentId);
+
+    // Get all completed matches in those tournaments where the player was on a team
+    const teamPlayers = await db.teamPlayer.findMany({
+      where: { playerId: player.id },
+      select: { teamId: true },
+    });
+    const teamIds = teamPlayers.map(tp => tp.teamId);
+
+    const totalMatchesPlayed = await db.match.count({
+      where: {
+        tournamentId: { in: tournamentIds },
+        status: 'completed',
+        OR: [
+          { team1Id: { in: teamIds } },
+          { team2Id: { in: teamIds } },
+        ],
+      },
+    });
+
+    const calculatedLosses = Math.max(0, totalMatchesPlayed - calculatedWins);
+
+    // Step 4: Build update data
+    const updateData: Record<string, any> = {};
+    if (diff !== 0) updateData.points = calculatedPoints;
+    if (player.totalWins !== calculatedWins) updateData.totalWins = calculatedWins;
+    if (player.totalLosses !== calculatedLosses) updateData.totalLosses = calculatedLosses;
+    if (player.matches !== totalMatchesPlayed) updateData.matches = totalMatchesPlayed;
+
+    if (Object.keys(updateData).length > 0) {
       await db.player.update({
         where: { id: player.id },
-        data: { points: calculatedPoints },
+        data: updateData,
       });
     }
 

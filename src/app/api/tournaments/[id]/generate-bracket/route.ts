@@ -256,6 +256,7 @@ export async function POST(
     }
 
     // --- BYE handling (odd number of teams) ---
+    // ★ FIX: Award win points for BYE teams in Swiss R1 (same as later-round BYE handling in score route)
     if (isOdd) {
       const byeTeam = swissTeams[swissTeams.length - 1];
       matchNumber++;
@@ -276,6 +277,67 @@ export async function POST(
         },
       });
       matches.push(byeMatch);
+
+      // ★ Award BYE win points to all players on the bye team
+      const byeTeamWithPlayers = await db.team.findUnique({
+        where: { id: byeTeam.id },
+        include: { teamPlayers: { include: { player: true } } },
+      });
+      if (byeTeamWithPlayers) {
+        for (const tp of byeTeamWithPlayers.teamPlayers) {
+          const winPts = 1; // +1 pt per win for ALL formats
+          const newStreak = tp.player.streak + 1;
+          const oldStreakBonus = Math.floor(tp.player.streak / 3) * 2;
+          const newStreakBonus = Math.floor(newStreak / 3) * 2;
+          const streakBonus = newStreakBonus - oldStreakBonus;
+
+          await db.playerPoint.create({
+            data: {
+              playerId: tp.playerId,
+              amount: winPts,
+              reason: 'match_win',
+              description: `BYE win SR1`,
+              tournamentId: id,
+              seasonId: tournament.seasonId,
+            },
+          });
+
+          if (streakBonus > 0) {
+            await db.playerPoint.create({
+              data: {
+                playerId: tp.playerId,
+                amount: streakBonus,
+                reason: 'streak_bonus',
+                description: `Streak bonus ${newStreak} berturut-turut (BYE R1)`,
+                tournamentId: id,
+                seasonId: tournament.seasonId,
+              },
+            });
+          }
+
+          await db.player.update({
+            where: { id: tp.playerId },
+            data: {
+              totalWins: tp.player.totalWins + 1,
+              matches: tp.player.matches + 1,
+              streak: newStreak,
+              maxStreak: Math.max(tp.player.maxStreak, newStreak),
+              points: tp.player.points + winPts + streakBonus,
+            },
+          });
+
+          // Update participation pointsEarned
+          const participation = await db.participation.findUnique({
+            where: { playerId_tournamentId: { playerId: tp.playerId, tournamentId: id } },
+          });
+          if (participation) {
+            await db.participation.update({
+              where: { id: participation.id },
+              data: { pointsEarned: participation.pointsEarned + winPts + streakBonus },
+            });
+          }
+        }
+      }
     }
 
     // --- Playoff bracket (pre-created, teams TBD) ---

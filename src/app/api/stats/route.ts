@@ -440,18 +440,26 @@ export async function GET(request: Request) {
   // Build a map of playerId → per-season wins from PlayerPoint match_win records
   const seasonWinsMap = new Map(seasonWinsRaw.map((sw: { playerId: string; _count: { reason: number } }) => [sw.playerId, sw._count.reason || 0]));
 
+  // ★ Fallback: when no PlayerPoint records exist for this season,
+  // use lifetime points instead of showing 0 for all players.
+  // This ensures the Peringkat page shows meaningful data even
+  // when no tournament has been finalized yet.
+  const hasSeasonPoints = seasonPointsRaw.length > 0;
+
   // Merge: players with season points first (sorted by per-season points), then those without
   const topPlayers = (allDivisionPlayers as any[])
     .map(p => {
       const activeClub = p.clubMembers?.[0]?.profile;
       const seasonWins = seasonWinsMap.get(p.id) || 0;
       const seasonPoints = seasonPointsMap.get(p.id) || 0;
+      // When no PlayerPoint records exist for this season, fall back to lifetime points
+      const displayPoints = hasSeasonPoints ? seasonPoints : (p.points || 0);
       // Streak bonus points: +2 per 3 consecutive wins
       // Per-season streak bonus = seasonPoints - seasonWins (remaining points are from streak/prize)
       const seasonLosses = Math.max(0, (p.totalLosses || 0)); // Lifetime losses (no per-season tracking yet)
       return {
         ...p,
-        points: seasonPoints, // Override lifetime points with per-season points
+        points: displayPoints, // Use per-season points when available, lifetime points as fallback
         seasonPoints,
         lifetimePoints: p.points,
         seasonWins, // Per-season wins from PlayerPoint records
@@ -460,7 +468,10 @@ export async function GET(request: Request) {
       };
     })
     .sort((a: any, b: any) => {
-      if (b.seasonPoints !== a.seasonPoints) return b.seasonPoints - a.seasonPoints;
+      // When no season points exist, sort by lifetime points
+      const aSortPoints = hasSeasonPoints ? a.seasonPoints : a.lifetimePoints;
+      const bSortPoints = hasSeasonPoints ? b.seasonPoints : b.lifetimePoints;
+      if (bSortPoints !== aSortPoints) return bSortPoints - aSortPoints;
       if (b.seasonWins !== a.seasonWins) return b.seasonWins - a.seasonWins;
       return b.totalMvp - a.totalMvp;
     });
@@ -639,19 +650,17 @@ export async function GET(request: Request) {
             gamertag: tp.player.gamertag,
             avatar: tp.player.avatar,
             tier: tp.player.tier,
-            points: seasonPointsMap.get(tp.player.id) || tp.player.points,
+            points: hasSeasonPoints ? (seasonPointsMap.get(tp.player.id) || 0) : tp.player.points,
             totalWins: tp.player.totalWins,
             totalMvp: tp.player.totalMvp,
             streak: tp.player.streak,
-            matches: tp.player.matches,
             club: activeClub ? { id: activeClub.id, name: activeClub.name, logo: activeClub.logo } : null,
-            city: tp.player.city || null,
           };
         }),
       } : null,
-      mvp: mvpPlayer ? { id: mvpPlayer.id, gamertag: mvpPlayer.gamertag, avatar: mvpPlayer.avatar, tier: mvpPlayer.tier, totalMvp: mvpPlayer.totalMvp, points: seasonPointsMap.get(mvpPlayer.id) || mvpPlayer.points } : null,
+      mvp: mvpPlayer ? { id: mvpPlayer.id, gamertag: mvpPlayer.gamertag, avatar: mvpPlayer.avatar, tier: mvpPlayer.tier, totalMvp: mvpPlayer.totalMvp, points: hasSeasonPoints ? (seasonPointsMap.get(mvpPlayer.id) || 0) : mvpPlayer.points } : null,
     };
-  });
+  }).slice(-10);
 
   // Season progress
   const completedWeeks = tournaments.filter(t => t.status === 'completed').length;
@@ -666,17 +675,14 @@ export async function GET(request: Request) {
         avatar: p.player.avatar,
         tier: p.player.tier,
         totalMvp: p.player.totalMvp,
-        points: seasonPointsMap.get(p.player.id) || p.player.points,
-        totalWins: p.player.totalWins,
-        streak: p.player.streak,
-        matches: p.player.matches,
+        points: hasSeasonPoints ? (seasonPointsMap.get(p.player.id) || 0) : p.player.points,
         weekNumber: t.weekNumber,
         tournamentName: t.name,
-        prizePool: t.prizePool,
       }))
     )
     .sort((a, b) => +b._sortKey - +a._sortKey)
-    .map(({ _sortKey, ...rest }) => rest);
+    .map(({ _sortKey, ...rest }) => rest)
+    .slice(0, 10);
 
   // ═══ Assemble allSeasonsInfo using batched lookup maps ═══
   // This replaces the Promise.all(allSeasons.map(async ...)) N+1 pattern
@@ -828,7 +834,7 @@ export async function GET(request: Request) {
         const maleScore = members.filter((m: any) => m.division === 'male').reduce((sum: number, m: any) => sum + m.points, 0);
         const femaleScore = members.filter((m: any) => m.division === 'female').reduce((sum: number, m: any) => sum + m.points, 0);
 
-        championClub.members = members;
+        championClub.members = members.sort((a: any, b: any) => b.points - a.points).slice(0, 5);
         championClub.totalPoints = totalPoints;
         championClub.maleScore = maleScore;
         championClub.femaleScore = femaleScore;
@@ -1223,7 +1229,7 @@ export async function GET(request: Request) {
         totalAmount: data.totalAmount,
         donationCount: data.donationCount,
         player: buildPlayerInfo(name),
-      }));
+      })).slice(0, 5);
 
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
@@ -1266,7 +1272,7 @@ export async function GET(request: Request) {
         totalAmount: data.totalAmount,
         donationCount: data.donationCount,
         player: buildPlayerInfo(name),
-      }));
+      })).slice(0, 5);
 
       sultanOfWeekly.push({
         weekNumber: tournament.weekNumber,
@@ -1297,7 +1303,7 @@ export async function GET(request: Request) {
       totalAmount: data.totalAmount,
       donationCount: data.donationCount,
       player: buildPlayerInfo(name),
-    }));
+    })).slice(0, 5);
 
     sultanOfWeekly.push({
       weekNumber: tournament.weekNumber,
@@ -1316,8 +1322,9 @@ export async function GET(request: Request) {
     });
   }
 
-  // Sort by weekNumber ascending
+  // Sort by weekNumber ascending, then limit to most recent 10 for response size
   sultanOfWeekly.sort((a, b) => a.weekNumber - b.weekNumber);
+  // Keep all for skinMap computation (below), but will slice in response
 
   // ═══ SULTAN OF THE WEEK — Add virtual skin entries to skinMap ═══
   // Only the LATEST week's Sultan gets the sultan_weekly skin (current reigning Sultan)
@@ -1379,7 +1386,48 @@ export async function GET(request: Request) {
     season,
     allSeasons: allSeasonsInfo,
     seasonForClubs, // Season that has clubs — used by admin club management
-    activeTournament: activeTournament ? { ...activeTournament, division: division as 'male' | 'female' } : null,
+    activeTournament: activeTournament
+      ? activeTournament.status === 'completed'
+        ? { id: activeTournament.id, name: activeTournament.name, weekNumber: activeTournament.weekNumber, status: activeTournament.status, division: division as 'male' | 'female' }
+        : {
+            id: activeTournament.id,
+            name: activeTournament.name,
+            weekNumber: activeTournament.weekNumber,
+            status: activeTournament.status,
+            format: activeTournament.format,
+            defaultMatchFormat: activeTournament.defaultMatchFormat,
+            seasonId: activeTournament.seasonId,
+            prizePool: activeTournament.prizePool,
+            bpm: activeTournament.bpm,
+            location: activeTournament.location,
+            scheduledAt: activeTournament.scheduledAt,
+            finalizedAt: activeTournament.finalizedAt,
+            completedAt: activeTournament.completedAt,
+            createdAt: activeTournament.createdAt,
+            updatedAt: activeTournament.updatedAt,
+            division: division as 'male' | 'female',
+            // Trimmed sub-collections for response size reduction
+            teams: (activeTournament.teams as any[])?.map((t: any) => ({
+              id: t.id, name: t.name, power: t.power, isWinner: t.isWinner, rank: t.rank,
+              teamPlayers: t.teamPlayers?.map((tp: any) => ({ playerId: tp.playerId, tier: tp.tier })),
+            })),
+            matches: (activeTournament.matches as any[])?.map((m: any) => ({
+              id: m.id, round: m.round, matchNumber: m.matchNumber, bracket: m.bracket, groupLabel: m.groupLabel,
+              format: m.format, score1: m.score1, score2: m.score2, status: m.status,
+              team1Id: m.team1Id, team2Id: m.team2Id, winnerId: m.winnerId, mvpPlayerId: m.mvpPlayerId,
+              scheduledAt: m.scheduledAt, completedAt: m.completedAt,
+              team1: m.team1 ? { id: m.team1.id, name: m.team1.name } : null,
+              team2: m.team2 ? { id: m.team2.id, name: m.team2.name } : null,
+              mvpPlayer: m.mvpPlayer ? { id: m.mvpPlayer.id, gamertag: m.mvpPlayer.gamertag, avatar: m.mvpPlayer.avatar, tier: m.mvpPlayer.tier } : null,
+            })),
+            participations: (activeTournament.participations as any[])?.map((p: any) => ({
+              id: p.id, playerId: p.playerId, status: p.status, tierOverride: p.tierOverride,
+              pointsEarned: p.pointsEarned, isMvp: p.isMvp, isWinner: p.isWinner,
+              player: { id: p.player.id, gamertag: p.player.gamertag },
+            })),
+            donations: activeTournament.donations?.length ? [{ count: activeTournament.donations.length, total: activeTournament.donations.reduce((s: number, d: any) => s + d.amount, 0) }] : [],
+          }
+      : null,
     totalPlayers,
     approvedPlayerCount,
     totalPrizePool,
@@ -1387,25 +1435,31 @@ export async function GET(request: Request) {
     femalePrizePool,
     activeTournamentPrizePool,
     seasonDonationTotal,
-    topPlayers,
+    topPlayers: topPlayers.slice(0, 30).map(({ clubMembers, totalLosses, maxStreak, matches: _matches, seasonLosses, lifetimePoints, city, division: _division, ...p }: any) => p),
     skinMap,
-    clubs: flatClubs,
+    clubs: flatClubs.slice(0, 10).map(({ bannerImage, ...c }: any) => c),
     recentMatches: flatRecentMatches,
     upcomingMatches: flatUpcomingMatches,
     playoffMatches: flatPlayoffMatches,
-    tournaments,
-    weeklyChampions,
-    leagueMatches: flatLeagueMatches,
+    tournaments: tournaments.map((t: any) => ({
+      id: t.id, name: t.name, weekNumber: t.weekNumber, status: t.status,
+      format: t.format, prizePool: t.prizePool, division: t.division,
+      seasonId: t.seasonId, scheduledAt: t.scheduledAt, completedAt: t.completedAt,
+      createdAt: t.createdAt, updatedAt: t.updatedAt,
+      _count: t._count,
+    })),
+    weeklyChampions: weeklyChampions.slice(0, 10),
+    leagueMatches: flatLeagueMatches.slice(0, 20),
     topDonors,
     weeklyTopDonors,
-    mvpHallOfFame,
+    mvpHallOfFame: mvpHallOfFame.slice(0, 10),
     seasonProgress: {
       totalWeeks: SEASON_TOTAL_WEEKS,
       completedWeeks,
       percentage: SEASON_TOTAL_WEEKS > 0 ? Math.round((completedWeeks / SEASON_TOTAL_WEEKS) * 100) : 0,
     },
     weeklyTopPerformers,
-    sultanOfWeekly,
+    sultanOfWeekly: sultanOfWeekly.slice(-10),
   }, {
     headers: STATS_CACHE_HEADERS,
   });

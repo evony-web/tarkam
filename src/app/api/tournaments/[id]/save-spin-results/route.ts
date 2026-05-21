@@ -70,11 +70,12 @@ export async function POST(
         await db.teamPlayer.create({ data: { teamId: team.id, playerId: assignment.aPlayerId, tier: 'A' } });
         await db.teamPlayer.create({ data: { teamId: team.id, playerId: assignment.bPlayerId, tier: 'B' } });
       } else {
+        // ★ FIX: Include tier field for SQLite path (was missing, causing display issues)
         await db.teamPlayer.createMany({
           data: [
-            { teamId: team.id, playerId: assignment.sPlayerId },
-            { teamId: team.id, playerId: assignment.aPlayerId },
-            { teamId: team.id, playerId: assignment.bPlayerId },
+            { teamId: team.id, playerId: assignment.sPlayerId, tier: 'S' },
+            { teamId: team.id, playerId: assignment.aPlayerId, tier: 'A' },
+            { teamId: team.id, playerId: assignment.bPlayerId, tier: 'B' },
           ],
         });
       }
@@ -85,6 +86,20 @@ export async function POST(
         where: { id: team.id },
         data: { name: `Tim ${sPlayer.gamertag}`, power },
       });
+
+      // ★ FIX: Update participation status from 'approved' → 'assigned'
+      // (was missing — other team generation paths do this)
+      for (const playerId of [assignment.sPlayerId, assignment.aPlayerId, assignment.bPlayerId]) {
+        const participation = await db.participation.findUnique({
+          where: { playerId_tournamentId: { playerId, tournamentId: id } },
+        });
+        if (participation && participation.status === 'approved') {
+          await db.participation.update({
+            where: { id: participation.id },
+            data: { status: 'assigned' },
+          });
+        }
+      }
     }
 
     // Return updated teams
