@@ -220,10 +220,10 @@ export function ClubsSection({ maleData, femaleData, isDataLoading, cmsSections,
                       members: [],
                       _key: `f-${c.id}-${i}`,
                     })),
-                  ].reduce((acc: any[], club) => {
+                  ].reduce((acc: any[], club: any) => {
                     // Merge by profileId (same ClubProfile can appear in both divisions)
                     const profileId = club.profileId || club.id;
-                    const existing = acc.find(c => (c.profileId || c.id) === profileId);
+                    const existing = acc.find((c: any) => (c.profileId || c.id) === profileId);
                     if (existing) {
                       // Merge: sum member counts and division-split points
                       existing.maleMemberCount += club.maleMemberCount || 0;

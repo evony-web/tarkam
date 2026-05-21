@@ -19,7 +19,7 @@ const STATS_CACHE_HEADERS = {
 
 export async function GET(request: Request) {
   // ★ Force GC at the start to free memory from previous requests
-  try { if (typeof globalThis.gc === 'function') globalThis.gc(); } catch {}
+  try { if (typeof globalThis.gc === 'function') (globalThis.gc as () => void)(); } catch {}
 
   const headers = new Headers();
   headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
@@ -1579,7 +1579,7 @@ export async function GET(request: Request) {
   });
   // ★ Force garbage collection after heavy stats computation to prevent OOM
   // when both male and female stats are requested in sequence
-  try { if (typeof globalThis.gc === 'function') globalThis.gc(); } catch {}
+  try { if (typeof globalThis.gc === 'function') (globalThis.gc as () => void)(); } catch {}
 
   } catch (error) {
     console.error('[GET /api/stats]', error);
