@@ -1675,13 +1675,15 @@ function GroupStageView({ matches, roundsData, mode, adminProps }: { matches: Ma
 
           if (isAdmin) {
             return (
-              <BracketMatchCard
-                match={m}
-                matchLabel={matchLabel}
-                isGrandFinal={isGrandFinal}
-                mode="admin"
-                adminProps={adminProps}
-              />
+              <div key={m.id}>
+                <BracketMatchCard
+                  match={m}
+                  matchLabel={matchLabel}
+                  isGrandFinal={isGrandFinal}
+                  mode="admin"
+                  adminProps={adminProps}
+                />
+              </div>
             );
           }
 
@@ -2216,13 +2218,15 @@ function SwissView({ matches, roundsData, mode, adminProps }: { matches: Match[]
 
           if (isAdmin) {
             return (
-              <BracketMatchCard
-                match={m}
-                matchLabel={matchLabel}
-                isGrandFinal={isGrandFinal}
-                mode="admin"
-                adminProps={adminProps}
-              />
+              <div key={m.id}>
+                <BracketMatchCard
+                  match={m}
+                  matchLabel={matchLabel}
+                  isGrandFinal={isGrandFinal}
+                  mode="admin"
+                  adminProps={adminProps}
+                />
+              </div>
             );
           }
 
